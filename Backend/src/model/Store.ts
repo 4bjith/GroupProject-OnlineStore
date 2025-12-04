@@ -15,13 +15,27 @@ const StoreSchema = new mongoose.Schema({
         required: true, 
         unique: true,
     },
+    domain: {
+        type: String,
+        unique: true,
+        sparse: true,
+    },
     currency: {
         type: String,
         required: true,
     },
-    template: { 
-        type: String,
+    templateId: { 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Template',
         required: true,
+    },
+    commissionRate: {
+        type: Number,
+        default: 0,
+    },
+    isPublished: {
+        type: Boolean,
+        default: false,
     },
     createdAt: {
         type: Date,
