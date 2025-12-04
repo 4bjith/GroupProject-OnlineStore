@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import storeRouter from './router/Store.js';
+import productRouter from './router/Product.js';
 
 dotenv.config();
 const app = express();
@@ -21,6 +22,7 @@ mongoose.connect(MONGO_URL)
   });
 
   app.use(storeRouter)
+  app.use(productRouter);
 
 
 app.listen(PORT, () => {
