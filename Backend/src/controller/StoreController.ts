@@ -34,6 +34,19 @@ export const getStore = async (req: express.Request, res: express.Response) => {
     }
 } 
 
+export const getAllStores = async (req: express.Request, res: express.Response) => {
+    // Implementation for retrieving all stores
+    try {
+        const stores = await Store.find();
+        if (stores.length === 0) {
+            return res.status(404).json({ error: 'No stores found' });
+        }
+        res.status(200).json(stores);
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
 export const updateStore = async (req: express.Request, res: express.Response) => {
     // Implementation for updating a store by ID
     try {
