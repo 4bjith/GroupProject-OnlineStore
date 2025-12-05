@@ -2,6 +2,10 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import mongoose from 'mongoose';
+
+
+
+import UserRouter from './router/User.js';
 import storeRouter from './router/Store.js';
 import productRouter from './router/Product.js';
 
@@ -11,6 +15,9 @@ app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
+
+app.use("/uploads", express.static("uploads"));
+app.use(UserRouter)
 const MONGO_URL = process.env.MONGO_URL || '';
 
 mongoose.connect(MONGO_URL)

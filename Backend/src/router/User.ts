@@ -1,3 +1,13 @@
-console.log("User router loaded");
+import express from "express";
+import { getUserDetails, loginUser, registerUser, updateUserDetails } from "../controller/User.controller.js";
+import { LoginCheck } from "../Middleware/LoginCheck.js";
+import { upload } from "../multer.js";
 
-console.log("User test");
+const router = express.Router();
+
+router.get("/getuserdetails",LoginCheck ,getUserDetails)
+router.put("/updateuserdetails",LoginCheck,upload.single("profilepic") ,updateUserDetails)
+router.post("/login/user",loginUser)
+router.post("/register/user",registerUser)
+
+export default router;
