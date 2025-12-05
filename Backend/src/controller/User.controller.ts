@@ -2,6 +2,8 @@ import jwt from "jsonwebtoken";
 import express from "express";
 import UserModel from "../model/User.js";
 import bcrypt from "bcrypt";
+import dotenv from "dotenv";
+dotenv.config();
 
 
 export const registerUser = async (req: express.Request, res: express.Response) => {
@@ -37,7 +39,7 @@ export const loginUser = async (req: express.Request, res: express.Response) => 
         if (!isMatch) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
-        const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET as string, { expiresIn: "1h" });
         return res.status(200).json({ token });
     } catch (error) {
         console.error(error);
@@ -66,12 +68,12 @@ export const getUserDetails = async (req: express.Request, res: express.Response
 
 export const updateUserDetails = async (req: express.Request, res: express.Response) => {
     try {
-        const { email, name, number, } = req.body;
+        const { email, name, number, } = req.body as { email: string; name: string; number: string; };
         const file = req.file; // Multer adds this if file is uploaded
         if (!email) {
             return res.status(400).json({ message: "Email is required" });
         }
-        const user = await UserModel.findOne({ email: req.user.email });
+        const user = await UserModel.findOne({ email: req.user?.email }); // req.user is added by the LoginCheck middleware
         if (!user) {
             return res.status(400).json({ message: "User not found" });
         }
