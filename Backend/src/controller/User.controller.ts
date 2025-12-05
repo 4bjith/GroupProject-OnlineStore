@@ -8,7 +8,7 @@ dotenv.config();
 
 export const registerUser = async (req: express.Request, res: express.Response) => {
     try {
-        const { name, email, password, number } = req.body;
+        const { name, email, password, number } = req.body as { name: string; email: string; password: string; number: string; };
         if (!name || !email || !password || !number) {
             return res.status(400).json({ message: "All fields are required" });
         }
@@ -27,7 +27,7 @@ export const registerUser = async (req: express.Request, res: express.Response) 
 
 export const loginUser = async (req: express.Request, res: express.Response) => {
     try {
-        const { email, password } = req.body;
+        const { email, password } = req.body as { email: string; password: string; };
         if (!email || !password) {
             return res.status(400).json({ message: "All fields are required" });
         }
@@ -36,6 +36,7 @@ export const loginUser = async (req: express.Request, res: express.Response) => 
             return res.status(400).json({ message: "User not found" });
         }
         const isMatch = await bcrypt.compare(password, user.password);
+        console.log(isMatch);
         if (!isMatch) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
@@ -50,7 +51,8 @@ export const loginUser = async (req: express.Request, res: express.Response) => 
 
 export const getUserDetails = async (req: express.Request, res: express.Response) => {
     try {
-        const { email } = req.body;
+       const { email } = req.user as jwt.JwtPayload;
+
         if (!email) {
             return res.status(400).json({ message: "Email is required" });
         }
