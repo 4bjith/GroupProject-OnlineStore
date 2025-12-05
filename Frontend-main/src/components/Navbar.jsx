@@ -2,7 +2,9 @@
 
 function Navbar() {
   return (
-    <div>Navbar</div>
+    <div className="w-full h-[13vh] flex justify-between">
+
+    </div>
   )
 }
 
