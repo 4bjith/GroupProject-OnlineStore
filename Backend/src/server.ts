@@ -16,8 +16,7 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 
-app.use("/uploads", express.static("uploads"));
-app.use(UserRouter)
+
 const MONGO_URL = process.env.MONGO_URL || '';
 
 mongoose.connect(MONGO_URL)
@@ -28,8 +27,10 @@ mongoose.connect(MONGO_URL)
     console.error('Error connecting to MongoDB:', error);
   });
 
-  app.use(storeRouter)
-  app.use(productRouter);
+app.use(storeRouter)
+app.use(productRouter);
+app.use("/uploads", express.static("uploads"));
+app.use(UserRouter)
 
 
 app.listen(PORT, () => {
