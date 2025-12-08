@@ -7,9 +7,10 @@ function Router() {
   return (
     <BrowserRouter>
     <Routes>
-        <Route path="/home" element={<Home />} />
+        
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Home />} />
     </Routes>
     </BrowserRouter>
   )
