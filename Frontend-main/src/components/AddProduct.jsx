@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft, FaCloudUploadAlt, FaTimes, FaPlus } from "react-icons/fa";
 import { MdOutlineRadioButtonChecked } from "react-icons/md";
 import { useQuery } from "@tanstack/react-query";
 import api from "../api/axiosClient";
@@ -116,375 +116,336 @@ export default function AddProduct() {
     setSpecifications(updated);
   };
 
+  const removeSpecification = (index) => {
+    const updated = specifications.filter((_, i) => i !== index);
+    setSpecifications(updated);
+  };
+
   return (
-    <div className="w-full min-h-screen flex flex-col items-center pt-6 pb-10 gap-6 bg-gray-50">
-
+    <div className="w-full min-h-screen bg-gray-50 pb-20">
       {/* Header */}
-      <div className="w-[95%] lg:w-[80%] flex flex-col sm:flex-row justify-between gap-4 bg-gray-100 bg-linear-to-r px-2 py-3">
-        <Link to={"/dashboard/products"}>
-          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-3">
-            <FaArrowLeft /> Add Product
-          </h1>
-        </Link>
+      <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200 px-4 py-4 md:px-8 mb-8">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+          <Link to={"/dashboard/products"} className="group flex items-center gap-3 text-gray-600 hover:text-black transition-colors">
+            <div className="p-2 rounded-full group-hover:bg-gray-100 transition-colors">
+              <FaArrowLeft />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900">Add Product</h1>
+          </Link>
 
-        <button
-          onClick={newProduct}
-          className="w-full sm:w-auto px-6 py-2 rounded-lg bg-green-500 text-white font-bold"
-        >
-          Save
-        </button>
-      </div>
-
-      {/* Main Grid */}
-      <div className="w-[95%] lg:w-[80%] grid grid-cols-1 md:grid-cols-12 gap-5">
-
-        {/* Title + Description */}
-        <div className="col-span-1 md:col-span-8 p-5 rounded-lg shadow-md border border-gray-100 bg-white flex flex-col">
-          <label className="text-sm text-gray-600 font-medium">Title</label>
-          <input
-            type="text"
-            ref={titleRef}
-            placeholder="Product title (eg: Polo shirt)"
-            className="w-full border border-gray-300 rounded-md py-2 px-3 mt-2 mb-5 focus:ring-2 focus:ring-gray-300"
-          />
-
-          <label className="text-sm text-gray-600 font-medium">Description</label>
-          <textarea
-            placeholder="Product description"
-            ref={descriptionRef}
-            rows="7"
-            className="mt-2 border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-gray-300"
-          ></textarea>
-        </div>
-
-        {/* Status */}
-        <div className="col-span-1 md:col-span-4 p-5 rounded-lg shadow-md border border-gray-100 bg-white flex flex-col">
-          <label className="text-sm text-gray-700 font-medium">Status</label>
-          <select className="border border-gray-300 px-3 py-2 rounded-md mt-2 focus:ring-2 focus:ring-gray-300">
-            <option value="Active">Active</option>
-            <option value="Deactive">Deactive</option>
-          </select>
-        </div>
-
-        {/* Product Image */}
-        <div className="col-span-1 md:col-span-8 p-5 rounded-lg border border-gray-100 bg-white shadow-md flex flex-col gap-4">
-          <span className="text-sm text-gray-700 font-medium">Product Images</span>
-
-          {/* Preview Section */}
-          <label
-            htmlFor="media"
-            className="flex items-center justify-center w-full min-h-48 sm:h-56 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition overflow-hidden p-2"
-          >
-            {preview.length > 0 ? (
-              <div className="grid grid-cols-3 gap-3 w-full">
-                {preview.map((img, index) => (
-                  <div key={index} className="relative">
-                    <img
-                      src={img}
-                      className="w-full h-32 object-cover rounded-md"
-                    />
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setPreview((prev) => prev.filter((_, i) => i !== index));
-                      }}
-                      className="absolute top-1 right-1 bg-black bg-opacity-60 text-white px-2 py-0.5 rounded text-xs"
-                    >
-                      X
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center">
-                <svg
-                  className="h-12 w-12 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M7 16a4 4 0 118 0m-4-4v8m0 0H5m4 0h6"
-                  />
-                </svg>
-                <p className="text-gray-600 text-sm mt-2">
-                  Click to upload or drag & drop
-                </p>
-              </div>
-            )}
-          </label>
-
-          {/* File input */}
-          <input
-            type="file"
-            id="media"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={handleImageChange}
-          />
-
-          {/* Add Image via URL */}
-          <div className="flex gap-2 mt-2">
-            <input
-              type="text"
-              value={imageLink}
-              onChange={(e) => setImageLink(e.target.value)}
-              placeholder="Paste image URL"
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-            />
+          <div className="flex gap-3 w-full sm:w-auto">
+            <Link to="/dashboard/products" className="flex-1 sm:flex-none">
+              <button className="w-full px-6 py-2.5 rounded-xl border border-gray-300 font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                Discard
+              </button>
+            </Link>
             <button
-              onClick={() => {
-                if (!imageLink.trim()) return;
-                setPreview((prev) => [...prev, imageLink.trim()]);
-                setImageLink("");
-              }}
-              className="px-4 py-2 bg-blue-500 text-white rounded-md"
+              onClick={newProduct}
+              className="flex-1 sm:flex-none px-8 py-2.5 rounded-xl bg-black text-white font-bold hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl transform active:scale-95"
             >
-              Add
+              Save Product
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Publishing */}
-        <div className="col-span-1 md:col-span-4 p-5 rounded-lg shadow-md border border-gray-100 bg-white flex flex-col gap-4">
-          <span className="text-sm font-semibold text-gray-700">Publishing</span>
+      <div className="max-w-7xl mx-auto px-4 md:px-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-          <h3 className="text-xs text-gray-500 uppercase tracking-wide">
-            Sales Channel
-          </h3>
+        {/* LEFT COLUMN (Main Content) */}
+        <div className="lg:col-span-2 space-y-8">
 
-          <div className="flex items-center gap-2">
-            <MdOutlineRadioButtonChecked className="text-green-500" />
-            <p className="text-sm text-gray-700">Online Store</p>
-          </div>
+          {/* Basic Info */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
+            <h2 className="text-lg font-bold text-gray-900 mb-6">Basic Information</h2>
 
-          <h3 className="text-xs text-gray-500 uppercase tracking-wide mt-2">
-            Market
-          </h3>
+            <div className="space-y-5">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Title</label>
+                <input
+                  type="text"
+                  ref={titleRef}
+                  placeholder="e.g. Premium Cotton T-Shirt"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
+                />
+              </div>
 
-          <div className="flex items-center gap-2">
-            <MdOutlineRadioButtonChecked className="text-green-500" />
-            <p className="text-sm text-gray-700">India, Kerala</p>
-          </div>
-        </div>
-
-        {/* Pricing */}
-        <div className="col-span-1 md:col-span-8 p-5 rounded-lg shadow-md border border-gray-100 bg-white flex flex-col gap-4">
-          <h2 className="text-lg font-semibold text-gray-800">Pricing</h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="text-sm text-gray-600 font-medium">Price</label>
-              <input
-                type="number"
-                ref={priceRef}
-                placeholder="₹ 0.00"
-                className="border border-gray-300 rounded-md w-full px-3 py-2 mt-1"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm text-gray-600 font-medium">
-                Compare at price
-              </label>
-              <input
-                type="number"
-                ref={compareAtPriceRef}
-                placeholder="₹ 0.00"
-                className="border border-gray-300 rounded-md w-full px-3 py-2 mt-1"
-              />
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                <textarea
+                  placeholder="Describe your product..."
+                  ref={descriptionRef}
+                  rows="6"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none resize-none"
+                ></textarea>
+              </div>
             </div>
           </div>
 
-          <div className="border-t my-3"></div>
+          {/* Media */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
+            <h2 className="text-lg font-bold text-gray-900 mb-6">Media</h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            <div>
-              <label className="text-sm text-gray-600 font-medium">
-                Cost per item
-              </label>
-              <input
-                type="number"
-                placeholder="₹ 0.00"
-                className="border border-gray-300 rounded-md w-full px-3 py-2 mt-1"
-              />
-              <p className="text-xs text-gray-400 mt-1">
-                Customers won’t see this
-              </p>
-            </div>
+            <div className="space-y-4">
+              {/* Image Grid */}
+              {preview.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
+                  {preview.map((img, index) => (
+                    <div key={index} className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200">
+                      <img
+                        src={img}
+                        className="w-full h-full object-cover"
+                        alt={`Preview ${index}`}
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setPreview((prev) => prev.filter((_, i) => i !== index));
+                          }}
+                          className="p-2 bg-white rounded-full text-red-500 hover:text-red-600 transition-colors"
+                        >
+                          <FaTimes />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-            <div className="flex flex-col justify-end">
-              <p className="text-sm text-gray-500">Margin</p>
-              <p className="font-medium text-gray-800">–</p>
-            </div>
-
-            <div className="flex flex-col justify-end">
-              <p className="text-sm text-gray-500">Profit</p>
-              <p className="font-medium text-gray-800">–</p>
-            </div>
-          </div>
-
-          <label className="flex items-center gap-2 mt-3">
-            <input type="checkbox" className="w-4 h-4" defaultChecked />
-            <span className="text-sm text-gray-700">
-              Charge tax on this product
-            </span>
-          </label>
-        </div>
-
-        {/* Product Specifications */}
-        <div className="col-span-1 md:col-span-4 p-5 rounded-lg shadow-md border border-gray-100 bg-white flex flex-col gap-4">
-          <h2 className="text-lg font-semibold text-gray-800">
-            Product Specifications
-          </h2>
-
-          {specifications.map((spec, index) => (
-            <div key={index} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="Name (e.g., Material)"
-                value={spec.key}
-                onChange={(e) =>
-                  updateSpecification(index, "key", e.target.value)
-                }
-                className="border border-gray-300 rounded-md px-3 py-2"
-              />
-
-              <input
-                type="text"
-                placeholder="Value (e.g., Cotton)"
-                value={spec.value}
-                onChange={(e) =>
-                  updateSpecification(index, "value", e.target.value)
-                }
-                className="border border-gray-300 rounded-md px-3 py-2"
-              />
-            </div>
-          ))}
-
-          <button
-            onClick={addSpecification}
-            className="mt-2 w-fit px-4 py-2 bg-gray-100 hover:bg-gray-200 text-sm rounded-md border"
-          >
-            + Add specification
-          </button>
-        </div>
-
-        {/* Inventory Section */}
-        <div className="col-span-1 md:col-span-8 p-5 rounded-lg shadow-md border border-gray-100 bg-white flex flex-col gap-4">
-          <h2 className="text-lg font-semibold text-gray-800">Inventory</h2>
-
-          <label className="text-sm font-medium text-gray-700">
-            Inventory managed by
-          </label>
-          <select className="border border-gray-300 rounded-md px-3 py-2 mt-1 w-full">
-            <option>Shopify</option>
-            <option>Warehouse</option>
-            <option>Internal System</option>
-          </select>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-3">
-            <div>
-              <label className="text-sm font-medium text-gray-700">Stock</label>
-              <input
-                type="text"
-                ref={stockRef}
-                placeholder="12345"
-                className="border border-gray-300 rounded-md w-full px-3 py-2 mt-1"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-700">
-                Stock Keeping Unit
-              </label>
-              <input
-                type="text"
-                ref={stockKeepingUnitRef}
-                className="border border-gray-300 rounded-md w-full px-3 py-2 mt-1"
-              />
-            </div>
-          </div>
-
-          <label className="flex items-center gap-2 mt-2">
-            <input type="checkbox" className="w-4 h-4" defaultChecked />
-            <span className="text-sm text-gray-700">Track quantity</span>
-          </label>
-
-          <label className="flex items-center gap-2">
-            <input type="checkbox" className="w-4 h-4" />
-            <span className="text-sm text-gray-700">
-              Continue selling when out of stock
-            </span>
-          </label>
-        </div>
-
-        {/* Organization */}
-        <div className="col-span-1 md:col-span-4 p-5 rounded-lg border border-gray-100 bg-white shadow-md flex flex-col gap-1">
-          <h1 className="text-lg font-semibold text-gray-800">Organization</h1>
-
-          <label className="text-sm">Product Category</label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2"
-          >
-            <option value="">Select category</option>
-            <option value="Mens Shirt">Mens Shirt</option>
-            <option value="T-shirt">T-Shirts</option>
-          </select>
-
-          <label className="text-sm mt-2">Collection</label>
-          <input
-            type="text"
-            className="border border-gray-300 rounded-md px-3 py-2"
-          />
-
-          <p className="text-xs text-gray-500">
-            Add this product into a collection for better visibility.
-          </p>
-
-          <label className="text-sm mt-2">Tags</label>
-          <input
-            type="text"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                const value = e.target.value.trim();
-                if (!value) return;
-                setTags([...tags, value]);
-                e.target.value = "";
-              }
-            }}
-            className="border border-gray-300 rounded-md px-3 py-2"
-          />
-
-          <div className="flex flex-wrap w-full gap-3 mt-2">
-            {tags.map((tag, idx) => (
-              <span
-                key={idx}
-                className="flex items-center gap-2 bg-gray-200 text-[0.9rem] px-3 py-1 rounded-full"
+              {/* Upload Area */}
+              <label
+                htmlFor="media"
+                className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-2xl cursor-pointer hover:bg-gray-50 hover:border-gray-400 transition-all group"
               >
-                {tag}
+                <div className="p-4 rounded-full bg-gray-100 group-hover:bg-white transition-colors mb-3">
+                  <FaCloudUploadAlt className="text-2xl text-gray-400 group-hover:text-black transition-colors" />
+                </div>
+                <p className="text-sm font-medium text-gray-700">Click to upload or drag and drop</p>
+                <p className="text-xs text-gray-400 mt-1">SVG, PNG, JPG or GIF (max. 800x400px)</p>
+              </label>
+              <input
+                type="file"
+                id="media"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleImageChange}
+              />
+
+              {/* URL Input */}
+              <div className="flex gap-3 pt-2">
+                <input
+                  type="text"
+                  value={imageLink}
+                  onChange={(e) => setImageLink(e.target.value)}
+                  placeholder="Or add image via URL..."
+                  className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none text-sm"
+                />
                 <button
-                  type="button"
                   onClick={() => {
-                    setTags(tags.filter((_, i) => i !== idx));
+                    if (!imageLink.trim()) return;
+                    setPreview((prev) => [...prev, imageLink.trim()]);
+                    setImageLink("");
                   }}
-                  className="text-red-600 font-bold ml-1 hover:text-red-800"
+                  className="px-5 py-2.5 bg-gray-900 text-white rounded-xl font-medium text-sm hover:bg-black transition-colors"
                 >
-                  ×
+                  Add URL
                 </button>
-              </span>
-            ))}
+              </div>
+            </div>
           </div>
+
+          {/* Pricing */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
+            <h2 className="text-lg font-bold text-gray-900 mb-6">Pricing</h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Price</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">₹</span>
+                  <input
+                    type="number"
+                    ref={priceRef}
+                    placeholder="0.00"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-8 pr-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Compare at price</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">₹</span>
+                  <input
+                    type="number"
+                    ref={compareAtPriceRef}
+                    placeholder="0.00"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-8 pr-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 pt-6 border-t border-gray-100">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div className="sm:col-span-1">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Cost per item</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">₹</span>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-8 pr-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">Customers won’t see this</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Inventory */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
+            <h2 className="text-lg font-bold text-gray-900 mb-6">Inventory</h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Stock Quantity</label>
+                <input
+                  type="number"
+                  ref={stockRef}
+                  placeholder="0"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">SKU (Stock Keeping Unit)</label>
+                <input
+                  type="text"
+                  ref={stockKeepingUnitRef}
+                  placeholder="e.g. PROD-001"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
         </div>
 
+        {/* RIGHT COLUMN (Sidebar) */}
+        <div className="space-y-8">
+
+          {/* Status */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">Status</h2>
+            <select className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none cursor-pointer">
+              <option value="Active">Active</option>
+              <option value="Deactive">Draft</option>
+            </select>
+          </div>
+
+          {/* Organization */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">Organization</h2>
+
+            <div className="space-y-5">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none cursor-pointer"
+                >
+                  <option value="">Select category</option>
+                  <option value="Mens Shirt">Mens Shirt</option>
+                  <option value="T-shirt">T-Shirts</option>
+                  <option value="Electronics">Electronics</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Tags</label>
+                <input
+                  type="text"
+                  placeholder="Press Enter to add"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      const value = e.target.value.trim();
+                      if (!value) return;
+                      setTags([...tags, value]);
+                      e.target.value = "";
+                    }
+                  }}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
+                />
+
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {tags.map((tag, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1 bg-gray-100 text-gray-800 text-xs font-bold px-3 py-1.5 rounded-full"
+                    >
+                      {tag}
+                      <button
+                        onClick={() => setTags(tags.filter((_, i) => i !== idx))}
+                        className="hover:text-red-500 transition-colors ml-1"
+                      >
+                        <FaTimes />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Specifications */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Specifications</h2>
+              <button
+                onClick={addSpecification}
+                className="text-xs font-bold bg-black text-white px-3 py-1.5 rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-1"
+              >
+                <FaPlus size={10} /> Add
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {specifications.map((spec, index) => (
+                <div key={index} className="flex gap-2 items-start group">
+                  <div className="flex-1 space-y-2">
+                    <input
+                      type="text"
+                      placeholder="Name"
+                      value={spec.key}
+                      onChange={(e) => updateSpecification(index, "key", e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Value"
+                      value={spec.value}
+                      onChange={(e) => updateSpecification(index, "value", e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
+                    />
+                  </div>
+                  {specifications.length > 1 && (
+                    <button
+                      onClick={() => removeSpecification(index)}
+                      className="p-2 text-gray-400 hover:text-red-500 transition-colors mt-1"
+                    >
+                      <FaTimes />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
   );
