@@ -13,6 +13,7 @@ import {
     MdSettings,
     MdLogout
 } from "react-icons/md";
+import { Link, Outlet } from "react-router-dom";
 
 function Dashboard() {
     const [open, setOpen] = useState(false);
@@ -20,7 +21,7 @@ function Dashboard() {
     const menuItems = [
         { name: 'Dashboard', icon: <MdDashboard size={20} /> },
         { name: 'Orders', icon: <MdShoppingCart size={20} /> },
-        { name: 'Products', icon: <MdInventory size={20} /> },
+        { name: 'Products',url: "products" , icon: <MdInventory size={20} /> },
         { name: 'Categories', icon: <MdCategory size={20} /> },
         { name: 'Sales', icon: <MdAttachMoney size={20} /> },
         { name: 'Offers', icon: <MdLocalOffer size={20} /> },
@@ -60,7 +61,8 @@ function Dashboard() {
                 {/* Navigation */}
                 <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
                     {menuItems.map((item, index) => (
-                        <button
+                        <Link to={item.url?item.url:""}>
+                            <button
                             key={index}
                             className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white transition-all duration-200 group"
                         >
@@ -70,6 +72,7 @@ function Dashboard() {
                                 <span className="ml-auto text-slate-500 group-hover:text-white text-lg">+</span>
                             )}
                         </button>
+                        </Link>
                     ))}
                 </nav>
 
@@ -92,34 +95,7 @@ function Dashboard() {
 
             {/* Main Content Area */}
             <main className="flex-1 h-full overflow-y-auto w-full relative">
-
-                {/* Mobile Header / Toggle */}
-                <div className="md:hidden sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b px-4 py-3 flex items-center gap-3 shadow-sm">
-                    <button
-                        className="p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-colors active:scale-95"
-                        onClick={() => setOpen(true)}
-                    >
-                        <MdMenu size={26} />
-                    </button>
-                    <span className="font-semibold text-gray-800 text-lg">Dashboard</span>
-                </div>
-
-                <div className="p-6 md:p-8">
-
-                    {/* Content Placeholder */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-40 flex items-center justify-center text-gray-400">
-                            Stat Card 1
-                        </div>
-                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-40 flex items-center justify-center text-gray-400">
-                            Stat Card 2
-                        </div>
-                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-40 flex items-center justify-center text-gray-400">
-                            Stat Card 3
-                        </div>
-                    </div>
-
-                </div>
+                    <Outlet />
             </main>
         </div>
     );
