@@ -4,6 +4,8 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 
+
+import Categories from './pages/Categories'
 import EditProduct from "./components/EditProduct";
 import ProductList from "./components/ProductList";
 import AddProduct from "./components/AddProduct";
@@ -17,6 +19,8 @@ function Router() {
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Home />} />
         <Route path="/temp" element={<ProductList />} />
+        <Route path="/categories" element={<Categories/>} />
+    </Routes>
         <Route path="/dashboard" element={<Dashboard />}>
           <Route path="products" element={<ProductList />} />
           <Route path="products/add" element={<AddProduct />} />
