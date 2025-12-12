@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { FaSearch, FaPlus, FaTimes, FaFilter } from "react-icons/fa";
 import { Link } from "react-router-dom";
@@ -9,6 +9,7 @@ export default function ProductList() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  // const [categories, setCategory] = useState([])
 
   // STORE ID
   const storeId = "6939203a5843f7eee1ddfd56";
@@ -16,6 +17,44 @@ export default function ProductList() {
   // PAGINATION STATE
   const [page, setPage] = useState(1);
   const limit = 12;
+
+  const queryClient = useQueryClient();
+
+  // DELETE MUTATION
+  const deleteMutation = useMutation({
+    mutationFn: async (productId) => {
+      await api.delete(`/products/${productId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["products", storeId, page]);
+      closeDetails();
+      alert("Product deleted successfully");
+    },
+    onError: (error) => {
+      console.error("Error deleting product:", error);
+      alert("Failed to delete product");
+    },
+  });
+
+  const handleDelete = () => {
+    if (selectedProduct && window.confirm("Are you sure you want to delete this product?")) {
+      deleteMutation.mutate(selectedProduct.id);
+    }
+  };
+
+  // const {data:cat} = useQuery({
+  //   queryKey: ["category"],
+  //   queryFn: async () => {
+  //     const res = await api.get("/category")
+  //     return res.data;
+  //   }
+  // })
+
+  // useEffect(()=>{
+  //   if(cat){
+  //     setActiveCategory(cat)
+  //   }
+  // },cat)
 
   const categories = [
     "All",
@@ -74,6 +113,8 @@ export default function ProductList() {
     setTimeout(() => setSelectedProduct(null), 300); // Clear after animation
   };
 
+
+
   return (
     <div className="w-full min-h-screen bg-gray-50 flex flex-col lg:flex-row relative overflow-hidden">
       {/* MAIN CONTENT AREA */}
@@ -95,7 +136,7 @@ export default function ProductList() {
         </div>
 
         {/* Search & Filter Bar */}
-        <div className="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-3 mb-8 sticky top-0 z-10 backdrop-blur-md bg-white/80">
+        <div className="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-3 mb-8 sticky top-0 z-10 backdrop-blur-md">
           <div className="flex-1 flex items-center bg-gray-100 px-4 py-3 rounded-xl w-full">
             <FaSearch className="text-gray-400 text-lg" />
             <input
@@ -116,8 +157,8 @@ export default function ProductList() {
               key={cat}
               onClick={() => setActiveCategory(cat)}
               className={`whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 border ${activeCategory === cat
-                  ? "bg-black text-white border-black shadow-md"
-                  : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+                ? "bg-black text-white border-black shadow-md"
+                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                 }`}
             >
               {cat}
@@ -285,8 +326,16 @@ export default function ProductList() {
             </div>
 
             <div className="p-6 border-t border-gray-100 bg-gray-50">
-              <button className="w-full bg-black text-white py-3.5 rounded-xl font-bold hover:bg-gray-800 transition-all shadow-lg transform active:scale-95">
-                Edit Product
+              <Link to={`/dashboard/products/edit?id=${selectedProduct.id}`}>
+                <button className="w-full bg-black text-white py-3.5 rounded-xl font-bold hover:bg-gray-800 transition-all shadow-lg transform active:scale-95">
+                  Edit Product
+                </button>
+              </Link>
+              <button
+                onClick={handleDelete}
+                className="w-full mt-2 bg-red-600 text-white py-3.5 rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg transform active:scale-95"
+              >
+                Delete Product
               </button>
             </div>
           </>

@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { FaArrowLeft, FaCloudUploadAlt, FaTimes, FaPlus } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import api from "../api/axiosClient";
+import { toast } from 'react-toastify'
 
 export default function EditProduct({ productData, onSave }) {
   const [form, setForm] = useState({
@@ -11,12 +14,51 @@ export default function EditProduct({ productData, onSave }) {
     comparePrice: productData?.comparePrice || "",
     costPerItem: productData?.costPerItem || "",
     sku: productData?.sku || "",
-    barcode: productData?.barcode || "",
+    stock: productData?.stock || "",
     category: productData?.category || "",
     tags: productData?.tags || [], // Ensure tags is an array
-    image: productData?.image || null,
+    images: productData?.images || [],
     specifications: productData?.specifications || [{ key: "", value: "" }],
   });
+
+  const [imageLink, setImageLink] = useState("");
+
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const productId = queryParams.get("id");
+
+  const [product, setProduct] = useState({})
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["product", productId],
+    queryFn: async () => {
+      const res = await api.get(
+        `/products/${productId}`
+      );
+      return res.data;
+    },
+    enabled: !!productId,
+  });
+
+  // Update products when API loads
+  useEffect(() => {
+    if (data) {
+      setForm({
+        title: data.title || "",
+        description: data.description || "",
+        status: data.isActive ? "Active" : "Draft",
+        price: data.price || "",
+        comparePrice: data.compareAtPrice || "",
+        costPerItem: "",
+        sku: data.stockKeepingUnit || "",
+        stock: data.stock || 0,
+        category: data.category || "",
+        tags: data.tags || [],
+        images: data.images || [],
+        specifications: data.specifications || [{ key: "", value: "" }],
+      });
+    }
+  }, [data]);
 
   // Helper to handle tags if they come as a string or array
   const [tagInput, setTagInput] = useState("");
@@ -26,10 +68,13 @@ export default function EditProduct({ productData, onSave }) {
   };
 
   const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      handleChange("image", URL.createObjectURL(file));
-    }
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const newImages = Array.from(files).map((file) =>
+      URL.createObjectURL(file)
+    );
+    handleChange("images", [...form.images, ...newImages]);
   };
 
   const updateSpec = (index, key, value) => {
@@ -64,8 +109,31 @@ export default function EditProduct({ productData, onSave }) {
     handleChange("tags", currentTags.filter((_, i) => i !== index));
   };
 
-  const saveProduct = () => {
-    onSave(form);
+  const saveProduct = async () => {
+    try {
+      const payload = {
+        title: form.title,
+        description: form.description,
+        category: form.category,
+        price: Number(form.price),
+        compareAtPrice: Number(form.comparePrice),
+        stock: Number(form.stock),
+        stockKeepingUnit: form.sku,
+        images: form.images,
+        specifications: form.specifications,
+        tags: Array.isArray(form.tags) ? form.tags : [],
+        isActive: form.status === "Active",
+        market: data?.market || "", // Preserve market
+        isFinite: data?.isFinite ?? true, // Preserve isFinite
+      };
+
+      await api.put(`/products/${productId}`, payload);
+      toast.sucess("Product updated successfully");
+      if (onSave) onSave(form);
+    } catch (err) {
+      console.error(err);
+      alert("Error updating product");
+    }
   };
 
   return (
@@ -133,31 +201,73 @@ export default function EditProduct({ productData, onSave }) {
             <h2 className="text-lg font-bold text-gray-900 mb-6">Media</h2>
 
             <div className="space-y-4">
-              {form.image ? (
-                <div className="relative group w-full sm:w-1/2 aspect-square rounded-xl overflow-hidden border border-gray-200 mx-auto sm:mx-0">
-                  <img
-                    src={form.image}
-                    className="w-full h-full object-cover"
-                    alt="Product"
-                  />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <label htmlFor="imageUpload" className="cursor-pointer bg-white text-black px-4 py-2 rounded-lg font-bold text-sm hover:bg-gray-100 transition-colors">
-                      Change Image
-                    </label>
-                  </div>
+              {/* Image Grid */}
+              {form.images && form.images.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
+                  {form.images.map((img, index) => (
+                    <div key={index} className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200">
+                      <img
+                        src={img}
+                        className="w-full h-full object-cover"
+                        alt={`Product ${index}`}
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = form.images.filter((_, i) => i !== index);
+                            handleChange("images", updated);
+                          }}
+                          className="p-2 bg-white rounded-full text-red-500 hover:text-red-600 transition-colors"
+                        >
+                          <FaTimes />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ) : (
-                <label
-                  htmlFor="imageUpload"
-                  className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-2xl cursor-pointer hover:bg-gray-50 hover:border-gray-400 transition-all group"
-                >
-                  <div className="p-4 rounded-full bg-gray-100 group-hover:bg-white transition-colors mb-3">
-                    <FaCloudUploadAlt className="text-2xl text-gray-400 group-hover:text-black transition-colors" />
-                  </div>
-                  <p className="text-sm font-medium text-gray-700">Click to upload image</p>
-                </label>
               )}
-              <input type="file" className="hidden" id="imageUpload" onChange={handleImageUpload} accept="image/*" />
+
+              {/* Upload Area */}
+              <label
+                htmlFor="imageUpload"
+                className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-2xl cursor-pointer hover:bg-gray-50 hover:border-gray-400 transition-all group"
+              >
+                <div className="p-4 rounded-full bg-gray-100 group-hover:bg-white transition-colors mb-3">
+                  <FaCloudUploadAlt className="text-2xl text-gray-400 group-hover:text-black transition-colors" />
+                </div>
+                <p className="text-sm font-medium text-gray-700">Click to upload or drag and drop</p>
+                <p className="text-xs text-gray-400 mt-1">SVG, PNG, JPG or GIF (max. 800x400px)</p>
+              </label>
+              <input
+                type="file"
+                className="hidden"
+                id="imageUpload"
+                onChange={handleImageUpload}
+                accept="image/*"
+                multiple
+              />
+
+              {/* URL Input */}
+              <div className="flex gap-3 pt-2">
+                <input
+                  type="text"
+                  value={imageLink}
+                  onChange={(e) => setImageLink(e.target.value)}
+                  placeholder="Or add image via URL..."
+                  className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none text-sm"
+                />
+                <button
+                  onClick={() => {
+                    if (!imageLink.trim()) return;
+                    handleChange("images", [...form.images, imageLink.trim()]);
+                    setImageLink("");
+                  }}
+                  className="px-5 py-2.5 bg-gray-900 text-white rounded-xl font-medium text-sm hover:bg-black transition-colors"
+                >
+                  Add URL
+                </button>
+              </div>
             </div>
           </div>
 
@@ -217,10 +327,11 @@ export default function EditProduct({ productData, onSave }) {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Barcode (ISBN, UPC, GTIN, etc.)</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Stock Quantity</label>
                 <input
-                  value={form.barcode}
-                  onChange={(e) => handleChange("barcode", e.target.value)}
+                  type="number"
+                  value={form.stock}
+                  onChange={(e) => handleChange("stock", e.target.value)}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
                 />
               </div>
