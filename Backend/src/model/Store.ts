@@ -27,7 +27,7 @@ const StoreSchema = new mongoose.Schema({
     templateId: { 
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Template',
-        required: true,
+        // required: true,
     },
     commissionRate: {
         type: Number,
