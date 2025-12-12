@@ -20,7 +20,6 @@ function Router() {
         <Route path="/" element={<Home />} />
         <Route path="/temp" element={<ProductList />} />
         <Route path="/categories" element={<Categories/>} />
-    </Routes>
         <Route path="/dashboard" element={<Dashboard />}>
           <Route path="products" element={<ProductList />} />
           <Route path="products/add" element={<AddProduct />} />
