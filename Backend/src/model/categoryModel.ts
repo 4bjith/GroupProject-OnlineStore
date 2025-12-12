@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 
 const CategorySchema = new mongoose.Schema({
-    categoryname: {
+    catname: {
         type: String,
         required: true,
     },
-    categoryimage: {
+    catimage: {
         type: String,
         // required: true,
     },

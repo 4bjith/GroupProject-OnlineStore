@@ -3,18 +3,18 @@ import categoryModel from '../model/categoryModel.js';
 
 export const createCategory = async (req: express.Request, res: express.Response) => {
     try {
-        const { categoryname } = req.body;
-        let categoryimage = req.body.categoryimage;
+        const { catname } = req.body;
+        let catimage = req.body.catimage;
 
         if (req.file) {
-            categoryimage = req.file.path.replace(/\\/g, "/"); // Normalize windows path
+            catimage = req.file.path.replace(/\\/g, "/"); // Normalize windows path
         }
 
-        if (!categoryname || !categoryimage) {
+        if (!catname || !catimage) {
             return res.status(400).json({ message: 'All fields are required' });
         }
 
-        const newcategory = await categoryModel.create({ categoryname, categoryimage });
+        const newcategory = await categoryModel.create({ catname, catimage });
         if (!newcategory) {
             return res.status(400).json({ message: 'Failed to create category' });
         }
@@ -45,14 +45,14 @@ export const updateCategory = async (req: express.Request, res: express.Response
             return res.status(400).json({ message: 'Category ID is required' });
         }
 
-        const { categoryname } = req.body;
-        let categoryimage = req.body.categoryimage;
+        const { catname } = req.body;
+        let catimage = req.body.catimage;
 
         if (req.file) {
-            categoryimage = req.file.path.replace(/\\/g, "/");
+            catimage = req.file.path.replace(/\\/g, "/");
         }
 
-        const updatedCategory = await categoryModel.findByIdAndUpdate(id, { categoryname, categoryimage }, { new: true });
+        const updatedCategory = await categoryModel.findByIdAndUpdate(id, { catname, catimage }, { new: true });
         if (!updatedCategory) {
             return res.status(404).json({ message: 'Category not found' });
         }

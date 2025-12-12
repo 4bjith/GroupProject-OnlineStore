@@ -20,10 +20,9 @@ import api from '../api/axiosClient';
 
 function Categories() {
     const queryClient = useQueryClient();
-    // Initial dummy data
-    // const [categories, setCategories] = useState([]);
+    const [catId, setCatId] = useState(null);
 
-    const { data: categories, isLoading, error } = useQuery(
+    const { data: categories = [], isLoading, error } = useQuery(
         {
             queryKey: ['categories'],
             queryFn: async () => {
@@ -32,29 +31,47 @@ function Categories() {
             }
         }
     )
-    console.log(categories);
 
     // POST → Add Category
     const addCategoryMutation = useMutation({
         mutationFn: async (newCategory) => {
-            const res = await api.post("/category/create", newCategory);
+            const res = await api.post("/category/create", newCategory, {
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                }
+            });
             return res.data;
         },
         onSuccess: () => {
             queryClient.invalidateQueries(["categories"]);
-            showToast('New Category Added', '', 'success');
         }
     });
 
     // PUT → Update Category
     const updateCategoryMutation = useMutation({
-        mutationFn: async ({ id, data }) => {
-            const res = await api.put(`/category/update/${id}`, data);
+        mutationFn: async ({ id = catId, data }) => {
+            console.log(id);
+            const res = await api.put(`/category/update/${id}`, data, {
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                }
+            });
             return res.data;
         },
         onSuccess: () => {
             queryClient.invalidateQueries(["categories"]);
             showToast('Category Updated', '', 'update');
+        }
+    });
+
+    //delete category
+    const deleteCategoryMutation = useMutation({
+        mutationFn: async (id) => {
+            const res = await api.delete(`/category/delete/${id}`);
+            return res.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(["categories"]);
         }
     });
 
@@ -78,13 +95,13 @@ function Categories() {
         } else if (formData.imageFile) {
             const objectUrl = URL.createObjectURL(formData.imageFile);
             setPreviewUrl(objectUrl);
+            console.log(objectUrl);
             return () => URL.revokeObjectURL(objectUrl);
         } else {
             setPreviewUrl('');
         }
     }, [formData.imageUrl, formData.imageFile, formData.imageType]);
 
-    // Reusable Custom Toast
     // Reusable Custom Toast
     const showToast = (title, message, type = 'success') => {
         const toastConfig = {
@@ -136,7 +153,7 @@ function Categories() {
                     </div>
                 </div>
             </div>
-        ), { position: config.position, duration: 3000 });
+        ), { position: config.position, duration: 2000 });
     };
 
     // Handlers
@@ -169,52 +186,40 @@ function Categories() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        setCatId(formData.id);
 
         if (!formData.name || (!formData.imageUrl && !formData.imageFile)) {
             toast.error("Please fill in all fields");
             return;
         }
-
-        // const newCategory = {
-        //     id: isEditing ? formData.id : Date.now(),
-        //     categoryname: formData.name,
-        //     categoryimage: previewUrl || 'https://via.placeholder.com/150'
-        // };
-
-        const payload = {
-            categoryname: formData.name,
-            categoryimage: previewUrl,
-        };
+        const payload = new FormData();
+        payload.append("catname", formData.name);
+        payload.append("catimage", formData.imageFile || formData.imageUrl);
 
         if (isEditing) {
             updateCategoryMutation.mutate({
                 id: formData._id,
                 data: payload
             });
-            // setCategories(prev => prev.map(cat => cat.id === newCategory.id ? newCategory : cat));
-            showToast('Category Updated', '', 'update');
             setIsEditing(false);
         } else {
             addCategoryMutation.mutate(payload);
-            // setCategories(prev => [newCategory, ...prev]);
             setSuccessMsg(`"${formData.name}" added successfully!`);
             showToast('New Category Added', `${formData.name} is now live!`, 'success');
         }
-
         // Reset Form
         handleClearForm();
     };
 
     const handleEdit = (category) => {
-        // setIsEditing(true);
         setFormData({
             id: category._id,
-            name: category.categoryname,
+            name: category.catname,
             imageType: 'url', // Simplified for edit preview
-            imageUrl: category.categoryimage,
+            imageUrl: category.catimage,
             imageFile: null
         });
-        setPreviewUrl(category.categoryimage);
+        setPreviewUrl(category.catimage);
         setIsEditing(true);
         setSuccessMsg('');
         // Scroll to form on mobile
@@ -222,7 +227,9 @@ function Categories() {
     };
 
     const handleDelete = (id) => {
-        // setCategories(prev => prev.filter(c => c.id !== id));
+        if (confirm("Are you sure you want to delete this category?")) {
+            deleteCategoryMutation.mutate(id);
+        }
         showToast('Category Deleted', '', 'delete');
         if (isEditing && formData._id === id) {
             handleClearForm();
@@ -232,7 +239,6 @@ function Categories() {
     return (
         <div className="min-h-screen bg-gray-50 p-6 md:p-8 font-sans text-slate-800">
             <Toaster />
-
             <div className="max-w-7xl mx-auto">
                 <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
@@ -243,22 +249,19 @@ function Categories() {
                 </header>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-
                     {/* Left Column: Categories List */}
                     <div className="lg:col-span-2 space-y-6 order-2 lg:order-1">
-
                         {/* List Actions/Header */}
                         <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                             <h2 className="text-md font-semibold flex items-center gap-2 text-slate-700">
                                 <MdFilterList size={22} />
                                 All Categories
-                                {/* <span className="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full">{data.length}</span> */}
+                                <span className="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full">{categories?.length || 0}</span>
                             </h2>
                             <button className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors">
                                 <MdSearch size={22} />
                             </button>
                         </div>
-
                         {/* Categories Grid - Adjusted for smaller cards */}
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             {categories?.map((category) => (
@@ -268,25 +271,27 @@ function Categories() {
                                 >
                                     <div className="relative h-32 overflow-hidden bg-slate-100">
                                         <img
-                                            src={category.categoryimage}
-                                            alt={category.categoryname}
+                                            src={`http://localhost:3000/${category.catimage}`}
+                                            alt={category.catname}
                                             className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
                                         />
                                         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                     </div>
 
                                     <div className="p-3">
-                                        <h3 className="font-semibold text-slate-800 text-sm mb-2 truncate" title={category.categoryname}>{category.categoryname}</h3>
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="font-semibold text-slate-800 text-sm mb-2 truncate" title={category.catname}>{category.catname}</h3>
+                                            <button
+                                                onClick={() => handleEdit(category)}
+                                                className="p-1.5 mb-2 rounded-md bg-blue-50 text-blue-400 hover:bg-blue-400 hover:text-white transition-all"
+                                                title="Edit"
+                                            >
+                                                <MdEdit size={14} />
+                                            </button>
+                                        </div>
                                         <div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-2">
-                                            <span className="text-[10px] text-slate-400 font-mono">#{category._id}</span>
+                                            <span className="text-[8px] text-slate-400 font-mono truncate">#{category._id}</span>
                                             <div className="flex gap-1">
-                                                <button
-                                                    onClick={() => handleEdit(category)}
-                                                    className="p-1.5 rounded-md bg-blue-50 text-blue-400 hover:bg-blue-400 hover:text-white transition-all"
-                                                    title="Edit"
-                                                >
-                                                    <MdEdit size={14} />
-                                                </button>
                                                 <button
                                                     onClick={() => handleDelete(category._id)}
                                                     className="p-1.5 rounded-md bg-red-50 text-red-400 hover:bg-red-400 hover:text-white transition-all"
@@ -300,14 +305,14 @@ function Categories() {
                                 </div>
                             ))}
 
-                            {/* {categories.length === 0 && (
+                            {categories.length === 0 && (
                                 <div className="col-span-full py-12 text-center text-slate-400">
                                     <div className="inline-block p-4 rounded-full bg-slate-100 mb-4">
                                         <MdFilterList size={32} />
                                     </div>
                                     <p>No categories found. Add one to get started!</p>
                                 </div>
-                            )} */}
+                            )}
                         </div>
                     </div>
 
@@ -335,7 +340,6 @@ function Categories() {
                             )}
 
                             <form onSubmit={handleSubmit} className="p-6 space-y-5">
-
                                 {/* Name Input */}
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-2">Category Name</label>
@@ -348,7 +352,6 @@ function Categories() {
                                         className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-sm"
                                     />
                                 </div>
-
                                 {/* Image Source Toggle */}
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-2">Category Image</label>
@@ -376,7 +379,7 @@ function Categories() {
                                             <input
                                                 type="url"
                                                 name="imageUrl"
-                                                value={formData.imageUrl}
+                                                value={`${previewUrl}`}
                                                 onChange={handleInputChange}
                                                 placeholder="https://example.com/image.jpg"
                                                 className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-sm"
@@ -399,7 +402,7 @@ function Categories() {
                                 {/* Preview Area */}
                                 {previewUrl ? (
                                     <div className="relative w-full h-48 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 group">
-                                        <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                                        <img src={`${formData.imageType === 'url' ? ("http://localhost:3000/" + previewUrl) : previewUrl}`} alt="Preview" className="w-full h-full object-cover" />
                                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                             <span className="text-white text-xs font-semibold bg-black/50 px-3 py-1 rounded-full">Preview</span>
                                         </div>
@@ -421,8 +424,6 @@ function Categories() {
 
                                 {/* Submit & Discard Buttons */}
                                 <div className="space-y-3">
-
-
                                     {(previewUrl || formData.name) && (<>
                                         <button
                                             type="submit"
@@ -447,7 +448,6 @@ function Categories() {
                             </form>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
