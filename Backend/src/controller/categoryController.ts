@@ -3,20 +3,22 @@ import categoryModel from '../model/categoryModel.js';
 
 export const createCategory = async (req: express.Request, res: express.Response) => {
     try {
-        const { name, image } = req.body as {
-            name: string;
-            image: string;
-        };
+        const { categoryname } = req.body;
+        let categoryimage = req.body.categoryimage;
 
-        if (!name || !image) {
+        if (req.file) {
+            categoryimage = req.file.path.replace(/\\/g, "/"); // Normalize windows path
+        }
+
+        if (!categoryname || !categoryimage) {
             return res.status(400).json({ message: 'All fields are required' });
         }
 
-        const category = await categoryModel.create({ name, image });
-        if (!category) {
+        const newcategory = await categoryModel.create({ categoryname, categoryimage });
+        if (!newcategory) {
             return res.status(400).json({ message: 'Failed to create category' });
         }
-        res.status(201).json(category);
+        res.status(201).json(newcategory);
     } catch (error) {
         console.error('Error creating category:', error);
         res.status(500).json({ message: 'Internal server error' });
@@ -25,7 +27,7 @@ export const createCategory = async (req: express.Request, res: express.Response
 
 export const getAllCategories = async (req: express.Request, res: express.Response) => {
     try {
-        const category = await categoryModel.find();
+        const category = await categoryModel.find().sort({ createdAt: -1 });
         if (!category) {
             return res.status(404).json({ message: 'Category not found' });
         }
@@ -42,11 +44,15 @@ export const updateCategory = async (req: express.Request, res: express.Response
         if (!id) {
             return res.status(400).json({ message: 'Category ID is required' });
         }
-        const { name, image } = req.body as {
-            name: string;
-            image: string;
-        };
-        const updatedCategory = await categoryModel.findByIdAndUpdate(id, { name, image }, { new: true });
+
+        const { categoryname } = req.body;
+        let categoryimage = req.body.categoryimage;
+
+        if (req.file) {
+            categoryimage = req.file.path.replace(/\\/g, "/");
+        }
+
+        const updatedCategory = await categoryModel.findByIdAndUpdate(id, { categoryname, categoryimage }, { new: true });
         if (!updatedCategory) {
             return res.status(404).json({ message: 'Category not found' });
         }

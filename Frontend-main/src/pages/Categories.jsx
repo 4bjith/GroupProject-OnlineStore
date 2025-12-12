@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     MdAdd,
     MdDelete,
@@ -14,15 +15,48 @@ import {
     MdClose
 } from 'react-icons/md';
 import toast, { Toaster } from 'react-hot-toast';
+import api from '../api/axiosClient';
+
 
 function Categories() {
+    const queryClient = useQueryClient();
     // Initial dummy data
-    const [categories, setCategories] = useState([
-        // { id: 1, name: 'Electronics', image: 'https://images.unsplash.com/photo-1498049860654-af1a5c5668ba?auto=format&fit=crop&w=500&q=60' },
-        // { id: 2, name: 'Fashion', image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=500&q=60' },
-        // { id: 3, name: 'Home & Living', image: 'https://images.unsplash.com/photo-1484101403633-562f891dc89a?auto=format&fit=crop&w=500&q=60' },
-        // { id: 4, name: 'Books', image: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=500&q=60' },
-    ]);
+    // const [categories, setCategories] = useState([]);
+
+    const { data: categories, isLoading, error } = useQuery(
+        {
+            queryKey: ['categories'],
+            queryFn: async () => {
+                const res = await api.get('/category');
+                return res.data;
+            }
+        }
+    )
+    console.log(categories);
+
+    // POST → Add Category
+    const addCategoryMutation = useMutation({
+        mutationFn: async (newCategory) => {
+            const res = await api.post("/category/create", newCategory);
+            return res.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(["categories"]);
+            showToast('New Category Added', '', 'success');
+        }
+    });
+
+    // PUT → Update Category
+    const updateCategoryMutation = useMutation({
+        mutationFn: async ({ id, data }) => {
+            const res = await api.put(`/category/update/${id}`, data);
+            return res.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(["categories"]);
+            showToast('Category Updated', '', 'update');
+        }
+    });
 
     // Form State
     const [formData, setFormData] = useState({
@@ -141,20 +175,30 @@ function Categories() {
             return;
         }
 
-        const newCategory = {
-            id: isEditing ? formData.id : Date.now(),
-            name: formData.name,
-            image: previewUrl || 'https://via.placeholder.com/150'
+        // const newCategory = {
+        //     id: isEditing ? formData.id : Date.now(),
+        //     categoryname: formData.name,
+        //     categoryimage: previewUrl || 'https://via.placeholder.com/150'
+        // };
+
+        const payload = {
+            categoryname: formData.name,
+            categoryimage: previewUrl,
         };
 
         if (isEditing) {
-            setCategories(prev => prev.map(cat => cat.id === newCategory.id ? newCategory : cat));
+            updateCategoryMutation.mutate({
+                id: formData._id,
+                data: payload
+            });
+            // setCategories(prev => prev.map(cat => cat.id === newCategory.id ? newCategory : cat));
             showToast('Category Updated', '', 'update');
             setIsEditing(false);
         } else {
-            setCategories(prev => [newCategory, ...prev]);
-            setSuccessMsg(`"${newCategory.name}" added successfully!`);
-            showToast('New Category Added', `${newCategory.name} is now live!`, 'success');
+            addCategoryMutation.mutate(payload);
+            // setCategories(prev => [newCategory, ...prev]);
+            setSuccessMsg(`"${formData.name}" added successfully!`);
+            showToast('New Category Added', `${formData.name} is now live!`, 'success');
         }
 
         // Reset Form
@@ -162,23 +206,25 @@ function Categories() {
     };
 
     const handleEdit = (category) => {
-        setIsEditing(true);
+        // setIsEditing(true);
         setFormData({
-            id: category.id,
-            name: category.name,
+            id: category._id,
+            name: category.categoryname,
             imageType: 'url', // Simplified for edit preview
-            imageUrl: category.image,
+            imageUrl: category.categoryimage,
             imageFile: null
         });
+        setPreviewUrl(category.categoryimage);
+        setIsEditing(true);
         setSuccessMsg('');
         // Scroll to form on mobile
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleDelete = (id) => {
-        setCategories(prev => prev.filter(c => c.id !== id));
+        // setCategories(prev => prev.filter(c => c.id !== id));
         showToast('Category Deleted', '', 'delete');
-        if (isEditing && formData.id === id) {
+        if (isEditing && formData._id === id) {
             handleClearForm();
         }
     };
@@ -206,7 +252,7 @@ function Categories() {
                             <h2 className="text-md font-semibold flex items-center gap-2 text-slate-700">
                                 <MdFilterList size={22} />
                                 All Categories
-                                <span className="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full">{categories.length}</span>
+                                {/* <span className="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full">{data.length}</span> */}
                             </h2>
                             <button className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors">
                                 <MdSearch size={22} />
@@ -215,24 +261,24 @@ function Categories() {
 
                         {/* Categories Grid - Adjusted for smaller cards */}
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {categories.map((category) => (
+                            {categories?.map((category) => (
                                 <div
-                                    key={category.id}
+                                    key={category._id}
                                     className="group bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-all duration-300 flex flex-col"
                                 >
                                     <div className="relative h-32 overflow-hidden bg-slate-100">
                                         <img
-                                            src={category.image}
-                                            alt={category.name}
+                                            src={category.categoryimage}
+                                            alt={category.categoryname}
                                             className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
                                         />
                                         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                     </div>
 
                                     <div className="p-3">
-                                        <h3 className="font-semibold text-slate-800 text-sm mb-2 truncate" title={category.name}>{category.name}</h3>
+                                        <h3 className="font-semibold text-slate-800 text-sm mb-2 truncate" title={category.categoryname}>{category.categoryname}</h3>
                                         <div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-2">
-                                            <span className="text-[10px] text-slate-400 font-mono">#{category.id}</span>
+                                            <span className="text-[10px] text-slate-400 font-mono">#{category._id}</span>
                                             <div className="flex gap-1">
                                                 <button
                                                     onClick={() => handleEdit(category)}
@@ -242,7 +288,7 @@ function Categories() {
                                                     <MdEdit size={14} />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDelete(category.id)}
+                                                    onClick={() => handleDelete(category._id)}
                                                     className="p-1.5 rounded-md bg-red-50 text-red-400 hover:bg-red-400 hover:text-white transition-all"
                                                     title="Delete"
                                                 >
@@ -254,14 +300,14 @@ function Categories() {
                                 </div>
                             ))}
 
-                            {categories.length === 0 && (
+                            {/* {categories.length === 0 && (
                                 <div className="col-span-full py-12 text-center text-slate-400">
                                     <div className="inline-block p-4 rounded-full bg-slate-100 mb-4">
                                         <MdFilterList size={32} />
                                     </div>
                                     <p>No categories found. Add one to get started!</p>
                                 </div>
-                            )}
+                            )} */}
                         </div>
                     </div>
 
@@ -375,19 +421,19 @@ function Categories() {
 
                                 {/* Submit & Discard Buttons */}
                                 <div className="space-y-3">
-                                    
+
 
                                     {(previewUrl || formData.name) && (<>
-                                    <button
-                                        type="submit"
-                                        className={`w-full py-3 rounded-lg font-semibold text-white shadow-md transition-all transform active:scale-95 flex items-center justify-center gap-2 ${isEditing
-                                            ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-200'
-                                            : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'
-                                            }`}
-                                    >
-                                        {isEditing ? <MdEdit size={20} /> : <MdAdd size={20} />}
-                                        {isEditing ? 'Update Category' : 'Add Category'}
-                                    </button>
+                                        <button
+                                            type="submit"
+                                            className={`w-full py-3 rounded-lg font-semibold text-white shadow-md transition-all transform active:scale-95 flex items-center justify-center gap-2 ${isEditing
+                                                ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-200'
+                                                : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'
+                                                }`}
+                                        >
+                                            {isEditing ? <MdEdit size={20} /> : <MdAdd size={20} />}
+                                            {isEditing ? 'Update Category' : 'Add Category'}
+                                        </button>
                                         <button
                                             type="button"
                                             onClick={handleClearForm}
@@ -396,7 +442,7 @@ function Categories() {
                                             <MdCleaningServices size={18} />
                                             Discard / Clear Form
                                         </button>
-                                        </>)}
+                                    </>)}
                                 </div>
                             </form>
                         </div>

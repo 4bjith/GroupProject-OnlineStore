@@ -1,18 +1,13 @@
 import mongoose from "mongoose";
 
 const CategorySchema = new mongoose.Schema({
-    name: {
+    categoryname: {
         type: String,
         required: true,
     },
-    slug: {
+    categoryimage: {
         type: String,
         // required: true,
-        unique: true,
-    },
-    image: {
-        type: String,
-        required: true,
     },
     createdAt: {
         type: Date,
@@ -22,7 +17,7 @@ const CategorySchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
-}, { timestamps: true });
+});
 
 const categoryModel = mongoose.model('Category', CategorySchema);
 
