@@ -21,11 +21,11 @@ function Dashboard() {
     const menuItems = [
         { name: 'Dashboard', icon: <MdDashboard size={20} /> },
         { name: 'Orders', icon: <MdShoppingCart size={20} /> },
-        { name: 'Products',url: "products" , icon: <MdInventory size={20} /> },
+        { name: 'Products', url: "products", icon: <MdInventory size={20} /> },
         { name: 'Categories', icon: <MdCategory size={20} /> },
         { name: 'Sales', icon: <MdAttachMoney size={20} /> },
         { name: 'Offers', icon: <MdLocalOffer size={20} /> },
-        { name: 'Online stores', icon: <MdStore size={20} />, action: true },
+        { name: 'Online stores', url: "stores", icon: <MdStore size={20} /> },
     ];
 
     return (
@@ -61,17 +61,17 @@ function Dashboard() {
                 {/* Navigation */}
                 <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
                     {menuItems.map((item, index) => (
-                        <Link to={item.url?item.url:""}>
+                        <Link to={item.url ? item.url : ""}>
                             <button
-                            key={index}
-                            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white transition-all duration-200 group"
-                        >
-                            <span className="text-slate-400 group-hover:text-blue-500 transition-colors">{item.icon}</span>
-                            <span className="font-medium">{item.name}</span>
-                            {item.action && (
-                                <span className="ml-auto text-slate-500 group-hover:text-white text-lg">+</span>
-                            )}
-                        </button>
+                                key={index}
+                                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white transition-all duration-200 group"
+                            >
+                                <span className="text-slate-400 group-hover:text-blue-500 transition-colors">{item.icon}</span>
+                                <span className="font-medium">{item.name}</span>
+                                {item.action && (
+                                    <span className="ml-auto text-slate-500 group-hover:text-white text-lg">+</span>
+                                )}
+                            </button>
                         </Link>
                     ))}
                 </nav>
@@ -95,7 +95,7 @@ function Dashboard() {
 
             {/* Main Content Area */}
             <main className="flex-1 h-full overflow-y-auto w-full relative">
-                    <Outlet />
+                <Outlet />
             </main>
         </div>
     );
