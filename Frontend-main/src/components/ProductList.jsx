@@ -78,16 +78,21 @@ export default function ProductList() {
       // Normalize API response
       return {
         ...res.data,
-        data: res.data.data.map((item) => ({
-          id: item._id,
-          name: item.title,
-          description: item.description,
-          category: item.category,
-          price: item.price,
-          stock: item.stock,
-          sold: item.sold || 0,
-          image: item.images?.[0] || "",
-        })),
+        data: res.data.data.map((item) => {
+          const rawImage = item.images?.[0] || "";
+          return {
+            id: item._id,
+            name: item.title,
+            description: item.description,
+            category: item.category,
+            price: item.price,
+            stock: item.stock,
+            sold: item.sold || 0,
+            image: rawImage.startsWith("/uploads")
+              ? `http://localhost:3000${rawImage}`
+              : rawImage,
+          };
+        }),
       };
     },
     keepPreviousData: true,
