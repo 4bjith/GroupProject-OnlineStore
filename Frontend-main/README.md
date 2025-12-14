@@ -110,10 +110,5 @@ We welcome contributions! Please feel free to check the [issues page](issues) fo
 
 ---
 
-## 📄 License
-
-This project is licensed under the MIT License. See the `LICENSE` file for details.
-
----
 
 _Maintained by the Group Project Team._
