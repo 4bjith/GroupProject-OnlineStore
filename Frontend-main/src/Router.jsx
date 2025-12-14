@@ -22,11 +22,13 @@ function Router() {
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Home />} />
         <Route path="/temp" element={<ProductList />} />
-        <Route path="/categories" element={<Categories/>} />
+        
         <Route path="/dashboard" element={<Dashboard />}>
           <Route path="products" element={<ProductList />} />
           <Route path="products/add" element={<AddProduct />} />
           <Route path="products/edit" element={<EditProduct />} />
+          
+          <Route path="categories" element={<Categories/>} />
 
           <Route path="stores" element={<ViewStore />} />
           <Route path="stores/add" element={<AddStore />} />

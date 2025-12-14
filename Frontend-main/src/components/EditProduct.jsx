@@ -43,6 +43,23 @@ export default function EditProduct({ productData, onSave }) {
     enabled: !!productId,
   });
 
+  // ---------------- CATEGORY FETCH ----------------
+  const [categories, setCategories] = useState([]);
+
+  const { data: catData } = useQuery({
+    queryKey: ["category"],
+    queryFn: async () => {
+      const res = await api.get("/category");
+      return res.data;
+    },
+  });
+
+  useEffect(() => {
+    if (catData) {
+      setCategories(catData);
+    }
+  }, [catData]);
+
   // Initialize form when data loads
   useEffect(() => {
     if (data) {
@@ -60,6 +77,7 @@ export default function EditProduct({ productData, onSave }) {
           ? data.specifications
           : [{ key: "", value: "" }],
       });
+
 
       // Map existing images to storedImages format
       if (data.images && Array.isArray(data.images)) {
@@ -259,7 +277,7 @@ export default function EditProduct({ productData, onSave }) {
                   {storedImages.map((img, index) => (
                     <div key={index} className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200">
                       <img
-                        src={img.preview}
+                        src={img.preview.startsWith("/uploads") ? `http://localhost:3000${img.preview}` : img.preview}
                         className="w-full h-full object-cover"
                         alt={`Product ${index}`}
                       />
@@ -401,10 +419,11 @@ export default function EditProduct({ productData, onSave }) {
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none cursor-pointer"
                 >
                   <option value="">Select Category</option>
-                  <option value="Mens Shirt">Mens Shirt</option>
-                  <option value="Mens Pant">Mens Pant</option>
-                  <option value="Womens Wear">Womens Wear</option>
-                  <option value="Electronics">Electronics</option>
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat.catname}>
+                      {cat.catname}
+                    </option>
+                  ))}
                 </select>
               </div>
 

@@ -9,7 +9,7 @@ export default function ProductList() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  // const [categories, setCategory] = useState([])
+  const [category, setCategory] = useState([])
 
   // STORE ID
   const storeId = "6939203a5843f7eee1ddfd56";
@@ -42,30 +42,21 @@ export default function ProductList() {
     }
   };
 
-  // const {data:cat} = useQuery({
-  //   queryKey: ["category"],
-  //   queryFn: async () => {
-  //     const res = await api.get("/category")
-  //     return res.data;
-  //   }
-  // })
+  const { data: cat } = useQuery({
+    queryKey: ["category"],
+    queryFn: async () => {
+      const res = await api.get("/category")
+      return res.data;
+    }
+  })
 
-  // useEffect(()=>{
-  //   if(cat){
-  //     setActiveCategory(cat)
-  //   }
-  // },cat)
+  useEffect(() => {
+    if (cat) {
+      setCategory(cat)
+    }
+  }, [cat])
 
-  const categories = [
-    "All",
-    "Apple Watch",
-    "iPhone",
-    "Macbook",
-    "Apple TV",
-    "iPad",
-    "Accessories",
-    "Earpods",
-  ];
+
 
   // API REQUEST WITH PAGINATION
   const { data, isLoading } = useQuery({
@@ -106,7 +97,7 @@ export default function ProductList() {
   const filteredProducts =
     activeCategory === "All"
       ? products
-      : products.filter((p) => p.category === activeCategory);
+      : products.filter(p => p.category === activeCategory);
 
   const handleProductClick = (product) => {
     setSelectedProduct(product);
@@ -157,16 +148,25 @@ export default function ProductList() {
 
         {/* Categories */}
         <div className="flex gap-3 overflow-x-auto pb-4 mb-4 scrollbar-hide">
-          {categories.map((cat) => (
+          <button
+            onClick={() => setActiveCategory("All")}
+            className={`whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 border ${activeCategory === "All"
+              ? "bg-black text-white border-black shadow-md"
+              : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+              }`}
+          >
+            All
+          </button>
+          {category.map((cat) => (
             <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 border ${activeCategory === cat
+              key={cat._id}
+              onClick={() => setActiveCategory(cat.catname)}
+              className={`whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 border ${activeCategory === cat.catname
                 ? "bg-black text-white border-black shadow-md"
                 : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                 }`}
             >
-              {cat}
+              {cat.catname}
             </button>
           ))}
         </div>
