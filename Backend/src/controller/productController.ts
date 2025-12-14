@@ -2,93 +2,105 @@ import express from 'express';
 import ProductModel from '../model/productModel.js';
 
 // api function to create a new product
+// api function to create a new product
 export const createProduct = async (req: express.Request, res: express.Response) => {
   try {
-    const {
+    let {
       storeId,
       title,
       description,
       category,
       price,
       compareAtPrice,
-      images,
       stock,
       stockKeepingUnit,
       specifications,
       tags,
+      imageUrls,
       market,
       isActive,
       isFinite,
-    } = req.body as {
-      storeId: string;
-      title: string;
-      description: string;
-      category: string;
-      price: number;
-      compareAtPrice?: number;
-      images?: string[];
-      stock: number;
-      stockKeepingUnit?: string;
-      specifications?: { key: string; value: string }[];
-      tags?: string[];
-      market?: string;
-      isActive?: boolean;
-      isFinite?: boolean;
-    };
+    } = req.body;
 
-    // Basic Validation
+    // 1️⃣ Uploaded files
+    const files = req.files as Express.Multer.File[] | undefined;
+    const uploadedImages = files?.map(
+      (file) => `/uploads/${file.filename}`
+    ) || [];
+
+    // 2️⃣ Parse JSON strings
+    if (typeof specifications === "string") {
+      specifications = JSON.parse(specifications);
+    }
+
+    if (typeof tags === "string") {
+      tags = JSON.parse(tags);
+    }
+
+    if (typeof imageUrls === "string") {
+      imageUrls = JSON.parse(imageUrls);
+    }
+
+    // 3️⃣ Merge images (uploaded + URLs)
+    const finalImages = [
+      ...uploadedImages,
+      ...(Array.isArray(imageUrls) ? imageUrls : []),
+    ];
+
+    // 4️⃣ Validation
     if (!storeId || !title || !description || !category || !price || stock === undefined) {
       return res.status(400).json({
         success: false,
-        message: "storeId, title, description, category, price, and stock are required.",
+        message: "Required fields missing",
       });
     }
 
-    // Optional: prevent duplicate product in same store
-    const existing = await ProductModel.findOne({ storeId, title });
-    if (existing) {
+    // 5️⃣ Duplicate check
+    const exists = await ProductModel.findOne({ storeId, title });
+    if (exists) {
       return res.status(409).json({
         success: false,
-        message: "A product with this title already exists in this store.",
+        message: "Product already exists in this store",
       });
     }
 
-    const newProduct = new ProductModel({
+    // 6️⃣ Create product
+    const product = new ProductModel({
       storeId,
       title,
       description,
       category,
-      price,
-      compareAtPrice,
-      images: images || [],
-      stock,
+      price: Number(price),
+      compareAtPrice: compareAtPrice ? Number(compareAtPrice) : undefined,
+      stock: Number(stock),
       stockKeepingUnit,
+      images: finalImages,
       specifications: specifications || [],
       tags: tags || [],
       market,
-      isActive: isActive !== undefined ? isActive : true,
-      isFinite: isFinite !== undefined ? isFinite : true,
+      isActive: isActive ?? true,
+      isFinite: isFinite ?? true,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
-    await newProduct.save();
+    await product.save();
 
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
-      message: "Product created successfully.",
-      data: newProduct,
+      message: "Product created successfully",
+      data: product,
     });
+
   } catch (error: any) {
     console.error("CREATE PRODUCT ERROR:", error);
-
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      message: "An error occurred while creating the product.",
-      error: error.message || "Unknown error",
+      message: "Server error",
+      error: error.message,
     });
   }
-}
+};
 
 
 // api function to get a product by ID (not implemented yet)
@@ -155,30 +167,51 @@ export const updateProductById = async (req: express.Request, res: express.Respo
       return res.status(400).json({ message: 'Product ID is required' });
     }
 
-    const {
+    let {
       title,
       description,
       category,
       price,
       compareAtPrice,
-      images,
       stock,
       stockKeepingUnit,
       specifications,
       tags,
       market,
       isActive,
-      isFinite
+      isFinite,
+      imageUrls
     } = req.body;
+
+    // 1️⃣ Uploaded files
+    const files = req.files as Express.Multer.File[] | undefined;
+    const uploadedImages = files?.map(
+      (file) => `/uploads/${file.filename}`
+    ) || [];
+
+    // 2️⃣ Parse JSON strings (FormData sends objects as strings)
+    if (typeof specifications === "string") try { specifications = JSON.parse(specifications); } catch (e) { }
+    if (typeof tags === "string") try { tags = JSON.parse(tags); } catch (e) { }
+    if (typeof imageUrls === "string") try { imageUrls = JSON.parse(imageUrls); } catch (e) { imageUrls = [imageUrls]; }
+    if (typeof isActive === "string") isActive = isActive === "true";
+    if (typeof isFinite === "string") isFinite = isFinite === "true";
+
+    // 3️⃣ Merge images (uploaded + preserved/manual URLs)
+    // We expect the frontend to send `imageUrls` for the images that remain, 
+    // and `images` (files) for new ones.
+    const finalImages = [
+      ...uploadedImages,
+      ...(Array.isArray(imageUrls) ? imageUrls : []),
+    ];
 
     const updatedProduct = await ProductModel.findByIdAndUpdate(id, {
       title,
       description,
       category,
-      price,
-      compareAtPrice,
-      images,
-      stock,
+      price: Number(price),
+      compareAtPrice: compareAtPrice ? Number(compareAtPrice) : undefined,
+      images: finalImages.length > 0 ? finalImages : undefined, // care: if empty, might want to clear? Assuming frontend sends all kept images.
+      stock: Number(stock),
       stockKeepingUnit,
       specifications,
       tags,
@@ -196,9 +229,9 @@ export const updateProductById = async (req: express.Request, res: express.Respo
       message: "Product updated successfully",
       data: updatedProduct
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating product:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 }
 

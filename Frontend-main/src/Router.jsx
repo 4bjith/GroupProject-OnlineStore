@@ -9,6 +9,9 @@ import Categories from './pages/Categories'
 import EditProduct from "./components/EditProduct";
 import ProductList from "./components/ProductList";
 import AddProduct from "./components/AddProduct";
+import ViewStore from "./components/ViewStore";
+import AddStore from "./components/AddStore";
+import EditStore from "./components/EditStore";
 import { ToastContainer } from "react-toastify";
 
 function Router() {
@@ -19,11 +22,17 @@ function Router() {
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Home />} />
         <Route path="/temp" element={<ProductList />} />
-        <Route path="/categories" element={<Categories/>} />
+        
         <Route path="/dashboard" element={<Dashboard />}>
           <Route path="products" element={<ProductList />} />
           <Route path="products/add" element={<AddProduct />} />
           <Route path="products/edit" element={<EditProduct />} />
+          
+          <Route path="categories" element={<Categories/>} />
+
+          <Route path="stores" element={<ViewStore />} />
+          <Route path="stores/add" element={<AddStore />} />
+          <Route path="stores/edit" element={<EditStore />} />
         </Route>
       </Routes>
       <ToastContainer />

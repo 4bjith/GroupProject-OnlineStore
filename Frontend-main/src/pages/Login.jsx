@@ -4,9 +4,10 @@ import api from "../api/axiosClient";
 import authStore from "../AuthStore";
 import { FcGoogle } from "react-icons/fc";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { toast } from "react-toastify";
 
 function Login() {
-  const addToken  = authStore((state)=> state.addToken);
+  const addToken = authStore((state) => state.addToken);
   const EmailRef = useRef("");
   const PasswordRef = useRef("");
   const nav = useNavigate();
@@ -24,14 +25,14 @@ function Login() {
       // console.log("logged in:", response.data.token);
 
       if (response.data.token) {
-        alert("Logged in successfully");
-        nav("/");
+        toast.success("Logged in successfully");
+        nav("/dashboard");
       } else {
-        alert("Login failed");
+        toast.error("Login failed");
       }
     } catch (error) {
       console.error("login error:", error.response?.data || error.message);
-      alert(error.response?.data?.message || "Login failed.");
+      toast.error(error.response?.data?.message || "Login failed.");
     }
   };
 
