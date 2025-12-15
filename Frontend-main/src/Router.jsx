@@ -13,6 +13,7 @@ import ViewStore from "./components/ViewStore";
 import AddStore from "./components/AddStore";
 import EditStore from "./components/EditStore";
 import { ToastContainer } from "react-toastify";
+import Settings from "./pages/Settings";
 
 function Router() {
   return (
@@ -22,6 +23,9 @@ function Router() {
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Home />} />
         <Route path="/temp" element={<ProductList />} />
+        
+        <Route path="/settings" element={<Settings/>} />
+
         
         <Route path="/dashboard" element={<Dashboard />}>
           <Route path="products" element={<ProductList />} />
@@ -33,6 +37,8 @@ function Router() {
           <Route path="stores" element={<ViewStore />} />
           <Route path="stores/add" element={<AddStore />} />
           <Route path="stores/edit" element={<EditStore />} />
+
+
         </Route>
       </Routes>
       <ToastContainer />

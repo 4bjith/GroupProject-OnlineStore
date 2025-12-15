@@ -81,7 +81,7 @@ function Dashboard() {
                     <button className="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white transition-all text-slate-400">
                         <div className="flex items-center gap-3">
                             <MdSettings size={20} />
-                            <span className="font-medium">Settings</span>
+                            <Link to="/settings" className="font-medium">Settings</Link>
                         </div>
                         <MdKeyboardArrowRight size={20} />
                     </button>
