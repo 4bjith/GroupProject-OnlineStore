@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { FaSearch, FaPlus, FaTimes, FaFilter } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import api from "../api/axiosClient";
+import authStore from "../AuthStore";
 
 export default function ProductList() {
   const [products, setProducts] = useState([]);
@@ -11,8 +12,40 @@ export default function ProductList() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [category, setCategory] = useState([])
 
+  //-------------TAKING TOKEN FROM ZUSTAND ------
+  const token = authStore((state)=> state.token)
+
+  const [stores, setStores] = useState([])
+
+
+  // Query function to fetch user details
+  const { data: usr } = useQuery({
+    queryKey: ["user"],
+    queryFn: async () => {
+      const res = await api.get("/getuserdetails", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return res.data;
+    },
+    enabled: !!token,
+  });
+  
+
+
   // STORE ID
-  const storeId = "6939203a5843f7eee1ddfd56";
+  const [storeId, setStoreId] = useState(null)
+  const { data: store } = useQuery({
+    queryKey: ["store"],
+    queryFn: async () => {
+      const res = await api.get("/stores");
+      return res.data;
+    },
+  });
+  useEffect(()=>{
+    if (store){
+      setStores(store)
+    }
+  })
 
   // PAGINATION STATE
   const [page, setPage] = useState(1);
@@ -121,6 +154,24 @@ export default function ProductList() {
           <div>
             <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">Products</h1>
             <p className="text-gray-500 mt-1">Manage your store inventory efficiently.</p>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Stores
+                </label>
+                <select
+                  value={storeId}
+                  onChange={(e) => setStoreId(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none cursor-pointer"
+                >
+                  <option value="">Select store</option>
+                  {stores.map((st) => (
+                    <option key={st._id} value={st._id}>
+                      {st.name}
+                      
+                    </option>
+                    
+                  ))}
+                  
+                </select>
           </div>
 
           <Link to={"add"}>
