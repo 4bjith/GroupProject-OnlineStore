@@ -13,10 +13,13 @@ import {
     MdSettings,
     MdLogout
 } from "react-icons/md";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
+import authStore from "../AuthStore";
 
 function Dashboard() {
     const [open, setOpen] = useState(false);
+    const removetoken=authStore().removeToken;
+    const nav=useNavigate()
 
     const menuItems = [
         { name: 'Dashboard', icon: <MdDashboard size={20} /> },
@@ -86,7 +89,12 @@ function Dashboard() {
                         <MdKeyboardArrowRight size={20} />
                     </button>
 
-                    <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all font-medium">
+                    <button
+                    onClick={()=>{
+                        removetoken()
+                        nav('/')
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all font-medium">
                         <MdLogout size={20} />
                         <span>Logout</span>
                     </button>
@@ -95,7 +103,7 @@ function Dashboard() {
 
             {/* Main Content Area */}
             <main className="flex-1 h-full overflow-y-auto w-full relative">
-                <Outlet />
+                  
             </main>
         </div>
     );
