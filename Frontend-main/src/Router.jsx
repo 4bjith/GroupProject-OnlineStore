@@ -12,6 +12,9 @@ import AddProduct from "./components/AddProduct";
 import ViewStore from "./components/ViewStore";
 import AddStore from "./components/AddStore";
 import EditStore from "./components/EditStore";
+import DashLanding from "./components/DashLanding";
+import Orders from "./components/Orders";
+import Sales from "./components/Sales";
 import { ToastContainer } from "react-toastify";
 
 function Router() {
@@ -22,17 +25,21 @@ function Router() {
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Home />} />
         <Route path="/temp" element={<ProductList />} />
-        
+
         <Route path="/dashboard" element={<Dashboard />}>
+          <Route index element={<DashLanding />} />
           <Route path="products" element={<ProductList />} />
           <Route path="products/add" element={<AddProduct />} />
           <Route path="products/edit" element={<EditProduct />} />
-          
-          <Route path="categories" element={<Categories/>} />
+
+          <Route path="categories" element={<Categories />} />
 
           <Route path="stores" element={<ViewStore />} />
           <Route path="stores/add" element={<AddStore />} />
           <Route path="stores/edit" element={<EditStore />} />
+
+          <Route path="orders" element={<Orders />} />
+          <Route path="sales" element={<Sales />} />
         </Route>
       </Routes>
       <ToastContainer />
