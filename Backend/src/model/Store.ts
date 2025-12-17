@@ -20,15 +20,19 @@ const StoreSchema = new mongoose.Schema({
         unique: true,
         sparse: true,
     },
+    logo: {
+        type: String,
+        default: null,
+    },
     currency: {
         type: String,
         required: true,
     },
-    templateId: { 
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Template',
-        // required: true,
-    },
+    // templateId: { 
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: 'Template',
+    //     required: true,
+    // },
     commissionRate: {
         type: Number,
         default: 0,
