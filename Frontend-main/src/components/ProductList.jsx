@@ -34,16 +34,20 @@ export default function ProductList() {
 
   // STORE ID
   const [storeId, setStoreId] = useState(null)
+  const [temp, setTemp] = useState(null)
   const { data: store } = useQuery({
     queryKey: ["store"],
     queryFn: async () => {
+      
       const res = await api.get("/stores");
+      
       return res.data;
     },
   });
   useEffect(()=>{
-    if (store){
+    if (store?.length){
       setStores(store)
+      setTemp(store[0]._id)
     }
   })
 
@@ -93,34 +97,39 @@ export default function ProductList() {
 
   // API REQUEST WITH PAGINATION
   const { data, isLoading } = useQuery({
-    queryKey: ["products", storeId, page],
-    queryFn: async () => {
-      const res = await api.get(
-        `/product?storeId=${storeId}&page=${page}&limit=${limit}`
-      );
+  queryKey: ["products", storeId, page],
+  queryFn: async () => {
+    if (!storeId) {
+      return { data: [], totalPages: 1 };
+    }
 
-      // Normalize API response
-      return {
-        ...res.data,
-        data: res.data.data.map((item) => {
-          const rawImage = item.images?.[0] || "";
-          return {
-            id: item._id,
-            name: item.title,
-            description: item.description,
-            category: item.category,
-            price: item.price,
-            stock: item.stock,
-            sold: item.sold || 0,
-            image: rawImage.startsWith("/uploads")
-              ? `http://localhost:3000${rawImage}`
-              : rawImage,
-          };
-        }),
-      };
-    },
-    keepPreviousData: true,
-  });
+    const res = await api.get(
+      `/product?storeId=${storeId?storeId:temp}&page=${page}&limit=${limit}`
+    );
+
+    return {
+      ...res.data,
+      data: res.data.data.map((item) => {
+        const rawImage = item.images?.[0] || "";
+        return {
+          id: item._id,
+          name: item.title,
+          description: item.description,
+          category: item.category,
+          price: item.price,
+          stock: item.stock,
+          sold: item.sold || 0,
+          image: rawImage.startsWith("/uploads")
+            ? `http://localhost:3000${rawImage}`
+            : rawImage,
+        };
+      }),
+    };
+  },
+  enabled: !!storeId && !!temp, // ⬅️ IMPORTANT
+  keepPreviousData: true,
+});
+
 
   // Update products when API loads
   useEffect(() => {
@@ -162,7 +171,7 @@ export default function ProductList() {
                   onChange={(e) => setStoreId(e.target.value)}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none cursor-pointer"
                 >
-                  <option value="">Select store</option>
+                  <option>Select Store</option>
                   {stores.map((st) => (
                     <option key={st._id} value={st._id}>
                       {st.name}
