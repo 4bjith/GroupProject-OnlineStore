@@ -12,16 +12,17 @@ const ProductCard = ({ product }) => {
         addItem(product);
         toast.success(`${product.name} added to cart!`);
     };
+    console.log(product);
 
     return (
-        <Link to={`/products/${product.id}`} className="group block">
+        <Link to={`/products/${product._id}`} className="group block">
             <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm group-hover:shadow-md transition-all duration-300">
                 {/* Image Container */}
                 <div className="relative aspect-[4/5] overflow-hidden bg-gray-100">
-                    {product.image ? (
+                    {product.images ? (
                         <img
-                            src={product.image}
-                            alt={product.name}
+                            src={product?.images[0]?.startsWith('http') ? `http://localhost:3000/${product.images[0]}` : product?.images[0]}
+                            alt={product.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                     ) : (
@@ -43,7 +44,7 @@ const ProductCard = ({ product }) => {
                 {/* Details */}
                 <div className="p-4">
                     <p className="text-xs text-gray-500 mb-1">{product.category}</p>
-                    <h3 className="font-bold text-slate-800 text-lg mb-1 truncate">{product.name}</h3>
+                    <h3 className="font-bold text-slate-800 text-lg mb-1 truncate">{product.title}</h3>
                     <div className="flex items-center justify-between mt-2">
                         <span className="font-bold text-slate-900 text-lg">${product.price.toFixed(2)}</span>
                         {/* Rating could go here */}

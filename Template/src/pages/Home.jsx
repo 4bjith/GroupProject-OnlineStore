@@ -1,10 +1,40 @@
 import { Link } from 'react-router-dom';
-import { categories, products } from '../data/mockData';
+import { products, categories as mockCategories } from '../data/mockData';
 import ProductCard from '../components/ProductCard';
+import { useQuery } from '@tanstack/react-query';
+import api from '../api/axiosClient';
+
+const StoreId = "693f8951c2b0b53b7641b540";
 
 const Home = () => {
     // Get top 8 products
     const topProducts = products.slice(0, 8);
+
+    // Fetch Categories
+    const { data: apiCategories, isLoading } = useQuery({
+        queryKey: ['categories'],
+        queryFn: async () => {
+            const response = await api.get('/category', { params: { storeId: StoreId } });
+            return response.data;
+        }
+    });
+
+    // Use API categories if available, else fall back to mock
+    // Assuming API returns an array of objects with { catname: string, image: string, ... }
+    // We might need to map it to match our UI expectation if the structure differs
+    const displayCategories = apiCategories?.length ? apiCategories : mockCategories;
+
+
+    const { data: apiProducts, isLoading: apiProductsLoading } = useQuery({
+        queryKey: ['products'],
+        queryFn: async () => {
+            const response = await api.get('/product', { params: { storeId: StoreId } });
+            // The API returns { data: [...products], total, page, ... }
+            return response.data.data;
+        }
+    });
+
+    const displayProducts = apiProducts?.length ? apiProducts : products;
 
     return (
         <div className="space-y-16 pb-16">
@@ -39,19 +69,19 @@ const Home = () => {
 
                 {/* Scroll Container */}
                 <div className="flex overflow-x-auto gap-6 pb-6 no-scrollbar snap-x">
-                    {categories.map((cat) => (
+                    {displayCategories.map((cat, index) => (
                         <Link
-                            to={`/products?category=${cat.name}`}
-                            key={cat.id}
+                            to={`/products?category=${cat.name || cat.catname}`}
+                            key={cat.id || index}
                             className="flex-shrink-0 w-64 snap-start group relative h-80 rounded-2xl overflow-hidden cursor-pointer"
                         >
                             <img
-                                src={cat.image}
-                                alt={cat.name}
+                                src={cat.catimage?.startsWith('http') ? cat.catimage : `http://localhost:3000/${cat.catimage}` || 'https://placehold.co/400x400'}
+                                alt={cat.name || cat.catname}
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-6">
-                                <h3 className="text-white text-xl font-bold">{cat.name}</h3>
+                                <h3 className="text-white text-xl font-bold">{cat.name || cat.catname}</h3>
                             </div>
                         </Link>
                     ))}
@@ -62,8 +92,8 @@ const Home = () => {
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-8 text-center">Top Trending Products</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {topProducts.map((product) => (
-                        <ProductCard key={product.id} product={product} />
+                    {displayProducts.map((product) => (
+                        <ProductCard key={product._id} product={product} />
                     ))}
                 </div>
                 <div className="mt-12 text-center">

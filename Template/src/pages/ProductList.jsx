@@ -1,8 +1,12 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { products, categories } from '../data/mockData';
+import { products as mockProducts, categories as mockCategories } from '../data/mockData';
 import ProductCard from '../components/ProductCard';
 import { FiSearch, FiFilter } from 'react-icons/fi';
+import { useQuery } from '@tanstack/react-query';
+import api from '../api/axiosClient';
+
+const StoreId = "693f8951c2b0b53b7641b540";
 
 const ProductList = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -12,25 +16,46 @@ const ProductList = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 12;
 
+    // Fetch Products
+    const { data: apiProducts, isLoading: isProductsLoading } = useQuery({
+        queryKey: ['products'],
+        queryFn: async () => {
+            const response = await api.get('/product', { params: { storeId: StoreId, limit: 100 } });
+            return response.data.data;
+        }
+    });
+
+    // Fetch Categories
+    const { data: apiCategories, isLoading: isCategoriesLoading } = useQuery({
+        queryKey: ['categories'],
+        queryFn: async () => {
+            const response = await api.get('/category', { params: { storeId: StoreId } });
+            return response.data;
+        }
+    });
+
+    const products = apiProducts?.length ? apiProducts : mockProducts;
+    const categories = apiCategories?.length ? apiCategories : mockCategories;
+
     // Filter Logic
     const filteredProducts = useMemo(() => {
         let result = [...products];
 
-        // Search
+        // Search (using title for API, name for mock)
         if (searchTerm) {
-            result = result.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+            result = result.filter(p => (p.title || p.name).toLowerCase().includes(searchTerm.toLowerCase()));
         }
 
         // Category
         if (selectedCategory !== 'All') {
-            result = result.filter(p => p.category === selectedCategory);
+            result = result.filter(p => (p.category === selectedCategory || p.categoryId === selectedCategory)); // Adjust comparison if needed
         }
 
         // Sort
         if (sortOption === 'newest') {
-            result.sort((a, b) => new Date(b.date) - new Date(a.date));
+            result.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
         } else if (sortOption === 'oldest') {
-            result.sort((a, b) => new Date(a.date) - new Date(b.date));
+            result.sort((a, b) => new Date(a.createdAt || a.date) - new Date(b.createdAt || b.date));
         } else if (sortOption === 'price-low') {
             result.sort((a, b) => a.price - b.price);
         } else if (sortOption === 'price-high') {
@@ -38,7 +63,7 @@ const ProductList = () => {
         }
 
         return result;
-    }, [searchTerm, selectedCategory, sortOption]);
+    }, [searchTerm, selectedCategory, sortOption, products]);
 
     // Pagination Logic
     const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -78,7 +103,7 @@ const ProductList = () => {
                             className="bg-gray-50 border border-gray-200 rounded-lg py-2 px-3 outline-none text-sm font-medium"
                         >
                             <option value="All">All Categories</option>
-                            {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                            {categories.map((c, i) => <option key={c.id || c._id || i} value={c.name || c.catname}>{c.name || c.catname}</option>)}
                         </select>
                     </div>
 
@@ -99,11 +124,11 @@ const ProductList = () => {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 min-h-[400px]">
                 {paginatedProducts.length > 0 ? (
                     paginatedProducts.map(product => (
-                        <ProductCard key={product.id} product={product} />
+                        <ProductCard key={product._id || product.id} product={product} />
                     ))
                 ) : (
                     <div className="col-span-full flex justify-center items-center text-gray-500">
-                        No products found.
+                        {isProductsLoading ? "Loading products..." : "No products found."}
                     </div>
                 )}
             </div>
@@ -123,8 +148,8 @@ const ProductList = () => {
                             key={i}
                             onClick={() => setCurrentPage(i + 1)}
                             className={`w-10 h-10 rounded-lg font-bold flex items-center justify-center ${currentPage === i + 1
-                                    ? 'bg-slate-900 text-white'
-                                    : 'bg-white border border-gray-200 text-slate-700 hover:bg-gray-50'
+                                ? 'bg-slate-900 text-white'
+                                : 'bg-white border border-gray-200 text-slate-700 hover:bg-gray-50'
                                 }`}
                         >
                             {i + 1}

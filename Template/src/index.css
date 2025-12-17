@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
-@theme {
+/* @theme {
   --color-primary: #0F172A;
   --color-secondary: #3B82F6;
   --color-accent: #10B981;
-}
+} */
 
 /* Hide scrollbar for Chrome, Safari and Opera */
 .no-scrollbar::-webkit-scrollbar {

@@ -28,17 +28,21 @@ const Cart = () => {
                 {/* Cart Items */}
                 <div className="lg:col-span-2 space-y-6">
                     {items.map((item) => (
-                        <div key={item.id} className="flex gap-4 md:gap-6 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                        <div key={item._id || item.id} className="flex gap-4 md:gap-6 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
                             <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                                <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                <img
+                                    src={item.images?.[0] ? (item.images[0].startsWith('http') ? `http://localhost:3000/${item.images[0]}` : item.images[0]) : item.images}
+                                    alt={item.title || item.name}
+                                    className="w-full h-full object-cover"
+                                />
                             </div>
 
                             <div className="flex-1 flex flex-col justify-between">
                                 <div>
                                     <div className="flex justify-between items-start">
-                                        <h3 className="font-bold text-slate-900 text-lg">{item.name}</h3>
+                                        <h3 className="font-bold text-slate-900 text-lg">{item.title || item.name}</h3>
                                         <button
-                                            onClick={() => removeItem(item.id)}
+                                            onClick={() => removeItem(item._id || item.id)}
                                             className="text-gray-400 hover:text-red-500 transition-colors"
                                         >
                                             <FiTrash2 size={20} />
@@ -50,14 +54,14 @@ const Cart = () => {
                                 <div className="flex justify-between items-end mt-4">
                                     <div className="flex items-center border border-gray-200 rounded-lg">
                                         <button
-                                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                            onClick={() => updateQuantity(item._id || item.id, item.quantity - 1)}
                                             className="p-2 hover:bg-gray-50 text-gray-500"
                                         >
                                             <FiMinus size={14} />
                                         </button>
                                         <span className="w-10 text-center text-sm font-bold">{item.quantity}</span>
                                         <button
-                                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                            onClick={() => updateQuantity(item._id || item.id, item.quantity + 1)}
                                             className="p-2 hover:bg-gray-50 text-gray-500"
                                         >
                                             <FiPlus size={14} />

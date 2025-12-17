@@ -1,26 +1,48 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { products } from '../data/mockData';
+import { products as mockProducts } from '../data/mockData';
 import useCartStore from '../store/cartStore';
 import { FiMinus, FiPlus, FiShoppingCart } from 'react-icons/fi';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
+import { useQuery } from '@tanstack/react-query';
+import api from '../api/axiosClient';
 
 const ProductView = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const product = products.find(p => p.id === parseInt(id));
     const addItem = useCartStore(state => state.addItem);
     const [quantity, setQuantity] = useState(1);
 
+    // Fetch Product by ID
+    const { data: productData, isLoading, isError } = useQuery({
+        queryKey: ['product', id],
+        queryFn: async () => {
+            // If ID is numeric (mock), return null to use mock fallback loop or just fetch.
+            // But our current Mock ID is numeric "1", "2". API ID is "67...".
+            // We can just try to fetch.
+            try {
+                const response = await api.get(`/products/${id}`);
+                return response.data;
+            } catch (err) {
+                return null;
+            }
+        }
+    });
+
+    const mockProduct = mockProducts.find(p => p.id === parseInt(id));
+    const product = productData || mockProduct;
+
+    if (isLoading) return <div className="p-20 text-center">Loading product...</div>;
     if (!product) return <div className="p-20 text-center">Product not found.</div>;
 
     const handleAddToCart = () => {
-        addItem({ ...product, quantity }); // Note: cart store usually handles adding quantity, but here we can just add item multiply times or update store logic.
-        // Actually my store adds 1, let me update logic or simply call addItem loop.
-        // Simplified: Just add item.
-        for (let i = 0; i < quantity; i++) addItem(product);
-        toast.success(`Added ${quantity} ${product.name} to cart`);
+        addItem({ ...product, quantity });
+        toast.success(`Added ${quantity} ${product.title || product.name} to cart`);
     };
+
+    const imageUrl = product.images?.[0] ?
+        (product.images[0].startsWith('http', 'https', 'data:image') ? product.images[0] : `http://localhost:3000/${product.images[0]}`)
+        : (product.image || "https://placehold.co/600x600");
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -28,7 +50,7 @@ const ProductView = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                 {/* Image */}
                 <div className="bg-gray-100 rounded-2xl overflow-hidden aspect-square">
-                    <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                    <img src={imageUrl} alt={product.title || product.name} className="w-full h-full object-cover" />
                 </div>
 
                 {/* Details */}
@@ -36,8 +58,8 @@ const ProductView = () => {
                     <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
                         {product.category}
                     </span>
-                    <h1 className="text-4xl font-extrabold text-slate-900">{product.name}</h1>
-                    <p className="text-3xl font-bold text-slate-900">${product.price.toFixed(2)}</p>
+                    <h1 className="text-4xl font-extrabold text-slate-900">{product.title || product.name}</h1>
+                    <p className="text-3xl font-bold text-slate-900">${Number(product.price).toFixed(2)}</p>
 
                     <p className="text-gray-600 leading-relaxed text-lg">
                         {product.description}
@@ -60,7 +82,7 @@ const ProductView = () => {
                                     <FiPlus />
                                 </button>
                             </div>
-                            <span className="text-sm text-gray-500">In Stock</span>
+                            <span className="text-sm text-gray-500">In Stock: {product.stock || "Unknown"}</span>
                         </div>
 
                         <div className="flex gap-4">
