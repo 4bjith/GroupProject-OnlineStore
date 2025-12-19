@@ -15,9 +15,30 @@ import EditStore from "./components/EditStore";
 import DashLanding from "./components/DashLanding";
 import Orders from "./components/Orders";
 import Sales from "./components/Sales";
+import THomeOne from "./templete001/THomeOne"
 import { ToastContainer } from "react-toastify";
+import { useQuery } from "@tanstack/react-query";
+import api from "./api/axiosClient";
+import { useEffect } from "react";
+import CreateTemplate from "./admin/CreateTemplate";
 
 function Router() {
+
+  // function to fetch stores
+  const {data:stores} = useQuery({
+    queryKey: ['stores'],
+    queryFn: async () => {
+      const response = await api.get("/stores")
+      return response.data
+    }
+
+  })
+  useEffect(()=>{
+    if (stores){
+      console.log(stores)
+    }
+  },[stores])
+
   return (
     <BrowserRouter>
       <Routes>
@@ -41,6 +62,14 @@ function Router() {
           <Route path="orders" element={<Orders />} />
           <Route path="sales" element={<Sales />} />
         </Route>
+        {
+          stores?.map((i)=>(
+            <Route path={`/${i.slug}`} element={<THomeOne />}>
+              
+            </Route>
+          ))
+        }
+        <Route path="/adm" element={<CreateTemplate/>}/>
       </Routes>
       <ToastContainer />
     </BrowserRouter>

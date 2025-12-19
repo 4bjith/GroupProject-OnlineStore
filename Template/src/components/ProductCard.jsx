@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { FiShoppingCart } from 'react-icons/fi';
 import useCartStore from '../store/cartStore';
 import { toast } from 'react-toastify';
+import { BASE_URL } from '../../../Frontend-main/src/api/urls';
 
 const ProductCard = ({ product }) => {
     const addItem = useCartStore((state) => state.addItem);
@@ -18,10 +19,10 @@ const ProductCard = ({ product }) => {
         <Link to={`/products/${product._id}`} className="group block">
             <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm group-hover:shadow-md transition-all duration-300">
                 {/* Image Container */}
-                <div className="relative aspect-[4/5] overflow-hidden bg-gray-100">
+                <div className="relative aspect-4/5 overflow-hidden bg-gray-100">
                     {product.images ? (
                         <img
-                            src={product?.images[0]?.startsWith('http') ? `http://localhost:3000/${product.images[0]}` : product?.images[0]}
+                            src={product?.images[0]?.startsWith('http'||'data') ? product?.images[0]: `${BASE_URL}/${product.images[0]}`}
                             alt={product.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />

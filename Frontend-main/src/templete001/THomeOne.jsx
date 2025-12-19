@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
-import { products, categories as mockCategories } from '../data/mockData';
-import ProductCard from '../components/ProductCard';
+import { products, categories as mockCategories } from '../../../Template/src/data/mockData';
+import ProductCard from '../../../Template/src/components/ProductCard';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axiosClient';
+import { BASE_URL } from '../api/urls';
 
 const StoreId = "693f8951c2b0b53b7641b540";
 
@@ -73,14 +74,14 @@ const Home = () => {
                         <Link
                             to={`/products?category=${cat.name || cat.catname}`}
                             key={cat.id || index}
-                            className="flex-shrink-0 w-64 snap-start group relative h-80 rounded-2xl overflow-hidden cursor-pointer"
+                            className="shrink-0 w-64 snap-start group relative h-80 rounded-2xl overflow-hidden cursor-pointer"
                         >
                             <img
-                                src={cat.catimage?.startsWith('http') ? cat.catimage : `http://localhost:3000/${cat.catimage}` || 'https://placehold.co/400x400'}
+                                src={cat.catimage?.startsWith('http') ? cat.catimage : `${BASE_URL}/${cat.catimage}` || 'https://placehold.co/400x400'}
                                 alt={cat.name || cat.catname}
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-6">
+                            <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent flex items-end p-6">
                                 <h3 className="text-white text-xl font-bold">{cat.name || cat.catname}</h3>
                             </div>
                         </Link>

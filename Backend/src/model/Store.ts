@@ -28,11 +28,11 @@ const StoreSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    // templateId: { 
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: 'Template',
-    //     required: true,
-    // },
+    templateId: { 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Template',
+        required: true,
+    },
     commissionRate: {
         type: Number,
         default: 0,
