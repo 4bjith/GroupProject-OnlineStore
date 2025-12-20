@@ -134,14 +134,14 @@ function Categories() {
             <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} md:w-[30%] md:mr-5 h-[40%] w-[60%] shadow-lg rounded-xl pointer-events-auto flex ring-1 ring-black ring-opacity-10 ${config.containerClass}`}>
                 <div className="flex-1 w-0 p-4">
                     <div className="flex items-start">
-                        <div className="flex-shrink-0 pt-0.5">
+                        <div className="shrink-0 pt-0.5">
                             {config.icon}
                         </div>
                         <div className="ml-3 mt-1 flex-1">
                             <p className={`text-sm font-bold ${config.titleClass}`}>{title}</p>
                             {/* <p className={`mt-1 text-sm ${config.messageClass}`}>{message}</p> */}
                         </div>
-                        <div className="ml-4 flex-shrink-0 flex">
+                        <div className="ml-4 shrink-0 flex">
                             <button
                                 className="bg-transparent rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none"
                                 onClick={() => toast.dismiss(t.id)}
@@ -194,11 +194,17 @@ function Categories() {
         }
         const payload = new FormData();
         payload.append("catname", formData.name);
-        payload.append("catimage", formData.imageFile || formData.imageUrl);
+        if (formData.imageType === "file" && formData.imageFile) {
+            payload.append("catimage", formData.imageFile);
+        }
+
+        if (formData.imageType === "url" && formData.imageUrl) {
+            payload.append("catimage", formData.imageUrl);
+        }
 
         if (isEditing) {
             updateCategoryMutation.mutate({
-                id: formData._id,
+                id: formData.id,
                 data: payload
             });
             setIsEditing(false);
@@ -379,7 +385,7 @@ function Categories() {
                                             <input
                                                 type="url"
                                                 name="imageUrl"
-                                                value={`${previewUrl}`}
+                                                value={formData.imageUrl}
                                                 onChange={handleInputChange}
                                                 placeholder="https://example.com/image.jpg"
                                                 className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-sm"
@@ -402,7 +408,16 @@ function Categories() {
                                 {/* Preview Area */}
                                 {previewUrl ? (
                                     <div className="relative w-full h-48 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 group">
-                                        <img src={`${formData.imageType === 'url' ? ("http://localhost:3000/" + previewUrl) : previewUrl}`} alt="Preview" className="w-full h-full object-cover" />
+                                        <img
+                                            src={
+                                                previewUrl.startsWith("http")
+                                                    ? previewUrl
+                                                    : `http://localhost:3000/${previewUrl}`
+                                            }
+                                            alt="Preview"
+                                            className="w-full h-full object-cover"
+                                        />
+
                                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                             <span className="text-white text-xs font-semibold bg-black/50 px-3 py-1 rounded-full">Preview</span>
                                         </div>

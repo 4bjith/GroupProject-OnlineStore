@@ -26,6 +26,7 @@ export const createCategory = async (
     });
 
     res.status(201).json(newCategory);
+    console.log(newCategory)
   } catch (error) {
     console.error("Error creating category:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -80,6 +81,7 @@ export const updateCategory = async (
     );
 
     res.status(200).json(updatedCategory);
+    console.log(updatedCategory)
   } catch (error) {
     console.error("Error updating category:", error);
     res.status(500).json({ message: "Internal server error" });
