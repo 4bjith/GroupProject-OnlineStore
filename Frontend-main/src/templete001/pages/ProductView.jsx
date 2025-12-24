@@ -1,25 +1,25 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { products as mockProducts } from '../data/mockData';
-import useCartStore from '../store/cartStore';
+import useCartStore from '../../Zustand/cartStore';
 import { FiMinus, FiPlus, FiShoppingCart } from 'react-icons/fi';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useQuery } from '@tanstack/react-query';
-import api from '../api/axiosClient';
+import api from '../../api/axiosClient';
+import { BASE_URL } from '../../api/urls';
 
 const ProductView = () => {
+    const { store } = useOutletContext();
     const { id } = useParams();
     const navigate = useNavigate();
     const addItem = useCartStore(state => state.addItem);
     const [quantity, setQuantity] = useState(1);
+    const storeSlug = store?.slug ? `/${store.slug}` : '';
 
     // Fetch Product by ID
     const { data: productData, isLoading, isError } = useQuery({
         queryKey: ['product', id],
         queryFn: async () => {
-            // If ID is numeric (mock), return null to use mock fallback loop or just fetch.
-            // But our current Mock ID is numeric "1", "2". API ID is "67...".
-            // We can just try to fetch.
             try {
                 const response = await api.get(`/products/${id}`);
                 return response.data;
@@ -40,13 +40,13 @@ const ProductView = () => {
         toast.success(`Added ${quantity} ${product.title || product.name} to cart`);
     };
 
-    const imageUrl = product.images?.[0] ?
-        (product.images[0].startsWith('http', 'https', 'data:image') ? product.images[0] : `http://localhost:3000/${product.images[0]}`)
-        : (product.image || "https://placehold.co/600x600");
+    const imageUrl = product.image ?
+        (product.image.startsWith('http') ? product.image : `${BASE_URL}/${product.image}`)
+        : "https://placehold.co/600x600";
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <button onClick={() => navigate(-1)} className="text-gray-500 mb-6 hover:text-black">Back to products</button>
+            <Link to={`${storeSlug}/store-products`} className="text-gray-500 mb-6 hover:text-black inline-block">Back to products</Link>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                 {/* Image */}
                 <div className="bg-gray-100 rounded-2xl overflow-hidden aspect-square">

@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import useAuthStore from '../store/authStore';
+import { Link, useNavigate, useOutletContext } from 'react-router-dom';
+import useAuthStore from '../../AuthStore';
 import { toast } from 'react-toastify';
 
 const Register = () => {
+    const { store } = useOutletContext();
     const navigate = useNavigate();
     const login = useAuthStore((state) => state.login);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const storeSlug = store?.slug ? `/${store.slug}` : '';
 
     const handleRegister = (e) => {
         e.preventDefault();
@@ -16,7 +18,7 @@ const Register = () => {
         if (name && email && password) {
             login({ name, email }, 'mock-token-123');
             toast.success("Account created successfully!");
-            navigate('/');
+            navigate(`${storeSlug}`);
         } else {
             toast.error("Please fill in all fields");
         }
@@ -68,7 +70,7 @@ const Register = () => {
                 </form>
 
                 <p className="mt-6 text-center text-sm text-gray-500">
-                    Already have an account? <Link to="/login" className="text-blue-600 font-bold hover:underline">Sign In</Link>
+                    Already have an account? <Link to={`${storeSlug}/login`} className="text-blue-600 font-bold hover:underline">Sign In</Link>
                 </p>
             </div>
         </div>

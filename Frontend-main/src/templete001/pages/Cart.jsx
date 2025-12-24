@@ -1,17 +1,21 @@
-import { Link } from 'react-router-dom';
-import useCartStore from '../store/cartStore';
+import { Link, useOutletContext } from 'react-router-dom';
+import useCartStore from '../../Zustand/cartStore';
 import { FiTrash2, FiMinus, FiPlus, FiArrowRight } from 'react-icons/fi';
+import { BASE_URL } from '../../api/urls';
 
 const Cart = () => {
+    const { store } = useOutletContext();
     const { items, removeItem, updateQuantity, getTotalPrice, clearCart } = useCartStore();
     const total = getTotalPrice();
+    // console.log(items)
+    const storeSlug = store?.slug ? `/${store.slug}` : '';
 
     if (items.length === 0) {
         return (
             <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-4">
                 <h2 className="text-2xl font-bold text-slate-900 mb-4">Your cart is empty</h2>
                 <p className="text-gray-500 mb-8">Looks like you haven't added anything yet.</p>
-                <Link to="/products">
+                <Link to={`${storeSlug}/store-products`}>
                     <button className="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-800 transition-colors">
                         Start Shopping
                     </button>
@@ -29,9 +33,9 @@ const Cart = () => {
                 <div className="lg:col-span-2 space-y-6">
                     {items.map((item) => (
                         <div key={item._id || item.id} className="flex gap-4 md:gap-6 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-                            <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                            <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden shrink-0">
                                 <img
-                                    src={item.images?.[0] ? (item.images[0].startsWith('http') ? `http://localhost:3000/${item.images[0]}` : item.images[0]) : item.images}
+                                    src={item.image ? (item.image.startsWith('http') ? item.image : `${BASE_URL}/${item.image}`) : item.image}
                                     alt={item.title || item.name}
                                     className="w-full h-full object-cover"
                                 />
@@ -101,7 +105,7 @@ const Cart = () => {
                         </div>
                     </div>
 
-                    <Link to="/checkout">
+                    <Link to={`${storeSlug}/checkout`} >
                         <button className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors shadow-lg">
                             Proceed to Checkout <FiArrowRight />
                         </button>
