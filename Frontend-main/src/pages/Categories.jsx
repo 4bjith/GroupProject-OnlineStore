@@ -32,6 +32,30 @@ function Categories() {
         }
     )
 
+
+    //get category by storeid
+    // const { data: categorybystore = [], isLoading:catloading, error:caterror } = useQuery(
+    //     {
+    //         queryKey: ['categories'],
+    //         queryFn: async () => {
+    //             const res = await api.get(`/category/${storeid}`);
+    //             return res.data;
+    //         }
+    //     }
+    // )
+
+    //get stores available
+    const { data: stores = [], isLoading: storeloading, error: storeerror } = useQuery(
+        {
+            queryKey: ['stores'],
+            queryFn: async () => {
+                const res = await api.get('/stores');
+                return res.data;
+            }
+        }
+    )
+
+
     // POST → Add Category
     const addCategoryMutation = useMutation({
         mutationFn: async (newCategory) => {
@@ -50,7 +74,7 @@ function Categories() {
     // PUT → Update Category
     const updateCategoryMutation = useMutation({
         mutationFn: async ({ id = catId, data }) => {
-            console.log(id);
+            // console.log(id);
             const res = await api.put(`/category/update/${id}`, data, {
                 headers: {
                     "Content-Type": "multipart/form-data"
@@ -79,6 +103,7 @@ function Categories() {
     const [formData, setFormData] = useState({
         id: null,
         name: '',
+        storeId: '',
         imageType: 'url', // 'url' or 'file'
         imageUrl: '',
         imageFile: null
@@ -175,6 +200,7 @@ function Categories() {
         setFormData({
             id: null,
             name: '',
+            storeId: '',
             imageType: 'url',
             imageUrl: '',
             imageFile: null
@@ -188,12 +214,25 @@ function Categories() {
         e.preventDefault();
         setCatId(formData.id);
 
-        if (!formData.name || (!formData.imageUrl && !formData.imageFile)) {
-            toast.error("Please fill in all fields");
+        if (!formData.name.trim()) {
+            toast.error("Category name is required");
             return;
         }
+
+        if (!formData.storeId) {
+            toast.error("Please select a store");
+            return;
+        }
+
+        if (!formData.imageUrl && !formData.imageFile) {
+            toast.error("Category image is required");
+            return;
+        }
+
         const payload = new FormData();
         payload.append("catname", formData.name);
+        payload.append("storeId", formData.storeId);
+
         if (formData.imageType === "file" && formData.imageFile) {
             payload.append("catimage", formData.imageFile);
         }
@@ -213,6 +252,7 @@ function Categories() {
             setSuccessMsg(`"${formData.name}" added successfully!`);
             showToast('New Category Added', `${formData.name} is now live!`, 'success');
         }
+
         // Reset Form
         handleClearForm();
     };
@@ -221,6 +261,7 @@ function Categories() {
         setFormData({
             id: category._id,
             name: category.catname,
+            storeId: category.storeId?._id || category.storeId,
             imageType: 'url', // Simplified for edit preview
             imageUrl: category.catimage,
             imageFile: null
@@ -277,7 +318,7 @@ function Categories() {
                                 >
                                     <div className="relative h-32 overflow-hidden bg-slate-100">
                                         <img
-                                            src={category?.catimage.startsWith('https'||'http')?category.catimage:`http://localhost:3000/${category.catimage}`}
+                                            src={category?.catimage.startsWith('https' || 'http') ? category.catimage : `http://localhost:3000/${category.catimage}`}
                                             alt={category.catname}
                                             className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
                                         />
@@ -358,6 +399,39 @@ function Categories() {
                                         className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-sm"
                                     />
                                 </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                        Store Name
+                                    </label>
+
+                                    <select
+                                        name="storeId"
+                                        value={formData.storeId}
+                                        onChange={handleInputChange}
+                                        disabled={isEditing || storeloading}
+                                        className={`w-full px-4 py-2.5 rounded-lg border
+                                                  ${isEditing ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
+                                                  border-slate-300 focus:border-blue-500 focus:ring-2
+                                                  focus:ring-blue-200 outline-none transition-all text-sm`}
+                                    >
+                                        <option value="">
+                                            {storeloading ? "Loading stores..." : "Select a store"}
+                                        </option>
+
+                                        {stores.map((store) => (
+                                            <option key={store._id} value={store._id}>
+                                                {store.name}
+                                            </option>
+                                        ))}
+                                    </select>
+
+                                    {storeerror && (
+                                        <p className="text-xs text-red-500 mt-1">
+                                            Failed to load stores
+                                        </p>
+                                    )}
+                                </div>
+
                                 {/* Image Source Toggle */}
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-2">Category Image</label>
