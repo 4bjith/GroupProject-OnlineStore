@@ -277,7 +277,7 @@ function Categories() {
                                 >
                                     <div className="relative h-32 overflow-hidden bg-slate-100">
                                         <img
-                                            src={`http://localhost:3000/${category.catimage}`}
+                                            src={category?.catimage.startsWith('https'||'http')?category.catimage:`http://localhost:3000/${category.catimage}`}
                                             alt={category.catname}
                                             className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
                                         />
