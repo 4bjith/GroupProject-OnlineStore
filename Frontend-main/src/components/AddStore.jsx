@@ -22,6 +22,17 @@ export default function AddStore() {
   const [currency, setCurrency] = useState("USD");
   const token = authStore((state) => state.token);
 
+  // -------------FUNCTION TO FETCH TEMPLATE -----------
+  const {data:template, isLoading} = useQuery({
+    queryKey: ["template"],
+    queryFn: async () => {
+      const res = await api.get("/templates")
+      return res.data
+    }
+  })
+
+  console.log(template)
+
   // Query function to fetch user details
   const { data: usr } = useQuery({
     queryKey: ["user"],
