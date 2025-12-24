@@ -14,6 +14,7 @@ import {
     MdCleaningServices,
     MdClose
 } from 'react-icons/md';
+import { RiArrowDropDownLine } from 'react-icons/ri';
 import toast, { Toaster } from 'react-hot-toast';
 import api from '../api/axiosClient';
 
@@ -32,17 +33,6 @@ function Categories() {
         }
     )
 
-
-    //get category by storeid
-    // const { data: categorybystore = [], isLoading:catloading, error:caterror } = useQuery(
-    //     {
-    //         queryKey: ['categories'],
-    //         queryFn: async () => {
-    //             const res = await api.get(`/category/${storeid}`);
-    //             return res.data;
-    //         }
-    //     }
-    // )
 
     //get stores available
     const { data: stores = [], isLoading: storeloading, error: storeerror } = useQuery(
@@ -96,6 +86,7 @@ function Categories() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries(["categories"]);
+            showToast('Category Deleted', '', 'delete');
         }
     });
 
@@ -277,11 +268,22 @@ function Categories() {
         if (confirm("Are you sure you want to delete this category?")) {
             deleteCategoryMutation.mutate(id);
         }
-        showToast('Category Deleted', '', 'delete');
         if (isEditing && formData._id === id) {
             handleClearForm();
         }
     };
+
+
+    const [showStoreFilter, setShowStoreFilter] = useState(false);
+    const [selectedStore, setSelectedStore] = useState(null); // null = All
+
+
+    const filteredCategories = selectedStore
+        ? categories?.filter(cat =>
+            (cat.storeId?._id || cat.storeId) === selectedStore._id
+        )
+        : categories;
+
 
     return (
         <div className="min-h-screen bg-gray-50 p-6 md:p-8 font-sans text-slate-800">
@@ -298,20 +300,66 @@ function Categories() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                     {/* Left Column: Categories List */}
                     <div className="lg:col-span-2 space-y-6 order-2 lg:order-1">
-                        {/* List Actions/Header */}
-                        <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                            <h2 className="text-md font-semibold flex items-center gap-2 text-slate-700">
-                                <MdFilterList size={22} />
-                                All Categories
-                                <span className="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full">{categories?.length || 0}</span>
-                            </h2>
-                            <button className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors">
-                                <MdSearch size={22} />
-                            </button>
+                        {/* List categories based on store */}
+                        <div className="relative">
+                            <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                                <h2 className="text-md font-semibold flex items-center gap-2 text-slate-700">
+                                    <MdFilterList size={22} />
+
+                                    {selectedStore ? selectedStore.name : "All Categories"}
+
+                                    <span className="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full">
+                                        {filteredCategories?.length || 0}
+                                    </span>
+                                </h2>
+
+                                {/* Arrow button */}
+                                <button
+                                    onClick={() => setShowStoreFilter(prev => !prev)}
+                                    className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"
+                                >
+                                    <RiArrowDropDownLine
+                                        size={28}
+                                        className={`transition-transform ${showStoreFilter ? "rotate-180" : ""
+                                            }`}
+                                    />
+                                </button>
+                            </div>
+
+                            {/* Dropdown */}
+                            {showStoreFilter && (
+                                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-100 z-10">
+                                    <button
+                                        onClick={() => {
+                                            setSelectedStore(null);
+                                            setShowStoreFilter(false);
+                                        }}
+                                        className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-100
+                    ${!selectedStore ? "bg-slate-100 font-medium" : ""}`}
+                                    >
+                                        All Stores
+                                    </button>
+
+                                    {stores?.map(store => (
+                                        <button
+                                            key={store._id}
+                                            onClick={() => {
+                                                setSelectedStore(store);
+                                                setShowStoreFilter(false);
+                                            }}
+                                            className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-100
+                        ${selectedStore?._id === store._id ? "bg-slate-100 font-medium" : ""}`}
+                                        >
+                                            {store.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
+
                         {/* Categories Grid - Adjusted for smaller cards */}
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {categories?.map((category) => (
+                            {categories && filteredCategories?.map((category) => (
                                 <div
                                     key={category._id}
                                     className="group bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-all duration-300 flex flex-col"
@@ -483,11 +531,7 @@ function Categories() {
                                 {previewUrl ? (
                                     <div className="relative w-full h-48 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 group">
                                         <img
-                                            src={
-                                                previewUrl.startsWith("http")
-                                                    ? previewUrl
-                                                    : `http://localhost:3000/${previewUrl}`
-                                            }
+                                            src={ `${previewUrl}`}
                                             alt="Preview"
                                             className="w-full h-full object-cover"
                                         />
