@@ -7,7 +7,7 @@ function Navbar() {
 
   return (
     <>
-      <div className="w-full flex justify-center">
+      <div className="fixed z-50 top-0  bg-linear-to-br from-green-50 to-white  w-full flex justify-center">
         <div className="w-full md:w-[760px] lg:w-[1000px] xl:w-[1200px] h-[12vh] flex justify-between items-center px-5 md:px-0">
 
           {/* Left Side */}
@@ -84,23 +84,23 @@ function Navmenu({ mobile = false, onClose }) {
         </div>
       )}
 
-      <Link to="/" onClick={onClose}>
+      <a href="#home">
         <span className="text-[1.2rem] text-gray-800 hover:text-green-800 hover:scale-110 cursor-pointer">
           Home
         </span>
-      </Link>
+      </a>
 
-      <Link to="/" onClick={onClose}>
+      <a href="#about">
         <span className="text-[1.1rem] text-gray-700 hover:text-green-700 hover:scale-110 cursor-pointer">
           About
         </span>
-      </Link>
+      </a>
 
-      <Link to="/" onClick={onClose}>
+      <a href="#footer">
         <span className="text-[1rem] text-gray-600 hover:text-green-600 hover:scale-110 cursor-pointer">
           Contact
         </span>
-      </Link>
+      </a>
     </div>
   );
 }

@@ -1,20 +1,20 @@
 import { useState } from "react";
 import api from "../api/axiosClient";
 import { toast } from "react-toastify";
+import { useQuery } from "@tanstack/react-query";
 
 export default function CreateTemplate() {
   const [form, setForm] = useState({
     name: "",
     description: "",
-    content: "",
-    primaryColor: "#000000",
-    secondaryColor: "#ffffff",
     author: "",
   });
 
   const [imageFile, setImageFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  
 
   // Handle text & color inputs
   const handleChange = (e) => {
@@ -38,7 +38,7 @@ export default function CreateTemplate() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.name || !form.content) {
+    if (!form.name) {
       toast.error("Template name and content are required");
       return;
     }
@@ -49,9 +49,6 @@ export default function CreateTemplate() {
       const formData = new FormData();
       formData.append("name", form.name);
       formData.append("description", form.description);
-      formData.append("content", form.content);
-      formData.append("primaryColor", form.primaryColor);
-      formData.append("secondaryColor", form.secondaryColor);
       formData.append("author", form.author);
 
       if (imageFile) {
@@ -68,9 +65,6 @@ export default function CreateTemplate() {
       setForm({
         name: "",
         description: "",
-        content: "",
-        primaryColor: "#000000",
-        secondaryColor: "#ffffff",
         author: "",
       });
       setImageFile(null);
@@ -141,7 +135,7 @@ export default function CreateTemplate() {
           </div>
 
           {/* Content */}
-          <div className="md:col-span-2">
+          {/* <div className="md:col-span-2">
             <label className="text-sm font-medium text-gray-600 mb-1 block">
               Template Content
             </label>
@@ -151,10 +145,10 @@ export default function CreateTemplate() {
               onChange={handleChange}
               className="w-full border rounded-lg px-4 py-2 min-h-[140px] focus:ring-2 focus:ring-black outline-none"
             />
-          </div>
+          </div> */}
 
           {/* Colors */}
-          <div>
+          {/* <div>
             <label className="text-sm font-medium text-gray-600 mb-1 block">
               Primary Color
             </label>
@@ -178,7 +172,7 @@ export default function CreateTemplate() {
               onChange={handleChange}
               className="w-full h-11 border rounded-lg cursor-pointer"
             />
-          </div>
+          </div> */}
 
           {/* Image Upload */}
           <div className="md:col-span-2">

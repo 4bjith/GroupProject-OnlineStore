@@ -72,7 +72,7 @@ function Router() {
         {
           stores?.map((i) => (
             <Route key={i._id} path={`/${i.slug}`} element={<Layout store={i} />}>
-              <Route index element={<THomeOne />} />
+              <Route index element={i?.templateId?.slug === 'template-001' ?<THomeOne /> :<THomeOne /> } />
               <Route path="store-products" element={<ProductListOne />} />
               <Route path="product/:id" element={<ProductViewOne />} />
               <Route path="cart" element={<CartOne />} />
