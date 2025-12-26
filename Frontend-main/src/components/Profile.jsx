@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { RiPencilLine, RiMapPinLine, RiStore2Line, RiTimeLine, RiShieldCheckLine } from "react-icons/ri";
+import { BiCheck, BiX } from "react-icons/bi";
+
 import api from "../api/axiosClient";
 import authStore from "../AuthStore";
 
@@ -313,7 +315,33 @@ function Profile() {
                     </div>
                 )}
             </div>
-
+                {/* Right Side Widget (Desktop Only) */}
+      <div className="hidden xl:block w-80 space-y-6 flex-shrink-0">
+        {/* Completion Widget */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <h3 className="text-lg font-bold mb-4">Complete your profile</h3>
+          <div className="flex justify-center mb-6">
+            <div className="relative w-24 h-24 rounded-full border-8 border-gray-100 flex items-center justify-center">
+              <span className="text-xl font-bold text-gray-700">90%</span>
+              <div className="absolute top-0 left-0 w-full h-full rounded-full border-8 border-t-amber-600 border-r-amber-600 border-b-transparent border-l-transparent transform -rotate-45"></div>
+            </div>
+          </div>
+          <div className="space-y-4 text-sm">
+            <div className="flex items-center gap-3 text-gray-800 font-medium">
+              <BiCheck className="text-xl text-gray-900" />
+              <span>Setup account <span className="text-gray-400 font-normal ml-auto">20%</span></span>
+            </div>
+            <div className="flex items-center gap-3 text-gray-800 font-medium">
+              <BiCheck className="text-xl text-gray-900" />
+              <span>Upload your photo <span className="text-gray-400 font-normal ml-auto">10%</span></span>
+            </div>
+            <div className="flex items-center gap-3 text-gray-400">
+              <BiX className="text-xl" />
+              <span>Personal Info <span className="text-gray-300 font-normal ml-auto">10%</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
         </div>
     );
 }

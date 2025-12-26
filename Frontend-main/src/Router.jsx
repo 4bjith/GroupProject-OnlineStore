@@ -14,6 +14,7 @@ import AddStore from "./components/AddStore";
 import EditStore from "./components/EditStore";
 import { ToastContainer } from "react-toastify";
 import Settings from "./pages/Settings";
+import AccountDetails from "./components/AccountDetails";
 
 function Router() {
   return (
@@ -25,7 +26,7 @@ function Router() {
         <Route path="/temp" element={<ProductList />} />
         
         <Route path="/settings" element={<Settings/>} />
-
+        <Route path="account/details" element={<AccountDetails />} />
         
         <Route path="/dashboard" element={<Dashboard />}>
           <Route path="products" element={<ProductList />} />
