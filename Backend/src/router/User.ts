@@ -5,8 +5,8 @@ import { upload } from "../multer.js";
 
 const router = express.Router();
 
-router.get("/getuserdetails",LoginCheck ,getUserDetails)
-router.put("/updateuserdetails",LoginCheck,upload.single("profilepic") ,updateUserDetails)
+router.get("/user/getData",LoginCheck ,getUserDetails)
+router.put("/user/updateData",LoginCheck,upload.single("profilepic") ,updateUserDetails)
 router.post("/login/user",loginUser)
 router.post("/register/user",registerUser)
 

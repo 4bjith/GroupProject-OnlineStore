@@ -24,6 +24,10 @@ const UserSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
+    address: {
+        type: String,
+        default: ""
+    },
     createdAt: {
         type: Date,
         default: Date.now
@@ -33,7 +37,7 @@ const UserSchema = new mongoose.Schema({
 })
 
 // Use a normal function so "this" refers to the document
-UserSchema.pre("save", async function ( ) {
+UserSchema.pre("save", async function () {
     if (!this.isModified("password")) {
         return;
     }
