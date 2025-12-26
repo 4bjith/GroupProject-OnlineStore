@@ -35,7 +35,7 @@ const Cart = () => {
                         <div key={item._id || item.id} className="flex gap-4 md:gap-6 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
                             <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden shrink-0">
                                 <img
-                                    src={item.image ? (item.image.startsWith('http') ? item.image : `${BASE_URL}/${item.image}`) : item.image}
+                                    src={item.images[0] ? (item.images[0].startsWith('http') ? item.images[0] : `${BASE_URL}${item.images[0]}`) : item.images[0]}
                                     alt={item.title || item.name}
                                     className="w-full h-full object-cover"
                                 />

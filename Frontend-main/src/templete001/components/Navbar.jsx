@@ -54,7 +54,7 @@ const Navbar = ({ store }) => {
                             {/* Small hover search input could go here */}
                         </div>
 
-                        <Link to={`${storeSlug}/cart`}  className="relative text-slate-600 hover:text-slate-900 transition-colors">
+                        <Link to={`${storeSlug}/cart`} className="relative text-slate-600 hover:text-slate-900 transition-colors">
                             <FiShoppingBag className="text-xl" />
                             {cartCount > 0 && (
                                 <span className="absolute -top-2 -right-2 bg-slate-900 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
@@ -76,6 +76,9 @@ const Navbar = ({ store }) => {
                                             <p className="text-sm font-semibold text-slate-900">{user?.name}</p>
                                             <p className="text-xs text-slate-500 truncate">{user?.email}</p>
                                         </div>
+                                        <Link to={`${storeSlug}/account`} className="block w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-gray-50 flex items-center gap-2">
+                                            <FiUser /> My Account
+                                        </Link>
                                         <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 flex items-center gap-2">
                                             <FiLogOut /> Logout
                                         </button>
@@ -122,6 +125,9 @@ const Navbar = ({ store }) => {
                                         <p className="text-xs text-slate-500">{user?.email}</p>
                                     </div>
                                 </div>
+                                <Link to={`${storeSlug}/account`} onClick={() => setIsOpen(false)} className="block w-full text-left py-2 text-slate-600 font-medium flex items-center gap-2">
+                                    <FiUser /> My Account
+                                </Link>
                                 <button onClick={() => { handleLogout(); setIsOpen(false) }} className="w-full text-left py-2 text-red-600 font-medium flex items-center gap-2">
                                     <FiLogOut /> Logout
                                 </button>

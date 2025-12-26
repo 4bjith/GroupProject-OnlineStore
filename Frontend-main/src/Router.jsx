@@ -28,6 +28,7 @@ import CheckoutOne from "./templete001/pages/Checkout";
 import LoginOne from "./templete001/pages/Login";
 import RegisterOne from "./templete001/pages/Register";
 import Layout from "./templete001/components/Layout";
+import Account from "./templete001/pages/Account";
 
 function Router() {
 
@@ -79,6 +80,7 @@ function Router() {
               <Route path="checkout" element={<CheckoutOne />} />
               <Route path="login" element={<LoginOne />} />
               <Route path="register" element={<RegisterOne />} />
+              <Route path="account" element={<Account/>}/>
             </Route>
           ))
         }
