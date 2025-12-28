@@ -71,7 +71,8 @@ export const getPaymentDetails = async (req: express.Request, res: express.Respo
             .select("+kyc.pan.number +kyc.aadhaar.number +bank.accountNumber");
 
         if (!payment) {
-            return res.status(404).json({ message: "Payment details not found" });
+            // Return null instead of 404 to suppress console error
+            return res.status(200).json({ payment: null });
         }
 
         return res.status(200).json({ payment });
