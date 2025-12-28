@@ -130,8 +130,8 @@ function Profile() {
                     <input type="file" id="file-upload" className="hidden" onChange={handleFileChange} />
                 </div>
                 <div className="text-center sm:text-left">
-                    <h3 className="text-lg font-bold text-gray-800">Upload new photo</h3>
-                    <p className="text-sm text-gray-500 mt-1">At least 800x800 px recommended.<br />JPG or PNG is allowed</p>
+                    <h3 className="text-lg font-bold text-gray-800">{formData.name}</h3>
+                    <p className="text-sm text-gray-500 mt-1">{formData.email}<br />Business Type:{formData.businessType}</p>
                 </div>
             </div>
 
@@ -315,9 +315,9 @@ function Profile() {
                     </div>
                 )}
             </div>
-                {/* Right Side Widget (Desktop Only) */}
-      <div className="hidden xl:block w-80 space-y-6 flex-shrink-0">
-        {/* Completion Widget */}
+            {/* Right Side Widget (Desktop Only) */}
+            <div className="hidden xl:block w-80 space-y-6 flex-shrink-0">
+                {/* Completion Widget
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <h3 className="text-lg font-bold mb-4">Complete your profile</h3>
           <div className="flex justify-center mb-6">
@@ -340,8 +340,8 @@ function Profile() {
               <span>Personal Info <span className="text-gray-300 font-normal ml-auto">10%</span></span>
             </div>
           </div>
-        </div>
-      </div>
+        </div> */}
+            </div>
         </div>
     );
 }

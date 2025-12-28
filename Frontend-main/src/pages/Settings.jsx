@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FcSettings } from "react-icons/fc";
-import { BiBell, BiGlobe, BiMoon, BiLock, BiFace, BiSupport, BiTrash, BiCheck, BiX } from "react-icons/bi";
+import { BiBell, BiGlobe, BiMoon, BiLock, BiFace, BiSupport, BiTrash, BiCheck, BiX, BiEdit, BiCog } from "react-icons/bi";
 import { BsCreditCard, BsFileText, BsClockHistory, BsShieldLock, BsPhone } from "react-icons/bs";
 import { RiLogoutBoxRLine } from "react-icons/ri";
 import authStore from "../AuthStore";
@@ -9,7 +9,7 @@ import AccountDetails from "../components/AccountDetails";
 
 /* ================= ICONS & MENU DATA ================= */
 const MENU_ITEMS = [
-  { key: "edit-profile", label: "Edit Profile", icon: null }, // Special handling in UI if needed
+  { key: "edit-profile", label: "Profile", icon: <BiEdit /> },
   { key: "language", label: "Language", icon: <BiGlobe /> },
   { key: "notification", label: "Notification", icon: <BiBell /> },
   { key: "payments", label: "Payments", icon: <BsCreditCard /> },
@@ -40,48 +40,48 @@ function Settings() {
     }
   };
 
-return (
-  <div className="min-h-screen bg-[#F5F7FA] font-sans">
-    <div className="max-w-7xl mx-auto pt-4 md:pt-10 px-4 md:px-6 flex flex-col md:flex-row gap-6 md:gap-12">
+  return (
+    <div className="min-h-screen bg-[#F5F7FA] font-sans">
+      <div className="max-w-7xl mx-auto pt-4 md:pt-10 px-4 md:px-6 flex flex-col md:flex-row gap-6 md:gap-12">
 
-      {/* Sidebar Navigation */}
-      <aside className="w-full md:w-64 flex-shrink-0">
-        <div className="flex items-center gap-2 mb-4 md:mb-8">
-          <div className="h-8 w-2 bg-indigo-900 rounded-r-md hidden md:block"></div>
-          <h1 className="text-2xl font-bold text-gray-800 md:hidden">Settings</h1>
-        </div>
+        {/* Sidebar Navigation */}
+        <aside className="w-full md:w-64 flex-shrink-0">
+          <div className="flex items-center gap-3 mb-4 md:mb-8 px-2">
+            <BiCog className="text-3xl text-indigo-900" />
+            <h1 className="text-2xl font-bold text-gray-800">Settings</h1>
+          </div>
 
-        {/* Scrollable Horizontal Menu on Mobile, Vertical on Desktop */}
-        <nav className="flex overflow-x-auto md:flex-col gap-2 pb-4 md:pb-0 scrollbar-hide">
-          {MENU_ITEMS.map((item) => (
+          {/* Scrollable Horizontal Menu on Mobile, Vertical on Desktop */}
+          <nav className="flex overflow-x-auto md:flex-col gap-1 pb-4 md:pb-0 scrollbar-hide">
+            {MENU_ITEMS.map((item) => (
+              <button
+                key={item.key}
+                onClick={() => setActiveTab(item.key)}
+                className={`flex-shrink-0 whitespace-nowrap px-3 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-3 ${activeTab === item.key
+                  ? "bg-indigo-50 text-indigo-900 font-bold border-b-2 md:border-b-0 md:border-l-4 border-indigo-900"
+                  : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  }`}
+              >
+                {item.icon && <span className="text-lg">{item.icon}</span>}
+                {item.label}
+              </button>
+            ))}
             <button
-              key={item.key}
-              onClick={() => setActiveTab(item.key)}
-              className={`flex-shrink-0 whitespace-nowrap px-4 py-2 md:py-3 rounded-lg font-medium transition-all text-sm md:text-base text-left flex items-center gap-3 ${activeTab === item.key
-                ? "bg-indigo-50 text-indigo-900 font-bold border-b-2 md:border-b-0 md:border-l-4 border-indigo-900"
-                : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
-                }`}
+              className="w-full text-[15px] flex text-left px-4 py-3 text-red-600 font-bold  md:mt-10 hover:bg-red-50 rounded-lg transition  md:flex items-center gap-2"
+              onClick={logout}
             >
-              {item.icon && <span className="text-xl">{item.icon}</span>}
-              {item.label}
+              <RiLogoutBoxRLine /> Logout
             </button>
-          ))}
-          <button
-        className="w-full text-[15px] flex text-left px-4 py-3 text-red-600 font-bold  md:mt-10 hover:bg-red-50 rounded-lg transition  md:flex items-center gap-2"
-        onClick={logout}
-      >
-        <RiLogoutBoxRLine /> Logout
-      </button>
-        </nav>
-      </aside>
+          </nav>
+        </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 w-full min-w-0">
-        {renderActiveTabContent()}
-      </main>
+        {/* Main Content Area */}
+        <main className="flex-1 w-full min-w-0">
+          {renderActiveTabContent()}
+        </main>
+      </div>
     </div>
-  </div>
-);
+  );
 }
 
 export default Settings;
