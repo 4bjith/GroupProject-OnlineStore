@@ -1,14 +1,14 @@
 import { useState, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useOutletContext } from 'react-router-dom';
 import { products as mockProducts, categories as mockCategories } from '../data/mockData';
-import ProductCard from '../components/ProductCard';
+import ProductCard from '../ProductCard';
 import { FiSearch, FiFilter } from 'react-icons/fi';
 import { useQuery } from '@tanstack/react-query';
-import api from '../api/axiosClient';
+import api from '../../api/axiosClient';
 
-const StoreId = "693f8951c2b0b53b7641b540";
-
-const ProductList = () => {
+const ProductListOne = () => {
+    const { store } = useOutletContext();
+    const StoreId = store?._id;
     const [searchParams, setSearchParams] = useSearchParams();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'All');
@@ -168,4 +168,4 @@ const ProductList = () => {
     );
 };
 
-export default ProductList;
+export default ProductListOne;

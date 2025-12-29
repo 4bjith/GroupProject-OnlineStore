@@ -1,13 +1,14 @@
 import { FaFacebook, FaInstagram, FaTwitter, FaYoutube } from 'react-icons/fa';
 
-const Footer = () => {
+const Footer = ({ store }) => {
+    const storeName = store?.name || 'StoreTemplate';
     return (
         <footer className="bg-slate-900 text-slate-300 py-12 border-t border-slate-800">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {/* Brand */}
                     <div className="space-y-4">
-                        <h2 className="text-2xl font-bold text-white tracking-tight">StoreTemplate</h2>
+                        <h2 className="text-2xl font-bold text-white tracking-tight">{storeName}</h2>
                         <p className="text-sm text-slate-400 leading-relaxed">
                             Your one-stop shop for modern lifestyle products. Quality meets affordability in every purchase.
                         </p>

@@ -1,23 +1,26 @@
-import { useNavigate } from 'react-router-dom';
-import useCartStore from '../store/cartStore';
+import { useNavigate, useOutletContext } from 'react-router-dom';
+import useCartStore from '../../Zustand/cartStore';
 import { toast } from 'react-toastify';
+import { BASE_URL } from '../../api/urls';
 
 const Checkout = () => {
+    const { store } = useOutletContext();
     const navigate = useNavigate();
     const { items, getTotalPrice, clearCart } = useCartStore();
     const total = getTotalPrice();
+    const storeSlug = store?.slug ? `/${store.slug}` : '';
 
     const handleSubmit = (e) => {
         e.preventDefault();
         // Here you would normally process payment and create order via API.
         // For template:
         clearCart();
-        navigate('/order-complete');
+        navigate(`${storeSlug}/order-complete`);
         toast.success("Order placed successfully!");
     };
     console.log(items);
     if (items.length === 0) {
-        navigate('/cart');
+        navigate(`${storeSlug}/cart`);
         return null;
     }
 
@@ -63,7 +66,7 @@ const Checkout = () => {
                         {items.map(item => (
                             <div key={item.id} className="flex gap-4">
                                 <div className="w-16 h-16 bg-white rounded-lg overflow-hidden border border-gray-200 relative">
-                                    <img src={item.images[0].startsWith('http'||'https'|| 'data:image')?item.images[0]:`http://localhost:3000/${item.images[0]}`} className="w-full h-full object-cover" />
+                                    <img src={item.images[0] ? (item.images[0].startsWith('http') ? item.images[0] : `${BASE_URL}${item.images[0]}`) : item.images[0]} className="w-full h-full object-cover" />
                                     <span className="absolute top-0 right-0 bg-gray-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-bl-lg">
                                         {item.quantity}
                                     </span>

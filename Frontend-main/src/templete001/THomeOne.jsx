@@ -1,13 +1,20 @@
-import { Link } from 'react-router-dom';
-import { products, categories as mockCategories } from '../../../Template/src/data/mockData';
-import ProductCard from '../../../Template/src/components/ProductCard';
+import { Link, useLocation, useOutletContext } from 'react-router-dom';
+import { products, categories as mockCategories } from './data/mockData';
+import ProductCard from '../templete001/ProductCard';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axiosClient';
 import { BASE_URL } from '../api/urls';
 
-const StoreId = "693f8951c2b0b53b7641b540";
 
 const Home = () => {
+    const { store } = useOutletContext();
+    const location = useLocation();
+
+    const StoreId = store?._id;
+    // remove leading "/"
+    const storeName = store?.name || location.pathname.replace("/", "");
+
+
     // Get top 8 products
     const topProducts = products.slice(0, 8);
 
@@ -53,7 +60,7 @@ const Home = () => {
                     <p className="text-lg md:text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
                         Discover the latest trends in fashion, electronics, and home living. Quality products curated just for you.
                     </p>
-                    <Link to="/products">
+                    <Link to="store-products">
                         <button className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-10 rounded-full transition-all transform hover:scale-105 shadow-xl">
                             Shop Now
                         </button>
@@ -65,14 +72,14 @@ const Home = () => {
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-end mb-8">
                     <h2 className="text-2xl md:text-3xl font-bold text-slate-900">Shop by Category</h2>
-                    <Link to="/products" className="text-blue-600 font-semibold hover:underline">View All</Link>
+                    <Link to="store-products" className="text-blue-600 font-semibold hover:underline">View All</Link>
                 </div>
 
                 {/* Scroll Container */}
                 <div className="flex overflow-x-auto gap-6 pb-6 no-scrollbar snap-x">
                     {displayCategories.map((cat, index) => (
                         <Link
-                            to={`/products?category=${cat.name || cat.catname}`}
+                            to={`store-products?category=${cat.name || cat.catname}`}
                             key={cat.id || index}
                             className="shrink-0 w-64 snap-start group relative h-80 rounded-2xl overflow-hidden cursor-pointer"
                         >
@@ -94,11 +101,11 @@ const Home = () => {
                 <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-8 text-center">Top Trending Products</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {displayProducts.map((product) => (
-                        <ProductCard key={product._id} product={product} />
+                        <ProductCard key={product.id} product={product} />
                     ))}
                 </div>
                 <div className="mt-12 text-center">
-                    <Link to="/products">
+                    <Link to='store-products'>
                         <button className="border border-slate-900 text-slate-900 px-8 py-3 rounded-full font-bold hover:bg-slate-900 hover:text-white transition-all duration-300">
                             View All Products
                         </button>

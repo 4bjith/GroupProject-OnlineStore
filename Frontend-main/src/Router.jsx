@@ -21,11 +21,19 @@ import { useQuery } from "@tanstack/react-query";
 import api from "./api/axiosClient";
 import { useEffect } from "react";
 import CreateTemplate from "./admin/CreateTemplate";
+import ProductListOne from "./templete001/pages/ProductListOne";
+import ProductViewOne from "./templete001/pages/ProductView";
+import CartOne from "./templete001/pages/Cart";
+import CheckoutOne from "./templete001/pages/Checkout";
+import LoginOne from "./templete001/pages/LoginTemp";
+import RegisterOne from "./templete001/pages/Register";
+import Layout from "./templete001/components/Layout";
+import Account from "./templete001/pages/Account";
 
 function Router() {
 
   // function to fetch stores
-  const {data:stores} = useQuery({
+  const { data: stores } = useQuery({
     queryKey: ['stores'],
     queryFn: async () => {
       const response = await api.get("/stores")
@@ -33,11 +41,11 @@ function Router() {
     }
 
   })
-  useEffect(()=>{
-    if (stores){
+  useEffect(() => {
+    if (stores) {
       console.log(stores)
     }
-  },[stores])
+  }, [stores])
 
   return (
     <BrowserRouter>
@@ -63,13 +71,20 @@ function Router() {
           <Route path="sales" element={<Sales />} />
         </Route>
         {
-          stores?.map((i)=>(
-            <Route path={`/${i.slug}`} element={<THomeOne />}>
-              
+          stores?.map((i) => (
+            <Route key={i._id} path={`/${i.slug}`} element={<Layout store={i} />}>
+              <Route index element={i?.templateId?.slug === 'template-001' ?<THomeOne /> :<THomeOne /> } />
+              <Route path="store-products" element={<ProductListOne />} />
+              <Route path="product/:id" element={<ProductViewOne />} />
+              <Route path="cart" element={<CartOne />} />
+              <Route path="checkout" element={<CheckoutOne />} />
+              <Route path="login" element={<LoginOne />} />
+              <Route path="register" element={<RegisterOne />} />
+              <Route path="account" element={<Account/>}/>
             </Route>
           ))
         }
-        <Route path="/adm" element={<CreateTemplate/>}/>
+        <Route path="/adm" element={<CreateTemplate />} />
       </Routes>
       <ToastContainer />
     </BrowserRouter>
