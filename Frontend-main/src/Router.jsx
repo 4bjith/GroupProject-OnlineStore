@@ -15,6 +15,7 @@ import EditStore from "./components/EditStore";
 import { ToastContainer } from "react-toastify";
 import Settings from "./pages/Settings";
 import AccountDetails from "./components/AccountDetails";
+import Transaction from "./components/Transaction";
 
 function Router() {
   return (
@@ -26,7 +27,8 @@ function Router() {
         <Route path="/temp" element={<ProductList />} />
         
         <Route path="/settings" element={<Settings/>} />
-        <Route path="account/details" element={<AccountDetails />} />
+        <Route path="/account/details" element={<AccountDetails />} />
+        <Route path="/transaction" element={<Transaction />} />
         
         <Route path="/dashboard" element={<Dashboard />}>
           <Route path="products" element={<ProductList />} />

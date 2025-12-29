@@ -6,6 +6,7 @@ import { RiLogoutBoxRLine } from "react-icons/ri";
 import authStore from "../AuthStore";
 import Profile from "../components/Profile";
 import AccountDetails from "../components/AccountDetails";
+import Transaction from "../components/Transaction";
 
 /* ================= ICONS & MENU DATA ================= */
 const MENU_ITEMS = [
@@ -30,6 +31,8 @@ function Settings() {
         return <Profile />;
       case 'payments':
         return <AccountDetails />;
+      case 'transactions':
+        return <Transaction />;
       default:
         return (
           <div className="flex flex-col items-center justify-center h-64 text-gray-400 bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
