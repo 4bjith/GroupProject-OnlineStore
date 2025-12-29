@@ -2,23 +2,27 @@ import { useState } from 'react';
 import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import useAuthStore from '../../AuthStore';
 import { toast } from 'react-toastify';
+import api from '../../api/axiosClient';
 
 const Login = () => {
-    const { store } = useOutletContext();
+    
     const navigate = useNavigate();
-    const login = useAuthStore((state) => state.login);
+    
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const storeSlug = store?.slug ? `/${store.slug}` : '';
+    
 
-    const handleLogin = (e) => {
+    const handleLogin =async (e) => {
         e.preventDefault();
         // Mock API call
         if (email && password) {
             // Simulate success
-            login({ name: 'Demo User', email }, 'mock-token-123');
+            const login = await api.post('/login/user',{
+                email, password
+            })
+            console.log(login.data)
             toast.success("Welcome back!");
-            navigate(`${storeSlug}`);
+            navigate(-1);
         } else {
             toast.error("Please fill in all fields");
         }
@@ -60,7 +64,7 @@ const Login = () => {
                 </form>
 
                 <p className="mt-6 text-center text-sm text-gray-500">
-                    Don't have an account? <Link to={`${storeSlug}/register`} className="text-blue-600 font-bold hover:underline">Register</Link>
+                    Don't have an account? <Link to={`/register`} className="text-blue-600 font-bold hover:underline">Register</Link>
                 </p>
             </div>
         </div>

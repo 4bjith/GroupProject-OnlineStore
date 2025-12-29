@@ -63,33 +63,27 @@ const Navbar = ({ store }) => {
                             )}
                         </Link>
 
-                        {isAuthenticated ? (
-                            <div className="relative group">
-                                <button className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium">
-                                    <FiUser className="text-xl" />
-                                    <span className="text-sm">{user?.name || 'Account'}</span>
-                                </button>
-                                {/* Dropdown */}
-                                <div className="absolute right-0 top-full pt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                                    <div className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden">
-                                        <div className="p-3 border-b border-gray-50">
-                                            <p className="text-sm font-semibold text-slate-900">{user?.name}</p>
-                                            <p className="text-xs text-slate-500 truncate">{user?.email}</p>
-                                        </div>
-                                        <Link to={`${storeSlug}/account`} className="block w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-gray-50 flex items-center gap-2">
-                                            <FiUser /> My Account
-                                        </Link>
-                                        <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 flex items-center gap-2">
-                                            <FiLogOut /> Logout
-                                        </button>
+                        <div className="relative group">
+                            <button className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium">
+                                <FiUser className="text-xl" />
+                                <span className="text-sm">{user?.name || 'Account'}</span>
+                            </button>
+                            {/* Dropdown */}
+                            <div className="absolute right-0 top-full pt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                                <div className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden">
+                                    <div className="p-3 border-b border-gray-50">
+                                        <p className="text-sm font-semibold text-slate-900">{user?.name}</p>
+                                        <p className="text-xs text-slate-500 truncate">{user?.email}</p>
                                     </div>
+                                    <Link to={`${storeSlug}/account`} className="block w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-gray-50 items-center gap-2">
+                                        <FiUser /> My Account
+                                    </Link>
+                                    <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 flex items-center gap-2">
+                                        <FiLogOut /> Logout
+                                    </button>
                                 </div>
                             </div>
-                        ) : (
-                            <Link to="/login" className="bg-slate-900 text-white px-5 py-2 rounded-full font-medium text-sm hover:bg-slate-800 transition-all shadow-md hover:shadow-lg">
-                                Login
-                            </Link>
-                        )}
+                        </div>
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -116,27 +110,21 @@ const Navbar = ({ store }) => {
                         <Link to={`${storeSlug}`} onClick={() => setIsOpen(false)} className="block text-slate-600 font-medium text-lg">Home</Link>
                         <Link to={`${storeSlug}/store-products`} onClick={() => setIsOpen(false)} className="block text-slate-600 font-medium text-lg">Shop</Link>
                         <hr className="border-gray-100" />
-                        {isAuthenticated ? (
-                            <>
-                                <div className="flex items-center gap-3 py-2">
-                                    <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-500"><FiUser /></div>
-                                    <div>
-                                        <p className="font-bold text-slate-900">{user?.name}</p>
-                                        <p className="text-xs text-slate-500">{user?.email}</p>
-                                    </div>
+                        <>
+                            <div className="flex items-center gap-3 py-2">
+                                <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-500"><FiUser /></div>
+                                <div>
+                                    <p className="font-bold text-slate-900">{user?.name}</p>
+                                    <p className="text-xs text-slate-500">{user?.email}</p>
                                 </div>
-                                <Link to={`${storeSlug}/account`} onClick={() => setIsOpen(false)} className="block w-full text-left py-2 text-slate-600 font-medium flex items-center gap-2">
-                                    <FiUser /> My Account
-                                </Link>
-                                <button onClick={() => { handleLogout(); setIsOpen(false) }} className="w-full text-left py-2 text-red-600 font-medium flex items-center gap-2">
-                                    <FiLogOut /> Logout
-                                </button>
-                            </>
-                        ) : (
-                            <Link to="/login" onClick={() => setIsOpen(false)} className="block w-full text-center bg-slate-900 text-white py-3 rounded-xl font-bold">
-                                Login / Register
+                            </div>
+                            <Link to={`${storeSlug}/account`} onClick={() => setIsOpen(false)} className="block w-full text-left py-2 text-slate-600 font-medium flex items-center gap-2">
+                                <FiUser /> My Account
                             </Link>
-                        )}
+                            <button onClick={() => { handleLogout(); setIsOpen(false) }} className="w-full text-left py-2 text-red-600 font-medium flex items-center gap-2">
+                                <FiLogOut /> Logout
+                            </button>
+                        </>
                     </div>
                 </div>
             )}

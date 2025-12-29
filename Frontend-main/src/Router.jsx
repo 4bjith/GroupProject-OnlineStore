@@ -25,7 +25,7 @@ import ProductListOne from "./templete001/pages/ProductListOne";
 import ProductViewOne from "./templete001/pages/ProductView";
 import CartOne from "./templete001/pages/Cart";
 import CheckoutOne from "./templete001/pages/Checkout";
-import LoginOne from "./templete001/pages/Login";
+import LoginOne from "./templete001/pages/LoginTemp";
 import RegisterOne from "./templete001/pages/Register";
 import Layout from "./templete001/components/Layout";
 import Account from "./templete001/pages/Account";
