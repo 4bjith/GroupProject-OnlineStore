@@ -22,6 +22,7 @@ const AccountDetails = () => {
     const queryClient = useQueryClient();
     const [isEditing, setIsEditing] = useState(false);
     const [showSensitive, setShowSensitive] = useState(false);
+    const [showBankSensitive, setShowBankSensitive] = useState(false);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -135,7 +136,7 @@ const AccountDetails = () => {
     };
     const formatAccNum = (str) => {
         if (!str) return "000000000000";
-        if (showSensitive) return str;
+        if (showBankSensitive) return str;
         return `•••• •••• ${str.slice(-4)}`;
     }
 
@@ -149,7 +150,7 @@ const AccountDetails = () => {
                     <p className="text-gray-500 mt-1">Manage your KYC documents and payout preferences</p>
                 </div>
                 <div className={`px-4 py-2 rounded-full flex items-center gap-2 font-bold shadow-sm ${kycStatus === 'verified' ? 'bg-green-100 text-green-700' :
-                        kycStatus === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                    kycStatus === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
                     }`}>
                     {kycStatus === 'verified' && <RiShieldCheckLine className="text-xl" />}
                     {kycStatus === 'pending' && <RiTimeLine className="text-xl" />}
@@ -312,16 +313,25 @@ const AccountDetails = () => {
                         </div>
                         <div className="space-y-1">
                             <label className="text-sm font-medium text-gray-500">Account Number</label>
-                            <div className="relative">
+                            <div className="relative flex items-center w-full rounded-xl bg-gray-50 px-4 py-3">
                                 <input
                                     name="accNumber"
                                     value={isEditing ? formData.accNumber : formatAccNum(formData.accNumber)}
                                     onChange={handleInputChange}
                                     disabled={!isEditing}
-                                    type={isEditing ? "text" : "email"} // trick to hide dots if needed, but manual format is better
-                                    className={`w-full p-2.5 rounded-lg border ${isEditing ? 'border-gray-300 bg-white focus:ring-2 focus:ring-indigo-100' : 'border-transparent bg-gray-50 text-gray-700 font-mono'}`}
+                                    type="text"
+                                    className={`w-full bg-transparent outline-none text-md tracking-widest font-mono
+                                               ${isEditing ? 'text-gray-800' : 'text-gray-700'}`}
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowBankSensitive(!showBankSensitive)}
+                                    className="ml-3 text-gray-400 hover:text-gray-600 transition"
+                                >
+                                    {showBankSensitive ? <RiEyeOffLine size={20} /> : <RiEyeLine size={20} />}
+                                </button>
                             </div>
+
                         </div>
                         <div className="space-y-1">
                             <label className="text-sm font-medium text-gray-500">IFSC Code</label>
