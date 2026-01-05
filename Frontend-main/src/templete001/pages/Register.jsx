@@ -1,24 +1,30 @@
 import { useState } from 'react';
-import { Link, useNavigate, useOutletContext } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import useAuthStore from '../../AuthStore';
+import useShopStore from '../../Zustand/shopStore';
 import { toast } from 'react-toastify';
-
+import api from '../../api/axiosClient';
 const Register = () => {
-    const { store } = useOutletContext();
+    const store = useShopStore((state) => state.store);
     const navigate = useNavigate();
     const login = useAuthStore((state) => state.login);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [number, setNumber] = useState('');
     const storeSlug = store?.slug ? `/${store.slug}` : '';
 
     const handleRegister = (e) => {
         e.preventDefault();
         // Mock API call
-        if (name && email && password) {
-            login({ name, email }, 'mock-token-123');
-            toast.success("Account created successfully!");
-            navigate(`${storeSlug}`);
+        
+        if (name && email && password && number) {
+            api.post("/register/user", { name, email, password ,number}).then((res) => {
+                toast.success("Account created successfully!");
+                navigate(`${storeSlug}/login`);
+            }).catch((err) => {
+                toast.error(err.response.data.message);
+            });
         } else {
             toast.error("Please fill in all fields");
         }
@@ -43,6 +49,16 @@ const Register = () => {
                             placeholder="John Doe"
                         />
                     </div>
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Number</label>
+                        <input
+                            type="number"
+                            value={number}
+                            onChange={(e) => setNumber(e.target.value)}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                            placeholder="1234567890"
+                        />
+                    </div>  
                     <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
                         <input

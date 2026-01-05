@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { FiEdit, FiPackage, FiShoppingBag, FiX, FiCamera, FiPhone, FiMapPin, FiUser } from "react-icons/fi";
+import { useQuery } from "@tanstack/react-query";
 import authStore from "../../AuthStore";
+import api from "../../api/axiosClient";
+import { BASE_URL } from "../../api/urls";
+import { toast } from "react-toastify";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function Account() {
-  const { user, addUser } = authStore();
+  const { addUser, logout } = authStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const navigate = useNavigate();
+  const { slug } = useParams();
+  const token = authStore(state => state.token)
   const [formData, setFormData] = useState({
     name: '',
     image: '',
@@ -12,17 +21,62 @@ export default function Account() {
     address: ''
   });
 
-  // Initialize form data when modal opens or user changes
+  // Fetch user details using React Query
+  const { data: userData, isLoading: isUserLoading } = useQuery({
+    queryKey: ['user'],
+    queryFn: async () => {
+      try {
+        const res = await api.get("/getuserdetails", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        return res.data.user;
+      } catch (error) {
+        if (error.response?.status === 401 || error.response?.data?.message === "Unauthorized") {
+          logout();
+          toast.error("Your section expires.Please login");
+          navigate(`/${slug}/login`);
+          return null;
+        }
+        throw error;
+      }
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  // Initialize form data when user data is fetched
   useEffect(() => {
-    if (user) {
+    if (userData) {
       setFormData({
-        name: user.name || '',
-        image: user.image || '',
-        mobile: user.mobile || '',
-        address: user.address || ''
+        name: userData.name || '',
+        image: userData.profilePic ? (userData.profilePic.startsWith("http") ? userData.profilePic : `${api.defaults.baseURL || "http://localhost:3000"}${userData.profilePic}`) : '',
+        mobile: userData.number || '', // Note: Backend uses 'number', frontend used 'mobile'
+        address: userData.address || ''
       });
+      // Optionally sync back to authStore if needed, but for this task we focus on useQuery
+      addUser(userData);
     }
-  }, [user]);
+  }, [userData]);
+
+  // Fetch orders
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (userData?._id) {
+        try {
+          const res = await api.get(`/order/customer/${userData._id}`);
+          if (res.data && res.data.orders) {
+            setOrders(res.data.orders);
+          }
+        } catch (error) {
+          console.error("Failed to fetch orders", error);
+        }
+      }
+    };
+    if (userData) {
+      fetchOrders();
+    }
+  }, [userData]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -44,8 +98,8 @@ export default function Account() {
     e.preventDefault();
     // Update local store with new user details
     // Merging existing user data with form updates
-    if (user) {
-      addUser({ ...user, ...formData });
+    if (userData) {
+      addUser({ ...userData, ...formData });
     } else {
       // Handle case where user might be null (e.g. initial setup/guest) by creating a new user object
       addUser({ ...formData, email: 'guest@example.com' });
@@ -54,11 +108,14 @@ export default function Account() {
   };
 
   // Default display values if user is not fully set up
-  const displayName = user?.name || "John Doe";
-  const displayEmail = user?.email || "johndoe@email.com";
-  const displayImage = user?.image || "https://placehold.co/100x100";
-  const displayAddress = user?.address;
-  const displayMobile = user?.mobile;
+  const displayName = userData?.name || "John Doe";
+  const displayEmail = userData?.email || "johndoe@email.com";
+  const displayImage = userData?.profilePic
+    ? (userData.profilePic.startsWith("http") ? userData.profilePic : `${BASE_URL}${userData.profilePic}`)
+    : "https://placehold.co/100x100";
+  // Backend User model doesn't currently support address, so we check custom field if added or default to empty
+  const displayAddress = userData?.address || formData.address;
+  const displayMobile = userData?.number; // Backend field is 'number'
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10">
@@ -142,24 +199,28 @@ export default function Account() {
               </div>
 
               <div className="space-y-4">
-                {[1, 2, 3].map((item) => (
-                  <div
-                    key={item}
-                    className="flex items-center justify-between bg-gray-50 to-white rounded-xl p-4 hover:shadow-md transition"
-                  >
-                    <div>
-                      <p className="font-semibold text-gray-900">
-                        Order #ORD00{item}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        Status: Delivered
+                {orders.length > 0 ? (
+                  orders.map((order) => (
+                    <div
+                      key={order._id}
+                      className="flex items-center justify-between bg-gray-50 to-white rounded-xl p-4 hover:shadow-md transition"
+                    >
+                      <div>
+                        <p className="font-semibold text-gray-900">
+                          Order #{order._id.slice(-6).toUpperCase()}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Status: {order.status || 'Pending'}
+                        </p>
+                      </div>
+                      <p className="font-bold text-gray-900">
+                        ₹{order.totalAmount}
                       </p>
                     </div>
-                    <p className="font-bold text-gray-900">
-                      ₹1,499
-                    </p>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-center py-4">No recent orders found.</p>
+                )}
               </div>
             </div>
 
@@ -179,19 +240,28 @@ export default function Account() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {[1, 2, 3].map((item) => (
-                      <tr key={item} className="hover:bg-gray-50 transition">
-                        <td className="py-4 pl-2 font-medium text-gray-900">
-                          Casual T-Shirt
-                        </td>
-                        <td className="py-4 text-gray-500">
-                          12 Dec 2025
-                        </td>
-                        <td className="py-4 font-semibold text-gray-900">
-                          ₹799
+                    {orders.length > 0 ? (
+                      orders.map((order) => (
+                        <tr key={order._id} className="hover:bg-gray-50 transition">
+                          <td className="py-4 pl-2 font-medium text-gray-900">
+                            {order.items.length > 0 ? order.items[0].productId?.name || "Product" : "Order"}
+                            {order.items.length > 1 && ` +${order.items.length - 1} more`}
+                          </td>
+                          <td className="py-4 text-gray-500">
+                            {new Date(order.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="py-4 font-semibold text-gray-900">
+                            ₹{order.totalAmount}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="3" className="py-4 text-center text-gray-500">
+                          No purchase history.
                         </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>

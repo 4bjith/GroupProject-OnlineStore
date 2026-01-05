@@ -1,24 +1,72 @@
-import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useCartStore from '../../Zustand/cartStore';
+import useShopStore from '../../Zustand/shopStore';
 import { toast } from 'react-toastify';
 import { BASE_URL } from '../../api/urls';
+import api from '../../api/axiosClient';
 
 const Checkout = () => {
-    const { store } = useOutletContext();
+    const store = useShopStore((state) => state.store);
     const navigate = useNavigate();
     const { items, getTotalPrice, clearCart } = useCartStore();
     const total = getTotalPrice();
     const storeSlug = store?.slug ? `/${store.slug}` : '';
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        // Here you would normally process payment and create order via API.
-        // For template:
-        clearCart();
-        navigate(`${storeSlug}/order-complete`);
-        toast.success("Order placed successfully!");
+    const [formData, setFormData] = useState({
+        email: '',
+        firstName: '',
+        lastName: '',
+        address: '',
+        city: '',
+        postalCode: '',
+        country: ''
+    });
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
-    console.log(items);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        try {
+            const orderItems = items.map(item => ({
+                productId: item._id || item.id,
+                quantity: item.quantity,
+                price: item.price
+            }));
+
+            const payload = {
+                storeId: store?._id || store?.id,
+                email: formData.email,
+                items: orderItems,
+                shippingAddress: {
+                    addressLine1: formData.address,
+                    city: formData.city,
+                    postalCode: formData.postalCode,
+                    country: formData.country
+                },
+                totalAmount: total,
+                paymentMethod: "Cash on Delivery",
+                paymentStatus: "Pending",
+                shippingPrice: 0
+            };
+
+            const res = await api.post("/order", payload);
+
+            if (res.status === 201) {
+                clearCart();
+                navigate(`${storeSlug}/order-complete`);
+                toast.success("Order placed successfully!");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error(error.response?.data?.message || "Failed to place order");
+        }
+    };
+
     if (items.length === 0) {
         navigate(`${storeSlug}/cart`);
         return null;
@@ -34,26 +82,83 @@ const Checkout = () => {
                     <form id="checkout-form" onSubmit={handleSubmit} className="space-y-6">
                         <div className="space-y-4">
                             <h2 className="text-xl font-bold text-slate-900">Contact Information</h2>
-                            <input required type="email" placeholder="Email Address" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500" />
+                            <input
+                                required
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                placeholder="Email Address"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                            />
                         </div>
 
                         <div className="space-y-4">
                             <h2 className="text-xl font-bold text-slate-900">Shipping Address</h2>
                             <div className="grid grid-cols-2 gap-4">
-                                <input required type="text" placeholder="First Name" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500" />
-                                <input required type="text" placeholder="Last Name" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500" />
+                                <input
+                                    required
+                                    type="text"
+                                    name="firstName"
+                                    value={formData.firstName}
+                                    onChange={handleChange}
+                                    placeholder="First Name"
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                <input
+                                    required
+                                    type="text"
+                                    name="lastName"
+                                    value={formData.lastName}
+                                    onChange={handleChange}
+                                    placeholder="Last Name"
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                                />
                             </div>
-                            <input required type="text" placeholder="Address" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500" />
+                            <input
+                                required
+                                type="text"
+                                name="address"
+                                value={formData.address}
+                                onChange={handleChange}
+                                placeholder="Address"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                            />
                             <div className="grid grid-cols-2 gap-4">
-                                <input required type="text" placeholder="City" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500" />
-                                <input required type="text" placeholder="Postal Code" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500" />
+                                <input
+                                    required
+                                    type="text"
+                                    name="city"
+                                    value={formData.city}
+                                    onChange={handleChange}
+                                    placeholder="City"
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                <input
+                                    required
+                                    type="text"
+                                    name="postalCode"
+                                    value={formData.postalCode}
+                                    onChange={handleChange}
+                                    placeholder="Postal Code"
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                                />
                             </div>
+                            <input
+                                required
+                                type="text"
+                                name="country"
+                                value={formData.country}
+                                onChange={handleChange}
+                                placeholder="Country"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                            />
                         </div>
 
                         <div className="space-y-4">
                             <h2 className="text-xl font-bold text-slate-900">Payment</h2>
                             <div className="p-4 border border-gray-200 rounded-xl bg-gray-50 text-gray-500 text-sm">
-                                Payment gateway mock (Stripe/PayPal integration would go here).
+                                Cash on Delivery (Standard)
                             </div>
                         </div>
                     </form>

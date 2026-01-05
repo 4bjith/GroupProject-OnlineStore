@@ -1,11 +1,11 @@
 import {
   useParams,
   useNavigate,
-  useOutletContext,
   Link,
 } from "react-router-dom";
 import { products as mockProducts } from "../data/mockData";
 import useCartStore from "../../Zustand/cartStore";
+import useShopStore from "../../Zustand/shopStore";
 import { FiMinus, FiPlus, FiShoppingCart } from "react-icons/fi";
 import { useState } from "react";
 import { toast } from "react-toastify";
@@ -14,7 +14,7 @@ import api from "../../api/axiosClient";
 import { BASE_URL } from "../../api/urls";
 
 const ProductView = () => {
-  const { store } = useOutletContext();
+  const store = useShopStore((state) => state.store);
   const { id } = useParams();
   const navigate = useNavigate();
   const addItem = useCartStore((state) => state.addItem);

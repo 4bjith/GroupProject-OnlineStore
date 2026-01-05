@@ -1,10 +1,11 @@
-import { Link, useOutletContext } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import useCartStore from '../../Zustand/cartStore';
+import useShopStore from '../../Zustand/shopStore';
 import { FiTrash2, FiMinus, FiPlus, FiArrowRight } from 'react-icons/fi';
 import { BASE_URL } from '../../api/urls';
 
 const Cart = () => {
-    const { store } = useOutletContext();
+    const store = useShopStore((state) => state.store);
     const { items, removeItem, updateQuantity, getTotalPrice, clearCart } = useCartStore();
     const total = getTotalPrice();
     // console.log(items)
