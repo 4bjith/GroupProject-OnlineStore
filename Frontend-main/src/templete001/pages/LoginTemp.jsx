@@ -1,26 +1,29 @@
 import { useState } from 'react';
-import { Link, useNavigate, useOutletContext } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import useAuthStore from '../../AuthStore';
+import useShopStore from '../../Zustand/shopStore';
 import { toast } from 'react-toastify';
 import api from '../../api/axiosClient';
 
-const Login = () => {
-    
+const Login = ({ storeSlug }) => {
+
     const navigate = useNavigate();
-    
+    const addToken = useAuthStore(state => state.addToken);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    
 
-    const handleLogin =async (e) => {
+
+
+    const handleLogin = async (e) => {
         e.preventDefault();
         // Mock API call
         if (email && password) {
             // Simulate success
-            const login = await api.post('/login/user',{
+            const login = await api.post('/login/user', {
                 email, password
             })
             console.log(login.data)
+            addToken(login.data.token);
             toast.success("Welcome back!");
             navigate(-1);
         } else {
@@ -64,10 +67,10 @@ const Login = () => {
                 </form>
 
                 <p className="mt-6 text-center text-sm text-gray-500">
-                    Don't have an account? <Link to={`/register`} className="text-blue-600 font-bold hover:underline">Register</Link>
+                    Don't have an account? <Link to={`/${storeSlug}/register`} className="text-blue-600 font-bold hover:underline">Register</Link>
                 </p>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

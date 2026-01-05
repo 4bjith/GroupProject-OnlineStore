@@ -1,13 +1,14 @@
-import { Link, useLocation, useOutletContext } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { products, categories as mockCategories } from './data/mockData';
 import ProductCard from '../templete001/ProductCard';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axiosClient';
 import { BASE_URL } from '../api/urls';
+import useShopStore from '../Zustand/shopStore';
 
 
 const Home = () => {
-    const { store } = useOutletContext();
+    const store = useShopStore((state) => state.store);
     const location = useLocation();
 
     const StoreId = store?._id;
@@ -26,7 +27,7 @@ const Home = () => {
             return response.data;
         }
     });
-
+    console.log(apiCategories);
     // Use API categories if available, else fall back to mock
     // Assuming API returns an array of objects with { catname: string, image: string, ... }
     // We might need to map it to match our UI expectation if the structure differs

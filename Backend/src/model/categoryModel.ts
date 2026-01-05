@@ -9,6 +9,11 @@ const CategorySchema = new mongoose.Schema({
         type: String,
         // required: true,
     },
+    storeId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Store',
+        required: true
+    },
     createdAt: {
         type: Date,
         default: Date.now,

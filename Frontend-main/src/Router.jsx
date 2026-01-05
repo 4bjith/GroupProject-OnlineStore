@@ -74,13 +74,13 @@ function Router() {
           stores?.map((i) => (
             <Route key={i._id} path={`/${i.slug}`} element={<Layout store={i} />}>
               <Route index element={i?.templateId?.slug === 'template-001' ?<THomeOne /> :<THomeOne /> } />
-              <Route path="store-products" element={<ProductListOne />} />
-              <Route path="product/:id" element={<ProductViewOne />} />
-              <Route path="cart" element={<CartOne />} />
-              <Route path="checkout" element={<CheckoutOne />} />
-              <Route path="login" element={<LoginOne />} />
-              <Route path="register" element={<RegisterOne />} />
-              <Route path="account" element={<Account/>}/>
+              <Route path="store-products" element={<ProductListOne storeSlug={i.slug}/>} />
+              <Route path="product/:id" element={<ProductViewOne storeSlug={i.slug}/>} />
+              <Route path="cart" element={<CartOne storeSlug={i.slug}/>} />
+              <Route path="checkout" element={<CheckoutOne storeSlug={i.slug}/>} />
+              <Route path="login" element={<LoginOne storeSlug={i.slug}/>} />
+              <Route path="register" element={<RegisterOne storeSlug={i.slug}/>} />
+              <Route path="account" element={<Account storeSlug={i.slug}/>}/>
             </Route>
           ))
         }

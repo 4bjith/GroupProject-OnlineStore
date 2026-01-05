@@ -10,11 +10,12 @@ export const createCategory = async (req: express.Request, res: express.Response
             catimage = req.file.path.replace(/\\/g, "/"); // Normalize windows path
         }
 
-        if (!catname || !catimage) {
+        if (!catname || !catimage || req.body.storeId === undefined) {
             return res.status(400).json({ message: 'All fields are required' });
         }
 
-        const newcategory = await categoryModel.create({ catname, catimage });
+        const storeId = req.body.storeId;
+        const newcategory = await categoryModel.create({ catname, catimage, storeId });
         if (!newcategory) {
             return res.status(400).json({ message: 'Failed to create category' });
         }
@@ -27,7 +28,8 @@ export const createCategory = async (req: express.Request, res: express.Response
 
 export const getAllCategories = async (req: express.Request, res: express.Response) => {
     try {
-        const category = await categoryModel.find().sort({ createdAt: -1 });
+        const storeId = req.query.storeId as string;
+        const category = await categoryModel.find({ storeId }).sort({ createdAt: -1 });
         if (!category) {
             return res.status(404).json({ message: 'Category not found' });
         }
