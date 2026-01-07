@@ -16,9 +16,9 @@ const MENU_ITEMS = [
   { key: "language", label: "Language", icon: <BiGlobe /> },
   { key: "notification", label: "Notification", icon: <BiBell /> },
   { key: "payments", label: "Payments", icon: <BsCreditCard /> },
-  { key: "taxes", label: "Taxes", icon: <BsFileText /> },
+  // { key: "taxes", label: "Taxes", icon: <BsFileText /> },
   { key: "transactions", label: "Transactions", icon: <BsClockHistory /> },
-  { key: "password", label: "Password", icon: <BiLock /> },
+  // { key: "password", label: "Password", icon: <BiLock /> },
   { key: "privacy", label: "Privacy", icon: <BsShieldLock /> },
   { key: "support", label: "Support", icon: <BiSupport /> },
 ];
