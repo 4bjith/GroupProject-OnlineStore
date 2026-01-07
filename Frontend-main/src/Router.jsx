@@ -54,7 +54,7 @@ function Router() {
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Home />} />
         <Route path="/temp" element={<ProductList />} />
-
+       
         <Route path="/dashboard" element={<Dashboard />}>
           <Route index element={<DashLanding />} />
           <Route path="products" element={<ProductList />} />

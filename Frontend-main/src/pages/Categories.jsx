@@ -14,6 +14,7 @@ import {
     MdCleaningServices,
     MdClose
 } from 'react-icons/md';
+import { RiArrowDropDownLine } from 'react-icons/ri';
 import toast, { Toaster } from 'react-hot-toast';
 import api from '../api/axiosClient';
 
@@ -50,6 +51,19 @@ function Categories() {
         }
     )
 
+
+    //get stores available
+    const { data: stores = [], isLoading: storeloading, error: storeerror } = useQuery(
+        {
+            queryKey: ['stores'],
+            queryFn: async () => {
+                const res = await api.get('/stores');
+                return res.data;
+            }
+        }
+    )
+
+
     // POST → Add Category
     const addCategoryMutation = useMutation({
         mutationFn: async (newCategory) => {
@@ -68,7 +82,7 @@ function Categories() {
     // PUT → Update Category
     const updateCategoryMutation = useMutation({
         mutationFn: async ({ id = catId, data }) => {
-            console.log(id);
+            // console.log(id);
             const res = await api.put(`/category/update/${id}`, data, {
                 headers: {
                     "Content-Type": "multipart/form-data"
@@ -90,6 +104,7 @@ function Categories() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries(["categories"]);
+            showToast('Category Deleted', '', 'delete');
         }
     });
 
@@ -97,6 +112,7 @@ function Categories() {
     const [formData, setFormData] = useState({
         id: null,
         name: '',
+        storeId: '',
         imageType: 'url', // 'url' or 'file'
         imageUrl: '',
         imageFile: null
@@ -193,6 +209,7 @@ function Categories() {
         setFormData({
             id: null,
             name: '',
+            storeId: '',
             imageType: 'url',
             imageUrl: '',
             imageFile: null
@@ -206,18 +223,36 @@ function Categories() {
         e.preventDefault();
         setCatId(formData.id);
 
-        if (!formData.name || (!formData.imageUrl && !formData.imageFile)) {
-            toast.error("Please fill in all fields");
+        if (!formData.name.trim()) {
+            toast.error("Category name is required");
             return;
         }
+
+        if (!formData.storeId) {
+            toast.error("Please select a store");
+            return;
+        }
+
+        if (!formData.imageUrl && !formData.imageFile) {
+            toast.error("Category image is required");
+            return;
+        }
+
         const payload = new FormData();
         payload.append("catname", formData.name);
-        payload.append("catimage", formData.imageFile || formData.imageUrl);
-        payload.append("storeId", selectedStoreId);
+        payload.append("storeId", formData.storeId);
+
+        if (formData.imageType === "file" && formData.imageFile) {
+            payload.append("catimage", formData.imageFile);
+        }
+
+        if (formData.imageType === "url" && formData.imageUrl) {
+            payload.append("catimage", formData.imageUrl);
+        }
 
         if (isEditing) {
             updateCategoryMutation.mutate({
-                id: formData._id,
+                id: formData.id,
                 data: payload
             });
             setIsEditing(false);
@@ -226,6 +261,7 @@ function Categories() {
             setSuccessMsg(`"${formData.name}" added successfully!`);
             showToast('New Category Added', `${formData.name} is now live!`, 'success');
         }
+
         // Reset Form
         handleClearForm();
     };
@@ -234,6 +270,7 @@ function Categories() {
         setFormData({
             id: category._id,
             name: category.catname,
+            storeId: category.storeId?._id || category.storeId,
             imageType: 'url', // Simplified for edit preview
             imageUrl: category.catimage,
             imageFile: null
@@ -249,11 +286,22 @@ function Categories() {
         if (confirm("Are you sure you want to delete this category?")) {
             deleteCategoryMutation.mutate(id);
         }
-        showToast('Category Deleted', '', 'delete');
         if (isEditing && formData._id === id) {
             handleClearForm();
         }
     };
+
+
+    const [showStoreFilter, setShowStoreFilter] = useState(false);
+    const [selectedStore, setSelectedStore] = useState(null); // null = All
+
+
+    const filteredCategories = selectedStore
+        ? categories?.filter(cat =>
+            (cat.storeId?._id || cat.storeId) === selectedStore._id
+        )
+        : categories;
+
 
     return (
         <div className="min-h-screen bg-gray-50 p-6 md:p-8 font-sans text-slate-800">
@@ -285,27 +333,73 @@ function Categories() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                     {/* Left Column: Categories List */}
                     <div className="lg:col-span-2 space-y-6 order-2 lg:order-1">
-                        {/* List Actions/Header */}
-                        <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                            <h2 className="text-md font-semibold flex items-center gap-2 text-slate-700">
-                                <MdFilterList size={22} />
-                                {stores.find(s => s._id === selectedStoreId)?.name || 'Store'} Categories
-                                <span className="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full">{categories?.length || 0}</span>
-                            </h2>
-                            <button className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors">
-                                <MdSearch size={22} />
-                            </button>
+                        {/* List categories based on store */}
+                        <div className="relative">
+                            <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                                <h2 className="text-md font-semibold flex items-center gap-2 text-slate-700">
+                                    <MdFilterList size={22} />
+
+                                    {selectedStore ? selectedStore.name : "All Categories"}
+
+                                    <span className="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full">
+                                        {filteredCategories?.length || 0}
+                                    </span>
+                                </h2>
+
+                                {/* Arrow button */}
+                                <button
+                                    onClick={() => setShowStoreFilter(prev => !prev)}
+                                    className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"
+                                >
+                                    <RiArrowDropDownLine
+                                        size={28}
+                                        className={`transition-transform ${showStoreFilter ? "rotate-180" : ""
+                                            }`}
+                                    />
+                                </button>
+                            </div>
+
+                            {/* Dropdown */}
+                            {showStoreFilter && (
+                                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-100 z-10">
+                                    <button
+                                        onClick={() => {
+                                            setSelectedStore(null);
+                                            setShowStoreFilter(false);
+                                        }}
+                                        className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-100
+                    ${!selectedStore ? "bg-slate-100 font-medium" : ""}`}
+                                    >
+                                        All Stores
+                                    </button>
+
+                                    {stores?.map(store => (
+                                        <button
+                                            key={store._id}
+                                            onClick={() => {
+                                                setSelectedStore(store);
+                                                setShowStoreFilter(false);
+                                            }}
+                                            className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-100
+                        ${selectedStore?._id === store._id ? "bg-slate-100 font-medium" : ""}`}
+                                        >
+                                            {store.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
+
                         {/* Categories Grid - Adjusted for smaller cards */}
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {categories?.map((category) => (
+                            {categories && filteredCategories?.map((category) => (
                                 <div
                                     key={category._id}
                                     className="group bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-all duration-300 flex flex-col"
                                 >
                                     <div className="relative h-32 overflow-hidden bg-slate-100">
                                         <img
-                                            src={`http://localhost:3000/${category.catimage}`}
+                                            src={category?.catimage.startsWith('https' || 'http') ? category.catimage : `http://localhost:3000/${category.catimage}`}
                                             alt={category.catname}
                                             className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
                                         />
@@ -386,6 +480,39 @@ function Categories() {
                                         className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-sm"
                                     />
                                 </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                        Store Name
+                                    </label>
+
+                                    <select
+                                        name="storeId"
+                                        value={formData.storeId}
+                                        onChange={handleInputChange}
+                                        disabled={isEditing || storeloading}
+                                        className={`w-full px-4 py-2.5 rounded-lg border
+                                                  ${isEditing ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
+                                                  border-slate-300 focus:border-blue-500 focus:ring-2
+                                                  focus:ring-blue-200 outline-none transition-all text-sm`}
+                                    >
+                                        <option value="">
+                                            {storeloading ? "Loading stores..." : "Select a store"}
+                                        </option>
+
+                                        {stores.map((store) => (
+                                            <option key={store._id} value={store._id}>
+                                                {store.name}
+                                            </option>
+                                        ))}
+                                    </select>
+
+                                    {storeerror && (
+                                        <p className="text-xs text-red-500 mt-1">
+                                            Failed to load stores
+                                        </p>
+                                    )}
+                                </div>
+
                                 {/* Image Source Toggle */}
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-2">Category Image</label>
@@ -413,7 +540,7 @@ function Categories() {
                                             <input
                                                 type="url"
                                                 name="imageUrl"
-                                                value={`${previewUrl}`}
+                                                value={formData.imageUrl}
                                                 onChange={handleInputChange}
                                                 placeholder="https://example.com/image.jpg"
                                                 className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-sm"
@@ -436,7 +563,12 @@ function Categories() {
                                 {/* Preview Area */}
                                 {previewUrl ? (
                                     <div className="relative w-full h-48 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 group">
-                                        <img src={`${formData.imageType === 'url' ? ("http://localhost:3000/" + previewUrl) : previewUrl}`} alt="Preview" className="w-full h-full object-cover" />
+                                        <img
+                                            src={ `${previewUrl}`}
+                                            alt="Preview"
+                                            className="w-full h-full object-cover"
+                                        />
+
                                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                             <span className="text-white text-xs font-semibold bg-black/50 px-3 py-1 rounded-full">Preview</span>
                                         </div>
