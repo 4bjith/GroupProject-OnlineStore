@@ -7,6 +7,8 @@ import authStore from "../AuthStore";
 import Profile from "../components/Profile";
 import AccountDetails from "../components/AccountDetails";
 import Transaction from "../components/Transaction";
+import Privacy from "../components/Privacy";
+import Support from "../components/Support";
 
 /* ================= ICONS & MENU DATA ================= */
 const MENU_ITEMS = [
@@ -17,6 +19,8 @@ const MENU_ITEMS = [
   { key: "taxes", label: "Taxes", icon: <BsFileText /> },
   { key: "transactions", label: "Transactions", icon: <BsClockHistory /> },
   { key: "password", label: "Password", icon: <BiLock /> },
+  { key: "privacy", label: "Privacy", icon: <BsShieldLock /> },
+  { key: "support", label: "Support", icon: <BiSupport /> },
 ];
 
 function Settings() {
@@ -31,6 +35,10 @@ function Settings() {
         return <AccountDetails />;
       case 'transactions':
         return <Transaction />;
+      case 'privacy':
+        return <Privacy />;
+      case 'support':
+        return <Support />;
       default:
         return (
           <div className="flex flex-col items-center justify-center h-64 text-gray-400 bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
