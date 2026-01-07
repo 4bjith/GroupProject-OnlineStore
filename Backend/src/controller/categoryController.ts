@@ -15,7 +15,6 @@ export const createCategory = async (
     } else if (imageFromBody) {
       catimage = imageFromBody;
     }
-
     if (!storeId || !catname || !catimage) {
       return res.status(400).json({ message: "All fields are required" });
     }

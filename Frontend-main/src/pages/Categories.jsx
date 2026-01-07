@@ -23,13 +23,31 @@ function Categories() {
     const queryClient = useQueryClient();
     const [catId, setCatId] = useState(null);
 
+    const { data: stores = [] } = useQuery({
+        queryKey: ['stores'],
+        queryFn: async () => {
+            const res = await api.get('/stores');
+            return res.data;
+        }
+    });
+
+    const [selectedStoreId, setSelectedStoreId] = useState('');
+
+    useEffect(() => {
+        if (stores.length > 0 && !selectedStoreId) {
+            setSelectedStoreId(stores[0]._id);
+        }
+    }, [stores, selectedStoreId]);
+
     const { data: categories = [], isLoading, error } = useQuery(
         {
-            queryKey: ['categories'],
+            queryKey: ['categories', selectedStoreId],
             queryFn: async () => {
-                const res = await api.get('/category');
+                if (!selectedStoreId) return [];
+                const res = await api.get(`/category?storeId=${selectedStoreId}`);
                 return res.data;
-            }
+            },
+            enabled: !!selectedStoreId
         }
     )
 
@@ -294,7 +312,22 @@ function Categories() {
                         <h1 className="text-xl font-bold text-slate-900 tracking-tight">Category Management</h1>
                         <p className="text-slate-400 text-sm mt-1">Organize and manage your product categories.</p>
                     </div>
-                    {/* Search/Filter Bar could go here */}
+
+                    {/* Store Selector */}
+                    <div className="min-w-[200px]">
+                        <select
+                            value={selectedStoreId}
+                            onChange={(e) => setSelectedStoreId(e.target.value)}
+                            className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2 text-sm font-medium text-slate-700 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none cursor-pointer"
+                        >
+                            <option value="" disabled>Select Property</option>
+                            {stores.map((store) => (
+                                <option key={store._id} value={store._id}>
+                                    {store.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </header>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -405,7 +438,7 @@ function Categories() {
                                     <div className="inline-block p-4 rounded-full bg-slate-100 mb-4">
                                         <MdFilterList size={32} />
                                     </div>
-                                    <p>No categories found. Add one to get started!</p>
+                                    <p>No categories found for this store. Add one to get started!</p>
                                 </div>
                             )}
                         </div>

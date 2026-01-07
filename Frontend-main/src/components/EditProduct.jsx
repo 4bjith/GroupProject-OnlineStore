@@ -1,46 +1,66 @@
-import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState, useRef } from "react";
 import { FaArrowLeft, FaCloudUploadAlt, FaTimes, FaPlus } from "react-icons/fa";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import api from "../api/axiosClient";
 import { toast } from 'react-toastify'
 
 export default function EditProduct({ productData, onSave }) {
-  const [form, setForm] = useState({
-    title: productData?.title || "",
-    description: productData?.description || "",
-    status: productData?.status || "Active",
-    price: productData?.price || "",
-    comparePrice: productData?.comparePrice || "",
-    costPerItem: productData?.costPerItem || "",
-    sku: productData?.sku || "",
-    stock: productData?.stock || "",
-    category: productData?.category || "",
-    tags: productData?.tags || [], // Ensure tags is an array
-    images: productData?.images || [],
-    specifications: productData?.specifications || [{ key: "", value: "" }],
-  });
-
-  const [imageLink, setImageLink] = useState("");
-
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const productId = queryParams.get("id");
 
-  const [product, setProduct] = useState({})
+  // Local state for the product form
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    status: "Active",
+    price: "",
+    comparePrice: "",
+    sku: "",
+    stock: "",
+    category: "",
+    tags: [],
+    specifications: [{ key: "", value: "" }],
+  });
 
+  // storedImages tracks both existing remote URLs and new local Files
+  // { type: 'url', url: '...', preview: '...' }
+  // { type: 'file', file: File, preview: 'blob:...' }
+  const [storedImages, setStoredImages] = useState([]);
+  const [imageLink, setImageLink] = useState("");
+  const [tagInput, setTagInput] = useState("");
+
+  // Fetch product data if ID exists
   const { data, isLoading } = useQuery({
     queryKey: ["product", productId],
     queryFn: async () => {
-      const res = await api.get(
-        `/products/${productId}`
-      );
+      const res = await api.get(`/products/${productId}`);
       return res.data;
     },
     enabled: !!productId,
   });
 
-  // Update products when API loads
+  // ---------------- CATEGORY FETCH ----------------
+  const [categories, setCategories] = useState([]);
+
+  const { data: catData } = useQuery({
+    queryKey: ["category"],
+    queryFn: async () => {
+      const res = await api.get("/category");
+      return res.data;
+    },
+  });
+
+  useEffect(() => {
+    if (catData) {
+      setCategories(catData);
+    }
+  }, [catData]);
+
+  // Initialize form when data loads
   useEffect(() => {
     if (data) {
       setForm({
@@ -49,34 +69,61 @@ export default function EditProduct({ productData, onSave }) {
         status: data.isActive ? "Active" : "Draft",
         price: data.price || "",
         comparePrice: data.compareAtPrice || "",
-        costPerItem: "",
         sku: data.stockKeepingUnit || "",
         stock: data.stock || 0,
         category: data.category || "",
         tags: data.tags || [],
-        images: data.images || [],
-        specifications: data.specifications || [{ key: "", value: "" }],
+        specifications: (data.specifications && data.specifications.length > 0)
+          ? data.specifications
+          : [{ key: "", value: "" }],
       });
+
+
+      // Map existing images to storedImages format
+      if (data.images && Array.isArray(data.images)) {
+        setStoredImages(data.images.map(url => ({
+          type: 'url',
+          url: url,
+          preview: url
+        })));
+      }
     }
   }, [data]);
 
-  // Helper to handle tags if they come as a string or array
-  const [tagInput, setTagInput] = useState("");
-
+  // Handle Input Changes
   const handleChange = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  // ---------------- IMAGES ----------------
   const handleImageUpload = (e) => {
-    const files = e.target.files;
+    const files = Array.from(e.target.files);
     if (!files || files.length === 0) return;
 
-    const newImages = Array.from(files).map((file) =>
-      URL.createObjectURL(file)
-    );
-    handleChange("images", [...form.images, ...newImages]);
+    const newImages = files.map((file) => ({
+      type: 'file',
+      file: file,
+      preview: URL.createObjectURL(file)
+    }));
+
+    setStoredImages((prev) => [...prev, ...newImages]);
   };
 
+  const removeImage = (index) => {
+    setStoredImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const addImageUrl = () => {
+    if (!imageLink.trim()) return;
+    setStoredImages(prev => [...prev, {
+      type: 'url',
+      url: imageLink.trim(),
+      preview: imageLink.trim()
+    }]);
+    setImageLink("");
+  }
+
+  // ---------------- SPECS ----------------
   const updateSpec = (index, key, value) => {
     const updated = [...form.specifications];
     updated[index][key] = value;
@@ -92,49 +139,72 @@ export default function EditProduct({ productData, onSave }) {
     handleChange("specifications", updated);
   };
 
+  // ---------------- TAGS ----------------
   const handleAddTag = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
       const value = tagInput.trim();
       if (!value) return;
-
-      const currentTags = Array.isArray(form.tags) ? form.tags : [];
-      handleChange("tags", [...currentTags, value]);
+      handleChange("tags", [...(form.tags || []), value]);
       setTagInput("");
     }
   };
 
   const removeTag = (index) => {
-    const currentTags = Array.isArray(form.tags) ? form.tags : [];
-    handleChange("tags", currentTags.filter((_, i) => i !== index));
+    handleChange("tags", form.tags.filter((_, i) => i !== index));
   };
 
+
+  // ---------------- SAVE ----------------
   const saveProduct = async () => {
     try {
-      const payload = {
-        title: form.title,
-        description: form.description,
-        category: form.category,
-        price: Number(form.price),
-        compareAtPrice: Number(form.comparePrice),
-        stock: Number(form.stock),
-        stockKeepingUnit: form.sku,
-        images: form.images,
-        specifications: form.specifications,
-        tags: Array.isArray(form.tags) ? form.tags : [],
-        isActive: form.status === "Active",
-        market: data?.market || "", // Preserve market
-        isFinite: data?.isFinite ?? true, // Preserve isFinite
-      };
+      const formData = new FormData();
 
-      await api.put(`/products/${productId}`, payload);
-      toast.sucess("Product updated successfully");
-      if (onSave) onSave(form);
+      formData.append("title", form.title);
+      formData.append("description", form.description);
+      formData.append("category", form.category);
+      formData.append("price", form.price);
+      formData.append("stock", form.stock);
+      formData.append("isActive", form.status === "Active");
+
+      if (form.comparePrice) formData.append("compareAtPrice", form.comparePrice);
+      if (form.sku) formData.append("stockKeepingUnit", form.sku);
+      if (data?.market) formData.append("market", data.market); // preserve
+
+      // JSON fields
+      formData.append("specifications", JSON.stringify(form.specifications));
+      formData.append("tags", JSON.stringify(form.tags));
+
+      // Images
+      const imageUrls = [];
+      storedImages.forEach(img => {
+        if (img.type === 'file') {
+          formData.append('images', img.file);
+        } else {
+          imageUrls.push(img.url);
+        }
+      });
+      formData.append("imageUrls", JSON.stringify(imageUrls));
+
+      await api.put(`/products/${productId}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+
+      toast.success("Product updated successfully");
+
+      // Invalidate query to refetch fresh data
+      queryClient.invalidateQueries(["product", productId]);
+
+      if (onSave) onSave();
+      else navigate(-1); // Go back
+
     } catch (err) {
       console.error(err);
-      alert("Error updating product");
+      toast.error(err?.response?.data?.message || "Error updating product");
     }
   };
+
+  if (isLoading) return <div className="p-10 text-center">Loading product...</div>;
 
   return (
     <div className="w-full min-h-screen bg-gray-50 pb-20">
@@ -142,7 +212,7 @@ export default function EditProduct({ productData, onSave }) {
       {/* Header */}
       <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200 px-4 py-4 md:px-8 mb-8">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-3 text-gray-600 hover:text-black transition-colors cursor-pointer" onClick={() => window.history.back()}>
+          <div className="flex items-center gap-3 text-gray-600 hover:text-black transition-colors cursor-pointer" onClick={() => navigate(-1)}>
             <div className="p-2 rounded-full hover:bg-gray-100 transition-colors">
               <FaArrowLeft />
             </div>
@@ -151,7 +221,7 @@ export default function EditProduct({ productData, onSave }) {
 
           <div className="flex gap-3 w-full sm:w-auto">
             <button
-              onClick={() => window.history.back()}
+              onClick={() => navigate(-1)}
               className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl border border-gray-300 font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
             >
               Cancel
@@ -202,22 +272,19 @@ export default function EditProduct({ productData, onSave }) {
 
             <div className="space-y-4">
               {/* Image Grid */}
-              {form.images && form.images.length > 0 && (
+              {storedImages.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
-                  {form.images.map((img, index) => (
+                  {storedImages.map((img, index) => (
                     <div key={index} className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200">
                       <img
-                        src={img}
+                        src={img.preview.startsWith("/uploads") ? `http://localhost:3000${img.preview}` : img.preview}
                         className="w-full h-full object-cover"
                         alt={`Product ${index}`}
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <button
                           type="button"
-                          onClick={() => {
-                            const updated = form.images.filter((_, i) => i !== index);
-                            handleChange("images", updated);
-                          }}
+                          onClick={() => removeImage(index)}
                           className="p-2 bg-white rounded-full text-red-500 hover:text-red-600 transition-colors"
                         >
                           <FaTimes />
@@ -258,11 +325,7 @@ export default function EditProduct({ productData, onSave }) {
                   className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none text-sm"
                 />
                 <button
-                  onClick={() => {
-                    if (!imageLink.trim()) return;
-                    handleChange("images", [...form.images, imageLink.trim()]);
-                    setImageLink("");
-                  }}
+                  onClick={addImageUrl}
                   className="px-5 py-2.5 bg-gray-900 text-white rounded-xl font-medium text-sm hover:bg-black transition-colors"
                 >
                   Add URL
@@ -295,18 +358,6 @@ export default function EditProduct({ productData, onSave }) {
                     type="number"
                     value={form.comparePrice}
                     onChange={(e) => handleChange("comparePrice", e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-8 pr-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Cost per item</label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">₹</span>
-                  <input
-                    type="number"
-                    value={form.costPerItem}
-                    onChange={(e) => handleChange("costPerItem", e.target.value)}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-8 pr-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
                   />
                 </div>
@@ -368,10 +419,11 @@ export default function EditProduct({ productData, onSave }) {
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none cursor-pointer"
                 >
                   <option value="">Select Category</option>
-                  <option value="Mens Shirt">Mens Shirt</option>
-                  <option value="Mens Pant">Mens Pant</option>
-                  <option value="Womens Wear">Womens Wear</option>
-                  <option value="Electronics">Electronics</option>
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat.catname}>
+                      {cat.catname}
+                    </option>
+                  ))}
                 </select>
               </div>
 

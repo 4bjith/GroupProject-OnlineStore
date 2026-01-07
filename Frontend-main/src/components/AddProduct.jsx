@@ -1,32 +1,52 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaArrowLeft, FaCloudUploadAlt, FaTimes, FaPlus } from "react-icons/fa";
-import { MdOutlineRadioButtonChecked } from "react-icons/md";
 import { useQuery } from "@tanstack/react-query";
 import api from "../api/axiosClient";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 
 export default function AddProduct() {
-  // IMAGE STATES
-  const [preview, setPreview] = useState([]);           // array of images
-  const [imageLink, setImageLink] = useState("");       // url input state
+  // ---------------- IMAGE STATE ----------------
+  // { type: "file", file: File, preview: string }
+  // { type: "url", url: string, preview: string }
+  const [storedImages, setStoredImages] = useState([]);
+  const [imageLink, setImageLink] = useState("");
 
-  // OTHER STATES
-  const [specifications, setSpecifications] = useState([
-    { key: "", value: "" },
-  ]);
+  
+
+  // ---------------- OTHER STATE ----------------
+  const [specifications, setSpecifications] = useState([{ key: "", value: "" }]);
   const [category, setCategory] = useState("");
   const [tags, setTags] = useState([]);
+  const [singleStore, setSingleStore] = useState("")
+  const [stores, setStores] = useState([]);
 
-  // REFS
+  // ---------------- REFS ----------------
   const titleRef = useRef();
   const descriptionRef = useRef();
   const priceRef = useRef();
   const compareAtPriceRef = useRef();
   const stockRef = useRef();
-  const stockKeepingUnitRef = useRef();
+  const skuRef = useRef();
 
-  // Fetch Store
+  // ---------------- CATEGORY FETCH ----------------
+  const [categories, setCategories] = useState([]);
+
+  const { data: catData } = useQuery({
+    queryKey: ["category"],
+    queryFn: async () => {
+      const res = await api.get("/category");
+      return res.data;
+    },
+  });
+
+  useEffect(() => {
+    if (catData) {
+      setCategories(catData);
+    }
+  }, [catData]);
+
+  // ---------------- FETCH STORE ----------------
   const { data: store } = useQuery({
     queryKey: ["store"],
     queryFn: async () => {
@@ -34,78 +54,96 @@ export default function AddProduct() {
       return res.data;
     },
   });
+  useEffect(()=>{
+    if (store){
+      setStores(store);
+      console.log('store', store)
+    }
+  })
 
-  // Create Product
+
+  // ---------------- CREATE PRODUCT ----------------
   const newProduct = async () => {
     try {
-      const storeId = store?._id;
-      const title = titleRef.current?.value;
-      const description = descriptionRef.current?.value;
-      const price = priceRef.current?.value;
-      const compareAtPrice = compareAtPriceRef.current?.value;
-      const stock = stockRef.current?.value;
-      const stockKeepingUnit = stockKeepingUnitRef.current?.value;
-
-      const images = preview;
+      const title = titleRef.current.value;
+      const description = descriptionRef.current.value;
+      const price = priceRef.current.value;
+      const compareAtPrice = compareAtPriceRef.current.value;
+      const stock = stockRef.current.value;
+      const sku = skuRef.current.value;
 
       if (!title || !description || !category || !price || !stock) {
-        toast.error("Important fields missing");
+        toast.error("Required fields are missing");
         return;
       }
 
-      const payload = {
-        storeId: "6939203a5843f7eee1ddfd56",
-        title,
-        description,
-        category,
-        specifications,
-        tags,
-        price: Number(price),
-        compareAtPrice: compareAtPrice ? Number(compareAtPrice) : undefined,
-        stock: Number(stock),
-        stockKeepingUnit,
-        images,
-      };
+      const formData = new FormData();
 
-      const res = await api.post("/products", payload);
+      formData.append("storeId",singleStore);
+      formData.append("title", title);
+      formData.append("description", description);
+      formData.append("category", category);
+      formData.append("price", price);
+      formData.append("stock", stock);
+
+      if (compareAtPrice) formData.append("compareAtPrice", compareAtPrice);
+      if (sku) formData.append("stockKeepingUnit", sku);
+
+      formData.append("specifications", JSON.stringify(specifications));
+      formData.append("tags", JSON.stringify(tags));
+
+      const imageUrls = [];
+
+      storedImages.forEach((img) => {
+        if (img.type === "file") {
+          // IMPORTANT: field name MUST match multer: upload.array("images")
+          formData.append("images", img.file);
+        } else {
+          imageUrls.push(img.url);
+        }
+      });
+
+      formData.append("imageUrls", JSON.stringify(imageUrls));
+
+      // ❌ DO NOT set Content-Type manually
+      const res = await api.post("/products", formData);
 
       if (res.data.success) {
         toast.success("Product created successfully");
 
-        // Reset
+        // Reset form
         titleRef.current.value = "";
         descriptionRef.current.value = "";
         priceRef.current.value = "";
         compareAtPriceRef.current.value = "";
         stockRef.current.value = "";
-        stockKeepingUnitRef.current.value = "";
-        setPreview([]);
-        setCategory("");
+        skuRef.current.value = "";
+        setStoredImages([]);
         setSpecifications([{ key: "", value: "" }]);
+        setCategory("");
         setTags([]);
         setImageLink("");
-      } else {
-        toast.error(res.data.message || "Something went wrong");
       }
     } catch (err) {
-      console.error("CREATE PRODUCT CLIENT ERROR:", err);
+      console.error("CREATE PRODUCT ERROR:", err);
       toast.error(err?.response?.data?.message || "Server error");
     }
   };
 
-  // Upload File Handler
+  // ---------------- IMAGE UPLOAD ----------------
   const handleImageChange = (e) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+    const files = Array.from(e.target.files);
 
-    const newImages = Array.from(files).map((file) =>
-      URL.createObjectURL(file)
-    );
+    const mapped = files.map((file) => ({
+      type: "file",
+      file,
+      preview: URL.createObjectURL(file),
+    }));
 
-    setPreview((prev) => [...prev, ...newImages]);
+    setStoredImages((prev) => [...prev, ...mapped]);
   };
 
-  // Add Product Specification
+  // ---------------- SPECIFICATIONS ----------------
   const addSpecification = () => {
     setSpecifications([...specifications, { key: "", value: "" }]);
   };
@@ -117,16 +155,19 @@ export default function AddProduct() {
   };
 
   const removeSpecification = (index) => {
-    const updated = specifications.filter((_, i) => i !== index);
-    setSpecifications(updated);
+    setSpecifications(specifications.filter((_, i) => i !== index));
   };
 
+  // ---------------- UI ----------------
   return (
     <div className="w-full min-h-screen bg-gray-50 pb-20">
       {/* Header */}
       <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200 px-4 py-4 md:px-8 mb-8">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-          <Link to={"/dashboard/products"} className="group flex items-center gap-3 text-gray-600 hover:text-black transition-colors">
+          <Link
+            to="/dashboard/products"
+            className="group flex items-center gap-3 text-gray-600 hover:text-black transition-colors"
+          >
             <div className="p-2 rounded-full group-hover:bg-gray-100 transition-colors">
               <FaArrowLeft />
             </div>
@@ -134,10 +175,11 @@ export default function AddProduct() {
           </Link>
 
           <div className="flex gap-3 w-full sm:w-auto">
-            <Link to="/dashboard/products" className="flex-1 sm:flex-none">
-              <button className="w-full px-6 py-2.5 rounded-xl border border-gray-300 font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
-                Discard
-              </button>
+            <Link
+              to="/dashboard/products"
+              className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl border border-gray-300 font-semibold text-gray-700 hover:bg-gray-50 transition-colors text-center"
+            >
+              Cancel
             </Link>
             <button
               onClick={newProduct}
@@ -150,33 +192,33 @@ export default function AddProduct() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-        {/* LEFT COLUMN (Main Content) */}
+        {/* LEFT COLUMN */}
         <div className="lg:col-span-2 space-y-8">
-
           {/* Basic Info */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
-            <h2 className="text-lg font-bold text-gray-900 mb-6">Basic Information</h2>
-
+            <h2 className="text-lg font-bold text-gray-900 mb-6">
+              Basic Information
+            </h2>
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Title</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Title
+                </label>
                 <input
-                  type="text"
                   ref={titleRef}
-                  placeholder="e.g. Premium Cotton T-Shirt"
+                  placeholder="Product title"
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Description
+                </label>
                 <textarea
-                  placeholder="Describe your product..."
                   ref={descriptionRef}
-                  rows="6"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none resize-none"
-                ></textarea>
+                  placeholder="Product description"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none resize-none h-32"
+                />
               </div>
             </div>
           </div>
@@ -187,21 +229,23 @@ export default function AddProduct() {
 
             <div className="space-y-4">
               {/* Image Grid */}
-              {preview.length > 0 && (
+              {storedImages.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
-                  {preview.map((img, index) => (
-                    <div key={index} className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200">
+                  {storedImages.map((img, index) => (
+                    <div
+                      key={index}
+                      className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200"
+                    >
                       <img
-                        src={img}
+                        src={img.preview}
                         className="w-full h-full object-cover"
-                        alt={`Preview ${index}`}
+                        alt={`Product ${index}`}
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <button
                           type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setPreview((prev) => prev.filter((_, i) => i !== index));
+                          onClick={() => {
+                            setStoredImages(prev => prev.filter((_, i) => i !== index));
                           }}
                           className="p-2 bg-white rounded-full text-red-500 hover:text-red-600 transition-colors"
                         >
@@ -215,22 +259,26 @@ export default function AddProduct() {
 
               {/* Upload Area */}
               <label
-                htmlFor="media"
+                htmlFor="imageUpload"
                 className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-2xl cursor-pointer hover:bg-gray-50 hover:border-gray-400 transition-all group"
               >
                 <div className="p-4 rounded-full bg-gray-100 group-hover:bg-white transition-colors mb-3">
                   <FaCloudUploadAlt className="text-2xl text-gray-400 group-hover:text-black transition-colors" />
                 </div>
-                <p className="text-sm font-medium text-gray-700">Click to upload or drag and drop</p>
-                <p className="text-xs text-gray-400 mt-1">SVG, PNG, JPG or GIF (max. 800x400px)</p>
+                <p className="text-sm font-medium text-gray-700">
+                  Click to upload or drag and drop
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  SVG, PNG, JPG or GIF (max. 800x400px)
+                </p>
               </label>
               <input
                 type="file"
-                id="media"
-                accept="image/*"
-                multiple
                 className="hidden"
+                id="imageUpload"
+                multiple
                 onChange={handleImageChange}
+                accept="image/*"
               />
 
               {/* URL Input */}
@@ -244,8 +292,11 @@ export default function AddProduct() {
                 />
                 <button
                   onClick={() => {
-                    if (!imageLink.trim()) return;
-                    setPreview((prev) => [...prev, imageLink.trim()]);
+                    if (!imageLink) return;
+                    setStoredImages((prev) => [
+                      ...prev,
+                      { type: "url", url: imageLink, preview: imageLink },
+                    ]);
                     setImageLink("");
                   }}
                   className="px-5 py-2.5 bg-gray-900 text-white rounded-xl font-medium text-sm hover:bg-black transition-colors"
@@ -259,47 +310,35 @@ export default function AddProduct() {
           {/* Pricing */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
             <h2 className="text-lg font-bold text-gray-900 mb-6">Pricing</h2>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Price</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Price
+                </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">₹</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
+                    ₹
+                  </span>
                   <input
                     type="number"
                     ref={priceRef}
-                    placeholder="0.00"
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-8 pr-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Compare at price</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Compare at price
+                </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">₹</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
+                    ₹
+                  </span>
                   <input
                     type="number"
                     ref={compareAtPriceRef}
-                    placeholder="0.00"
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-8 pr-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
                   />
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 pt-6 border-t border-gray-100">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div className="sm:col-span-1">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Cost per item</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">₹</span>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-8 pr-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
-                    />
-                  </div>
-                  <p className="text-xs text-gray-400 mt-2">Customers won’t see this</p>
                 </div>
               </div>
             </div>
@@ -308,79 +347,94 @@ export default function AddProduct() {
           {/* Inventory */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
             <h2 className="text-lg font-bold text-gray-900 mb-6">Inventory</h2>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Stock Quantity</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  SKU (Stock Keeping Unit)
+                </label>
                 <input
-                  type="number"
-                  ref={stockRef}
-                  placeholder="0"
+                  ref={skuRef}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">SKU (Stock Keeping Unit)</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Stock Quantity
+                </label>
                 <input
-                  type="text"
-                  ref={stockKeepingUnitRef}
-                  placeholder="e.g. PROD-001"
+                  type="number"
+                  ref={stockRef}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
                 />
               </div>
             </div>
           </div>
-
         </div>
 
-        {/* RIGHT COLUMN (Sidebar) */}
+        {/* RIGHT COLUMN */}
         <div className="space-y-8">
-
-          {/* Status */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">Status</h2>
-            <select className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none cursor-pointer">
-              <option value="Active">Active</option>
-              <option value="Deactive">Draft</option>
-            </select>
-          </div>
-
           {/* Organization */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">Organization</h2>
-
+            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">
+              Organization
+            </h2>
             <div className="space-y-5">
+                <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Stores
+                </label>
+                <select
+                  value={singleStore}
+                  onChange={(e) => setSingleStore(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none cursor-pointer"
+                >
+                  <option value="">Select store</option>
+                  {stores.map((st) => (
+                    <option key={st._id} value={st._id}>
+                      {st.name}
+                      
+                    </option>
+                    
+                  ))}
+                  
+                </select>
+              </div>
+
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Category
+                </label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none cursor-pointer"
                 >
-                  <option value="">Select category</option>
-                  <option value="Mens Shirt">Mens Shirt</option>
-                  <option value="T-shirt">T-Shirts</option>
-                  <option value="Electronics">Electronics</option>
+                  <option value="">Select Category</option>
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat.catname}>
+                      {cat.catname}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Tags</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Tags
+                </label>
                 <input
-                  type="text"
                   placeholder="Press Enter to add"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      const value = e.target.value.trim();
-                      if (!value) return;
-                      setTags([...tags, value]);
-                      e.target.value = "";
+                      if (e.target.value.trim()) {
+                        setTags([...tags, e.target.value.trim()]);
+                        e.target.value = "";
+                      }
                     }
                   }}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
                 />
-
                 <div className="flex flex-wrap gap-2 mt-3">
                   {tags.map((tag, idx) => (
                     <span
@@ -389,7 +443,9 @@ export default function AddProduct() {
                     >
                       {tag}
                       <button
-                        onClick={() => setTags(tags.filter((_, i) => i !== idx))}
+                        onClick={() =>
+                          setTags(tags.filter((_, i) => i !== idx))
+                        }
                         className="hover:text-red-500 transition-colors ml-1"
                       >
                         <FaTimes />
@@ -404,7 +460,9 @@ export default function AddProduct() {
           {/* Specifications */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Specifications</h2>
+              <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                Specifications
+              </h2>
               <button
                 onClick={addSpecification}
                 className="text-xs font-bold bg-black text-white px-3 py-1.5 rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-1"
@@ -418,17 +476,19 @@ export default function AddProduct() {
                 <div key={index} className="flex gap-2 items-start group">
                   <div className="flex-1 space-y-2">
                     <input
-                      type="text"
-                      placeholder="Name"
                       value={spec.key}
-                      onChange={(e) => updateSpecification(index, "key", e.target.value)}
+                      onChange={(e) =>
+                        updateSpecification(index, "key", e.target.value)
+                      }
+                      placeholder="Name"
                       className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
                     />
                     <input
-                      type="text"
-                      placeholder="Value"
                       value={spec.value}
-                      onChange={(e) => updateSpecification(index, "value", e.target.value)}
+                      onChange={(e) =>
+                        updateSpecification(index, "value", e.target.value)
+                      }
+                      placeholder="Value"
                       className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
                     />
                   </div>
@@ -444,7 +504,6 @@ export default function AddProduct() {
               ))}
             </div>
           </div>
-
         </div>
       </div>
     </div>

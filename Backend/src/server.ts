@@ -9,6 +9,8 @@ import UserRouter from './router/User.js';
 import storeRouter from './router/Store.js';
 import productRouter from './router/Product.js';
 import categoryRouter from './router/Category.js';
+import TemplateRouter from './router/template.js';
+import orderRouter from './router/Order.js';
 
 
 
@@ -35,6 +37,8 @@ app.use(productRouter);
 app.use("/uploads", express.static("uploads"));
 app.use(UserRouter)
 app.use(categoryRouter)
+app.use(TemplateRouter)
+app.use(orderRouter)
 
 
 app.listen(PORT, () => {

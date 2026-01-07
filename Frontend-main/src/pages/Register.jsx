@@ -25,7 +25,7 @@ function Register() {
       alert("Registration successful!");
       navigate("/Login");
     } catch (error) {
-      console.error("Error registering:"|| error.message);
+      console.error("Error registering:" || error.message);
       alert(error.message || "Registration failed.");
     }
   };

@@ -3,16 +3,53 @@ import { useState, useEffect } from "react";
 import { FaSearch, FaPlus, FaTimes, FaFilter } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import api from "../api/axiosClient";
+import authStore from "../AuthStore";
 
 export default function ProductList() {
   const [products, setProducts] = useState([]);
   const [activeCategory, setActiveCategory] = useState("All");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  // const [categories, setCategory] = useState([])
+  const [category, setCategory] = useState([])
+
+  //-------------TAKING TOKEN FROM ZUSTAND ------
+  const token = authStore((state)=> state.token)
+
+  const [stores, setStores] = useState([])
+
+
+  // Query function to fetch user details
+  const { data: usr } = useQuery({
+    queryKey: ["user"],
+    queryFn: async () => {
+      const res = await api.get("/getuserdetails", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return res.data;
+    },
+    enabled: !!token,
+  });
+  
+
 
   // STORE ID
-  const storeId = "6939203a5843f7eee1ddfd56";
+  const [storeId, setStoreId] = useState(null)
+  const [temp, setTemp] = useState(null)
+  const { data: store } = useQuery({
+    queryKey: ["store"],
+    queryFn: async () => {
+      
+      const res = await api.get("/stores");
+      
+      return res.data;
+    },
+  });
+  useEffect(()=>{
+    if (store?.length){
+      setStores(store)
+      setTemp(store[0]._id)
+    }
+  })
 
   // PAGINATION STATE
   const [page, setPage] = useState(1);
@@ -42,43 +79,39 @@ export default function ProductList() {
     }
   };
 
-  // const {data:cat} = useQuery({
-  //   queryKey: ["category"],
-  //   queryFn: async () => {
-  //     const res = await api.get("/category")
-  //     return res.data;
-  //   }
-  // })
+  const { data: cat } = useQuery({
+    queryKey: ["category"],
+    queryFn: async () => {
+      const res = await api.get("/category")
+      return res.data;
+    }
+  })
 
-  // useEffect(()=>{
-  //   if(cat){
-  //     setActiveCategory(cat)
-  //   }
-  // },cat)
+  useEffect(() => {
+    if (cat) {
+      setCategory(cat)
+    }
+  }, [cat])
 
-  const categories = [
-    "All",
-    "Apple Watch",
-    "iPhone",
-    "Macbook",
-    "Apple TV",
-    "iPad",
-    "Accessories",
-    "Earpods",
-  ];
+
 
   // API REQUEST WITH PAGINATION
   const { data, isLoading } = useQuery({
-    queryKey: ["products", storeId, page],
-    queryFn: async () => {
-      const res = await api.get(
-        `/product?storeId=${storeId}&page=${page}&limit=${limit}`
-      );
+  queryKey: ["products", storeId, page],
+  queryFn: async () => {
+    if (!storeId) {
+      return { data: [], totalPages: 1 };
+    }
 
-      // Normalize API response
-      return {
-        ...res.data,
-        data: res.data.data.map((item) => ({
+    const res = await api.get(
+      `/product?storeId=${storeId?storeId:temp}&page=${page}&limit=${limit}`
+    );
+
+    return {
+      ...res.data,
+      data: res.data.data.map((item) => {
+        const rawImage = item.images?.[0] || "";
+        return {
           id: item._id,
           name: item.title,
           description: item.description,
@@ -86,12 +119,17 @@ export default function ProductList() {
           price: item.price,
           stock: item.stock,
           sold: item.sold || 0,
-          image: item.images?.[0] || "",
-        })),
-      };
-    },
-    keepPreviousData: true,
-  });
+          image: rawImage.startsWith("/uploads")
+            ? `http://localhost:3000${rawImage}`
+            : rawImage,
+        };
+      }),
+    };
+  },
+  enabled: !!storeId && !!temp, // ⬅️ IMPORTANT
+  keepPreviousData: true,
+});
+
 
   // Update products when API loads
   useEffect(() => {
@@ -101,7 +139,7 @@ export default function ProductList() {
   const filteredProducts =
     activeCategory === "All"
       ? products
-      : products.filter((p) => p.category === activeCategory);
+      : products.filter(p => p.category === activeCategory);
 
   const handleProductClick = (product) => {
     setSelectedProduct(product);
@@ -125,6 +163,24 @@ export default function ProductList() {
           <div>
             <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">Products</h1>
             <p className="text-gray-500 mt-1">Manage your store inventory efficiently.</p>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Stores
+                </label>
+                <select
+                  value={storeId}
+                  onChange={(e) => setStoreId(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none cursor-pointer"
+                >
+                  <option>Select Store</option>
+                  {stores.map((st) => (
+                    <option key={st._id} value={st._id}>
+                      {st.name}
+                      
+                    </option>
+                    
+                  ))}
+                  
+                </select>
           </div>
 
           <Link to={"add"}>
@@ -152,16 +208,25 @@ export default function ProductList() {
 
         {/* Categories */}
         <div className="flex gap-3 overflow-x-auto pb-4 mb-4 scrollbar-hide">
-          {categories.map((cat) => (
+          <button
+            onClick={() => setActiveCategory("All")}
+            className={`whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 border ${activeCategory === "All"
+              ? "bg-black text-white border-black shadow-md"
+              : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+              }`}
+          >
+            All
+          </button>
+          {category.map((cat) => (
             <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 border ${activeCategory === cat
+              key={cat._id}
+              onClick={() => setActiveCategory(cat.catname)}
+              className={`whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 border ${activeCategory === cat.catname
                 ? "bg-black text-white border-black shadow-md"
                 : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                 }`}
             >
-              {cat}
+              {cat.catname}
             </button>
           ))}
         </div>
