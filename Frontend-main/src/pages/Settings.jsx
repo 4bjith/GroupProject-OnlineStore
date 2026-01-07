@@ -17,8 +17,6 @@ const MENU_ITEMS = [
   { key: "taxes", label: "Taxes", icon: <BsFileText /> },
   { key: "transactions", label: "Transactions", icon: <BsClockHistory /> },
   { key: "password", label: "Password", icon: <BiLock /> },
-  { key: "access", label: "Access", icon: <BsShieldLock /> },
-  { key: "sessions", label: "Sessions", icon: <BsPhone /> },
 ];
 
 function Settings() {
@@ -59,6 +57,7 @@ function Settings() {
             {MENU_ITEMS.map((item) => (
               <button
                 key={item.key}
+                data-tab={item.key}
                 onClick={() => setActiveTab(item.key)}
                 className={`flex-shrink-0 whitespace-nowrap px-3 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-3 ${activeTab === item.key
                   ? "bg-indigo-50 text-indigo-900 font-bold border-b-2 md:border-b-0 md:border-l-4 border-indigo-900"
