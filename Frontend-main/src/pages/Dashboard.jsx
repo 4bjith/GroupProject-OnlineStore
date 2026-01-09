@@ -18,8 +18,8 @@ import authStore from "../AuthStore";
 
 function Dashboard() {
     const [open, setOpen] = useState(false);
-    const removetoken=authStore().removeToken;
-    const nav=useNavigate()
+    const removetoken = authStore().removeToken;
+    const nav = useNavigate()
 
     const menuItems = [
         { name: 'Dashboard', icon: <MdDashboard size={20} /> },
@@ -27,7 +27,7 @@ function Dashboard() {
         { name: 'Products', url: "products", icon: <MdInventory size={20} /> },
         { name: 'Categories', url: "categories", icon: <MdCategory size={20} /> },
         { name: 'Sales', url: "sales", icon: <MdAttachMoney size={20} /> },
-        { name: 'Offers', icon: <MdLocalOffer size={20} /> },
+        { name: 'Offers', url: "offers", icon: <MdLocalOffer size={20} /> },
         { name: 'Online stores', url: "stores", icon: <MdStore size={20} /> },
     ];
 
@@ -89,11 +89,11 @@ function Dashboard() {
                     </button>
 
                     <button
-                    onClick={()=>{
-                        removetoken()
-                        nav('/')
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all font-medium">
+                        onClick={() => {
+                            removetoken()
+                            nav('/')
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all font-medium">
                         <MdLogout size={20} />
                         <span>Logout</span>
                     </button>
