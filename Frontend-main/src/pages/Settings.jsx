@@ -10,6 +10,7 @@ import Transaction from "../components/Transaction";
 import Privacy from "../components/Privacy";
 import Support from "../components/Support";
 import Language from "../components/Language";
+import Notification from "../components/Notification";
 
 /* ================= ICONS & MENU DATA ================= */
 const MENU_ITEMS = [
@@ -34,6 +35,8 @@ function Settings() {
         return <Profile />;
       case 'language':
         return <Language />;
+      case 'notification':
+        return <Notification />;
       case 'payments':
         return <AccountDetails />;
       case 'transactions':
