@@ -35,16 +35,16 @@ function Navbar() {
           {/* Right Buttons */}
           <div className="flex gap-5">
             <Link to={"/login"}>
-              <div  className="text-[0.8rem] md:text-[1rem] rounded-lg bg-gray-50 shadow-sm flex justify-center items-center gap-2 px-2 lg:px-4 py-2 cursor-pointer">
-              <p>Sign in</p>
-              <FiLogIn />
-            </div>
+              <div className="text-[0.8rem] md:text-[1rem] rounded-lg bg-gray-50 shadow-sm flex justify-center items-center gap-2 px-2 lg:px-4 py-2 cursor-pointer">
+                <p>Sign in</p>
+                <FiLogIn />
+              </div>
             </Link>
             <Link to={"/register"}>
               <div className="text-[0.8rem] md:text-[1rem] rounded-lg bg-gray-50 shadow-sm flex justify-center items-center gap-2 px-2 lg:px-4 py-2 cursor-pointer">
-              <p>Sign up</p>
-              <FiUserPlus />
-            </div>
+                <p>Sign up</p>
+                <FiUserPlus />
+              </div>
             </Link>
           </div>
         </div>
@@ -68,11 +68,10 @@ export default Navbar;
 function Navmenu({ mobile = false, onClose }) {
   return (
     <div
-      className={`${
-        mobile
-          ? "lg:hidden flex flex-col w-full bg-green-50 py-5 px-6 shadow-md absolute top-0 left-0 gap-6 font-semibold"
-          : "flex items-center gap-7 font-semibold"
-      }`}
+      className={`${mobile
+        ? "lg:hidden flex flex-col w-full bg-green-50 py-5 px-6 shadow-md absolute top-0 left-0 gap-6 font-semibold"
+        : "flex items-center gap-7 font-semibold"
+        }`}
     >
       {/* Close Button for Mobile */}
       {mobile && (
