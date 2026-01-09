@@ -10,6 +10,7 @@ import useShopStore from '../../Zustand/shopStore';
 const ProductListOne = () => {
     const store = useShopStore((state) => state.store);
     const StoreId = store?._id;
+    const storeSlug = store?.slug;
     const [searchParams, setSearchParams] = useSearchParams();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'All');
@@ -125,7 +126,7 @@ const ProductListOne = () => {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 min-h-[400px]">
                 {paginatedProducts.length > 0 ? (
                     paginatedProducts.map(product => (
-                        <ProductCard key={product._id || product.id} product={product} />
+                        <ProductCard key={product._id || product.id} product={product} storeSlug={storeSlug} />
                     ))
                 ) : (
                     <div className="col-span-full flex justify-center items-center text-gray-500">

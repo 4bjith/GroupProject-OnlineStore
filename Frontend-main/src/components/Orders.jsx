@@ -1,15 +1,146 @@
 import React, { useState, useMemo } from 'react';
-import { MdSearch, MdFilterList, MdVisibility, MdMoreVert, MdLocalShipping, MdCheckCircle, MdCancel, MdPending } from 'react-icons/md';
+import { MdSearch, MdFilterList, MdVisibility, MdMoreVert, MdLocalShipping, MdCheckCircle, MdCancel, MdPending, MdClose } from 'react-icons/md';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axiosClient';
 import { toast } from 'react-toastify';
 
+// component to view orders details
+const getStatusColor = (status) => {
+    switch (status) {
+        case 'Pending': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+        case 'Confirmed': return 'bg-blue-50 text-blue-700 border-blue-200';
+        case 'Shipped': return 'bg-indigo-100 text-indigo-700 border-indigo-200';
+        case 'Delivered': return 'bg-green-100 text-green-700 border-green-200';
+        case 'Cancelled': return 'bg-red-100 text-red-700 border-red-200';
+        default: return 'bg-gray-100 text-gray-700';
+    }
+};
+
+// component to view orders details
+function OrderDetails({ order, onClose }) {
+    if (!order) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200 relative">
+
+                {/* Header */}
+                <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-800">Order Details</h2>
+                        <p className="text-sm text-slate-500 font-mono">ID: #{order._id}</p>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full text-slate-500 transition-colors">
+                        <MdClose size={24} />
+                    </button>
+                </div>
+
+                {/* Content */}
+                <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+
+                    {/* Status Bar */}
+                    <div className="flex items-center justify-between">
+                        <span className={`px-4 py-1.5 rounded-full text-sm font-bold border flex items-center gap-2 ${getStatusColor(order.status)}`}>
+                            {order.status === 'Pending' && <MdPending />}
+                            {order.status === 'Confirmed' && <MdCheckCircle />}
+                            {order.status === 'Shipped' && <MdLocalShipping />}
+                            {order.status === 'Delivered' && <MdCheckCircle />}
+                            {order.status === 'Cancelled' && <MdCancel />}
+                            {order.status}
+                        </span>
+                        <span className="text-slate-400 text-sm font-medium">
+                            {new Date(order.createdAt).toLocaleString()}
+                        </span>
+                    </div>
+
+                    {/* Customer & Address */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Customer Info</h3>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg">
+                                    {(order.userId?.name?.[0] || 'U').toUpperCase()}
+                                </div>
+                                <div>
+                                    <p className="font-bold text-slate-800">{order.userId?.name || 'Guest User'}</p>
+                                    <p className="text-xs text-slate-500">{order.userId?.email || 'No email provided'}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Shipping Address</h3>
+                            <p className="text-sm text-slate-700 leading-relaxed">
+                                {order.shippingAddress ? (
+                                    <>
+                                        {order.shippingAddress.addressLine1}<br />
+                                        {order.shippingAddress.city}, {order.shippingAddress.postalCode}<br />
+                                        {order.shippingAddress.country}
+                                    </>
+                                ) : (
+                                    order.address || "No shipping address provided."
+                                )}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Order Items */}
+                    <div>
+                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Order Items ({order.items?.length || 0})</h3>
+                        <div className="border border-slate-100 rounded-xl overflow-hidden">
+                            <table className="w-full text-left text-sm">
+                                <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100">
+                                    <tr>
+                                        <th className="p-3">Product</th>
+                                        <th className="p-3 text-right">Qty</th>
+                                        <th className="p-3 text-right">Price</th>
+                                        <th className="p-3 text-right">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {order.items?.map((item, index) => (
+                                        <tr key={index}>
+                                            <td className="p-3 text-slate-700 font-medium">
+                                                {item.productId?.title || item.name || "Product Name"}
+                                            </td>
+                                            <td className="p-3 text-right text-slate-600">x{item.quantity}</td>
+                                            <td className="p-3 text-right text-slate-600">${item.price}</td>
+                                            <td className="p-3 text-right text-slate-800 font-bold">${item.price * item.quantity}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* Summary */}
+                    <div className="border-t border-slate-100 pt-4 flex justify-end">
+                        <div className="w-full md:w-1/2 space-y-2">
+                            <div className="flex justify-between text-slate-500 text-sm">
+                                <span>Subtotal</span>
+                                <span>${order.totalAmount}</span>
+                            </div>
+                            <div className="flex justify-between text-slate-900 text-lg font-bold">
+                                <span>Total Paid</span>
+                                <span>${order.totalAmount}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    );
+}
+
+
+// main function
 const Orders = () => {
     const [filterStatus, setFilterStatus] = useState('All');
     const [page, setPage] = useState(1);
     const [limit] = useState(10);
     const [searchTerm, setSearchTerm] = useState('');
     const queryClient = useQueryClient();
+    const [selectedOrder, setSelectedOrder] = useState(null);
 
     // Fetch Orders
     const { data, isLoading } = useQuery({
@@ -46,16 +177,7 @@ const Orders = () => {
         updateStatusMutation.mutate({ id, status: newStatus });
     };
 
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'Pending': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-            case 'Confirmed': return 'bg-blue-50 text-blue-700 border-blue-200'; // Processing phase
-            case 'Shipped': return 'bg-indigo-100 text-indigo-700 border-indigo-200'; // Processing phase
-            case 'Delivered': return 'bg-green-100 text-green-700 border-green-200';
-            case 'Cancelled': return 'bg-red-100 text-red-700 border-red-200';
-            default: return 'bg-gray-100 text-gray-700';
-        }
-    };
+
 
     // Calculate Stats (Note: This only calculates for currently fetched page since backend limits result. 
     // For accurate global stats, we'd need a separate stats endpoint or fetch all.
@@ -188,7 +310,11 @@ const Orders = () => {
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex items-center justify-center gap-2">
-                                                <button className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-blue-500 transition-colors" title="View Details">
+                                                <button
+                                                    onClick={() => setSelectedOrder(order)}
+                                                    className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-blue-500 transition-colors"
+                                                    title="View Details"
+                                                >
                                                     <MdVisibility size={18} />
                                                 </button>
                                                 {/* <button className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors" title="Update Status">
@@ -225,6 +351,17 @@ const Orders = () => {
                     </div>
                 </div>
             </div>
+
+
+            {/* Order Details Modal */}
+            {
+                selectedOrder && (
+                    <OrderDetails
+                        order={selectedOrder}
+                        onClose={() => setSelectedOrder(null)}
+                    />
+                )
+            }
         </div>
     );
 };

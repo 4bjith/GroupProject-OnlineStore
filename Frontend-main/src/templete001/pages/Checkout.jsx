@@ -13,6 +13,7 @@ const Checkout = () => {
     const total = getTotalPrice();
     const storeSlug = store?.slug ? `/${store.slug}` : '';
 
+    const [paymentMethod, setPaymentMethod] = useState("Cash on Delivery");
     const [formData, setFormData] = useState({
         email: '',
         firstName: '',
@@ -49,7 +50,7 @@ const Checkout = () => {
                     country: formData.country
                 },
                 totalAmount: total,
-                paymentMethod: "Cash on Delivery",
+                paymentMethod: paymentMethod,
                 paymentStatus: "Pending",
                 shippingPrice: 0
             };
@@ -156,10 +157,52 @@ const Checkout = () => {
                         </div>
 
                         <div className="space-y-4">
-                            <h2 className="text-xl font-bold text-slate-900">Payment</h2>
-                            <div className="p-4 border border-gray-200 rounded-xl bg-gray-50 text-gray-500 text-sm">
-                                Cash on Delivery (Standard)
+                            <h2 className="text-xl font-bold text-slate-900">Payment Method</h2>
+                            <div className="space-y-3">
+                                <label className={`flex items-center p-4 border rounded-xl cursor-pointer transition-all ${paymentMethod === 'Cash on Delivery' ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-gray-200 hover:border-blue-200'}`}>
+                                    <input
+                                        type="radio"
+                                        name="paymentMethod"
+                                        value="Cash on Delivery"
+                                        checked={paymentMethod === "Cash on Delivery"}
+                                        onChange={(e) => setPaymentMethod(e.target.value)}
+                                        className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                    />
+                                    <span className="ml-3 font-medium text-slate-900">Cash on Delivery</span>
+                                </label>
+
+                                <label className={`flex items-center p-4 border rounded-xl cursor-pointer transition-all ${paymentMethod === 'Credit Card' ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-gray-200 hover:border-blue-200'}`}>
+                                    <input
+                                        type="radio"
+                                        name="paymentMethod"
+                                        value="Credit Card"
+                                        checked={paymentMethod === "Credit Card"}
+                                        onChange={(e) => setPaymentMethod(e.target.value)}
+                                        className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                    />
+                                    <span className="ml-3 font-medium text-slate-900">Credit Card</span>
+                                </label>
                             </div>
+
+                            {paymentMethod === 'Credit Card' && (
+                                <div className="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-4 animate-fadeIn">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Card Number</label>
+                                        <input type="text" placeholder="0000 0000 0000 0000" className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Expiry</label>
+                                            <input type="text" placeholder="MM/YY" className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">CVC</label>
+                                            <input type="text" placeholder="123" className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500" />
+                                        </div>
+                                    </div>
+                                    <button  className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors">Pay Now</button>
+                                </div>
+                            )}
                         </div>
                     </form>
                 </div>
