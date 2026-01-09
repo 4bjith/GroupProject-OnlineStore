@@ -60,7 +60,7 @@ function Settings() {
       <div className="max-w-7xl mx-auto pt-4 md:pt-10 px-4 md:px-6 flex flex-col md:flex-row gap-6 md:gap-12">
 
         {/* Sidebar Navigation */}
-        <aside className="w-full md:w-64 flex-shrink-0">
+        <aside className="w-full md:w-48 flex-shrink-0">
           <div className="flex items-center gap-3 mb-4 md:mb-8 px-2">
             <BiCog className="text-3xl text-indigo-900" />
             <h1 className="text-2xl font-bold text-gray-800">Settings</h1>
