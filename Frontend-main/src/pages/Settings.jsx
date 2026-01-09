@@ -60,8 +60,8 @@ function Settings() {
       <div className="max-w-7xl mx-auto pt-4 md:pt-10 px-4 md:px-6 flex flex-col md:flex-row gap-6 md:gap-12">
 
         {/* Sidebar Navigation */}
-        <aside className="w-full md:w-48 flex-shrink-0">
-          <div className="flex items-center gap-3 mb-4 md:mb-8 px-2">
+        <aside className="w-full md:w-36 flex-shrink-0">
+          <div className="flex items-center gap-2 mb-4 md:mb-6 px-1">
             <BiCog className="text-3xl text-indigo-900" />
             <h1 className="text-2xl font-bold text-gray-800">Settings</h1>
           </div>
@@ -73,7 +73,7 @@ function Settings() {
                 key={item.key}
                 data-tab={item.key}
                 onClick={() => setActiveTab(item.key)}
-                className={`flex-shrink-0 whitespace-nowrap px-3 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-3 ${activeTab === item.key
+                className={`flex-shrink-0 whitespace-nowrap px-2.5 py-2 rounded-lg font-medium transition-all text-[13px] flex items-center gap-2 ${activeTab === item.key
                   ? "bg-indigo-50 text-indigo-900 font-bold border-b-2 md:border-b-0 md:border-l-4 border-indigo-900"
                   : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
                   }`}
