@@ -23,14 +23,6 @@ function Categories() {
     const queryClient = useQueryClient();
     const [catId, setCatId] = useState(null);
 
-    const { data: stores = [] } = useQuery({
-        queryKey: ['stores'],
-        queryFn: async () => {
-            const res = await api.get('/stores');
-            return res.data;
-        }
-    });
-
     const [selectedStoreId, setSelectedStoreId] = useState('');
 
     useEffect(() => {

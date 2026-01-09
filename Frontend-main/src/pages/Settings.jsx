@@ -17,7 +17,7 @@ const MENU_ITEMS = [
   { key: "edit-profile", label: "Profile", icon: <BiEdit /> },
   { key: "language", label: "Language", icon: <BiGlobe /> },
   { key: "notification", label: "Notification", icon: <BiBell /> },
-  { key: "payments", label: "Payments", icon: <BsCreditCard /> },
+  { key: "Accounts", label: "Accounts", icon: <BsCreditCard /> },
   // { key: "taxes", label: "Taxes", icon: <BsFileText /> },
   { key: "transactions", label: "Transactions", icon: <BsClockHistory /> },
   // { key: "password", label: "Password", icon: <BiLock /> },
@@ -37,7 +37,7 @@ function Settings() {
         return <Language />;
       case 'notification':
         return <Notification />;
-      case 'payments':
+      case 'Accounts':
         return <AccountDetails />;
       case 'transactions':
         return <Transaction />;
