@@ -4,9 +4,7 @@ import useCartStore from "../Zustand/cartStore";
 import { toast } from "react-toastify";
 import { BASE_URL } from "../api/urls";
 
-const ProductCard = ({ product }) => {
-  const context = useOutletContext();
-  const storeSlug = context?.store?.slug ? `/${context.store.slug}` : '';
+const ProductCard = ({ product, storeSlug }) => {
   const addItem = useCartStore((state) => state.addItem);
 
   const handleAddToCart = (e) => {
@@ -24,7 +22,7 @@ const ProductCard = ({ product }) => {
     : null;
 
   return (
-    <Link to={`${storeSlug}/product/${product._id}`} className="group block">
+    <Link to={`/${storeSlug}/product/${product._id}`} className="group block">
       <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300">
 
         {/* IMAGE */}

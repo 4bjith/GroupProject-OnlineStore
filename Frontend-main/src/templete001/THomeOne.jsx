@@ -14,6 +14,7 @@ const Home = () => {
     const StoreId = store?._id;
     // remove leading "/"
     const storeName = store?.name || location.pathname.replace("/", "");
+    const storeSlug = store?.slug;
 
 
     // Get top 8 products
@@ -102,7 +103,7 @@ const Home = () => {
                 <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-8 text-center">Top Trending Products</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {displayProducts.map((product) => (
-                        <ProductCard key={product.id} product={product} />
+                        <ProductCard key={product.id} product={product} storeSlug={storeSlug} />
                     ))}
                 </div>
                 <div className="mt-12 text-center">

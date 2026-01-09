@@ -6,58 +6,100 @@ import api from "../api/axiosClient";
 import authStore from "../AuthStore";
 
 export default function ProductList() {
+  // ---------------- STATE ----------------
   const [products, setProducts] = useState([]);
   const [activeCategory, setActiveCategory] = useState("All");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [category, setCategory] = useState([])
+  const [categories, setCategories] = useState([]);
+  const [stores, setStores] = useState([]);
+  const [storeId, setStoreId] = useState(null);
+  const [search, setSearch] = useState("");
 
-  //-------------TAKING TOKEN FROM ZUSTAND ------
-  const token = authStore((state)=> state.token)
+  // Pagination
+  const [page, setPage] = useState(1);
+  const limit = 12;
 
-  const [stores, setStores] = useState([])
+  // Auth token
+  const token = authStore((state) => state.token);
 
-
-  // Query function to fetch user details
-  const { data: usr } = useQuery({
+  // ---------------- USER QUERY ----------------
+  useQuery({
     queryKey: ["user"],
+    enabled: !!token,
     queryFn: async () => {
       const res = await api.get("/getuserdetails", {
         headers: { Authorization: `Bearer ${token}` },
       });
       return res.data;
     },
-    enabled: !!token,
   });
-  
 
-
-  // STORE ID
-  const [storeId, setStoreId] = useState(null)
-  const [temp, setTemp] = useState(null)
-  const { data: store } = useQuery({
-    queryKey: ["store"],
+  // ---------------- STORES QUERY ----------------
+  const { data: storeData } = useQuery({
+    queryKey: ["stores"],
     queryFn: async () => {
-      
       const res = await api.get("/stores");
-      
       return res.data;
     },
   });
-  useEffect(()=>{
-    if (store?.length){
-      setStores(store)
-      setTemp(store[0]._id)
+
+  // Auto-select first store
+  useEffect(() => {
+    if (storeData?.length && !storeId) {
+      setStores(storeData);
+      setStoreId(storeData[0]._id); // ✅ DEFAULT STORE
     }
-  })
+  }, [storeData, storeId]);
 
-  // PAGINATION STATE
-  const [page, setPage] = useState(1);
-  const limit = 12;
+  // ---------------- CATEGORY QUERY ----------------
+  const { data: categoryData } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const res = await api.get("/category");
+      return res.data;
+    },
+  });
 
-  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (categoryData) setCategories(categoryData);
+  }, [categoryData]);
 
-  // DELETE MUTATION
+  // ---------------- PRODUCTS QUERY ----------------
+  const { data, isLoading } = useQuery({
+    queryKey: ["products", storeId, page, search],
+    enabled: !!storeId,
+    keepPreviousData: true,
+    queryFn: async () => {
+      const res = await api.get(
+        `/product?storeId=${storeId}&page=${page}&limit=${limit}&search=${search}`
+      );
+
+      return {
+        ...res.data,
+        data: res.data.data.map((item) => ({
+          id: item._id,
+          name: item.title,
+          description: item.description,
+          category: item.category,
+          price: item.price,
+          stock: item.stock,
+          sold: item.sold || 0,
+          image: item.images?.[0]
+            ? item.images[0].startsWith("/uploads")
+              ? `http://localhost:3000${item.images[0]}`
+              : item.images[0]
+            : "",
+        })),
+      };
+    },
+  });
+
+  useEffect(() => {
+    if (data?.data) setProducts(data.data);
+  }, [data]);
+
+  // ---------------- DELETE MUTATION ----------------
   const deleteMutation = useMutation({
     mutationFn: async (productId) => {
       await api.delete(`/products/${productId}`);
@@ -67,79 +109,22 @@ export default function ProductList() {
       closeDetails();
       alert("Product deleted successfully");
     },
-    onError: (error) => {
-      console.error("Error deleting product:", error);
-      alert("Failed to delete product");
-    },
   });
 
   const handleDelete = () => {
-    if (selectedProduct && window.confirm("Are you sure you want to delete this product?")) {
+    if (
+      selectedProduct &&
+      window.confirm("Are you sure you want to delete this product?")
+    ) {
       deleteMutation.mutate(selectedProduct.id);
     }
   };
 
-  const { data: cat } = useQuery({
-    queryKey: ["category"],
-    queryFn: async () => {
-      const res = await api.get("/category")
-      return res.data;
-    }
-  })
-
-  useEffect(() => {
-    if (cat) {
-      setCategory(cat)
-    }
-  }, [cat])
-
-
-
-  // API REQUEST WITH PAGINATION
-  const { data, isLoading } = useQuery({
-  queryKey: ["products", storeId, page],
-  queryFn: async () => {
-    if (!storeId) {
-      return { data: [], totalPages: 1 };
-    }
-
-    const res = await api.get(
-      `/product?storeId=${storeId?storeId:temp}&page=${page}&limit=${limit}`
-    );
-
-    return {
-      ...res.data,
-      data: res.data.data.map((item) => {
-        const rawImage = item.images?.[0] || "";
-        return {
-          id: item._id,
-          name: item.title,
-          description: item.description,
-          category: item.category,
-          price: item.price,
-          stock: item.stock,
-          sold: item.sold || 0,
-          image: rawImage.startsWith("/uploads")
-            ? `http://localhost:3000${rawImage}`
-            : rawImage,
-        };
-      }),
-    };
-  },
-  enabled: !!storeId && !!temp, // ⬅️ IMPORTANT
-  keepPreviousData: true,
-});
-
-
-  // Update products when API loads
-  useEffect(() => {
-    if (data?.data) setProducts(data.data);
-  }, [data]);
-
+  // ---------------- HELPERS ----------------
   const filteredProducts =
     activeCategory === "All"
       ? products
-      : products.filter(p => p.category === activeCategory);
+      : products.filter((p) => p.category === activeCategory);
 
   const handleProductClick = (product) => {
     setSelectedProduct(product);
@@ -148,10 +133,10 @@ export default function ProductList() {
 
   const closeDetails = () => {
     setIsDetailsOpen(false);
-    setTimeout(() => setSelectedProduct(null), 300); // Clear after animation
+    setTimeout(() => setSelectedProduct(null), 300);
   };
 
-
+  // ---------------- UI ----------------
 
   return (
     <div className="w-full min-h-screen bg-gray-50 flex flex-col lg:flex-row relative overflow-hidden">
@@ -164,23 +149,22 @@ export default function ProductList() {
             <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">Products</h1>
             <p className="text-gray-500 mt-1">Manage your store inventory efficiently.</p>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Stores
-                </label>
-                <select
-                  value={storeId}
-                  onChange={(e) => setStoreId(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none cursor-pointer"
-                >
-                  <option>Select Store</option>
-                  {stores.map((st) => (
-                    <option key={st._id} value={st._id}>
-                      {st.name}
-                      
-                    </option>
-                    
-                  ))}
-                  
-                </select>
+              Stores
+            </label>
+            <select
+              value={storeId}
+              onChange={(e) => setStoreId(e.target.value)}
+              className="w-full bg-gray-50 border appearance-none border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none cursor-pointer"
+            >
+
+              {stores.map((st) => (
+                <option key={st._id} value={st._id}>
+                  {st.name}
+                </option>
+
+              ))}
+
+            </select>
           </div>
 
           <Link to={"add"}>
@@ -197,6 +181,7 @@ export default function ProductList() {
             <FaSearch className="text-gray-400 text-lg" />
             <input
               type="text"
+              onChange={(e) => setSearch(e.target.value)}
               className="bg-transparent w-full ml-3 outline-none text-gray-700 placeholder-gray-400 font-medium"
               placeholder="Search for products..."
             />
@@ -217,7 +202,7 @@ export default function ProductList() {
           >
             All
           </button>
-          {category.map((cat) => (
+          {categories.map((cat) => (
             <button
               key={cat._id}
               onClick={() => setActiveCategory(cat.catname)}

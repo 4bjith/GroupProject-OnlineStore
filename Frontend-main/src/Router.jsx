@@ -19,7 +19,7 @@ import THomeOne from "./templete001/THomeOne"
 import { ToastContainer } from "react-toastify";
 import { useQuery } from "@tanstack/react-query";
 import api from "./api/axiosClient";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import CreateTemplate from "./admin/CreateTemplate";
 import ProductListOne from "./templete001/pages/ProductListOne";
 import ProductViewOne from "./templete001/pages/ProductView";
@@ -31,7 +31,7 @@ import Layout from "./templete001/components/Layout";
 import Account from "./templete001/pages/Account";
 
 function Router() {
-
+  const [store, setStore] = useState(null)
   // function to fetch stores
   const { data: stores } = useQuery({
     queryKey: ['stores'],
@@ -43,7 +43,7 @@ function Router() {
   })
   useEffect(() => {
     if (stores) {
-      console.log(stores)
+      setStore(stores)
     }
   }, [stores])
 
@@ -71,16 +71,16 @@ function Router() {
           <Route path="sales" element={<Sales />} />
         </Route>
         {
-          stores?.map((i) => (
+          store?.map((i) => (
             <Route key={i._id} path={`/${i.slug}`} element={<Layout store={i} />}>
-              <Route index element={i?.templateId?.slug === 'template-001' ?<THomeOne /> :<THomeOne /> } />
-              <Route path="store-products" element={<ProductListOne storeSlug={i.slug}/>} />
-              <Route path="product/:id" element={<ProductViewOne storeSlug={i.slug}/>} />
-              <Route path="cart" element={<CartOne storeSlug={i.slug}/>} />
-              <Route path="checkout" element={<CheckoutOne storeSlug={i.slug}/>} />
-              <Route path="login" element={<LoginOne storeSlug={i.slug}/>} />
-              <Route path="register" element={<RegisterOne storeSlug={i.slug}/>} />
-              <Route path="account" element={<Account storeSlug={i.slug}/>}/>
+              <Route index element={i?.templateId?.slug === 'template-001' ? <THomeOne /> : <THomeOne />} />
+              <Route path="store-products" element={<ProductListOne storeSlug={i.slug} />} />
+              <Route path="product/:id" element={<ProductViewOne storeSlug={i.slug} />} />
+              <Route path="cart" element={<CartOne storeSlug={i.slug} />} />
+              <Route path="checkout" element={<CheckoutOne storeSlug={i.slug} />} />
+              <Route path="login" element={<LoginOne storeSlug={i.slug} />} />
+              <Route path="register" element={<RegisterOne storeSlug={i.slug} />} />
+              <Route path="account" element={<Account storeSlug={i.slug} />} />
             </Route>
           ))
         }

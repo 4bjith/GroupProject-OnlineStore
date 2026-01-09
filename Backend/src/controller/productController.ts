@@ -127,20 +127,25 @@ export const getAllProducts = async (req: express.Request, res: express.Response
     const storeId = req.query.storeId as string;
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 12;
+    const search = req.query.search as string || "";
 
     if (!storeId) {
       return res.status(400).json({ message: "Store ID is required" });
     }
-
     const skip = (page - 1) * limit;
 
+    const query: any = { storeId };
+    if (search) {
+      query.title = { $regex: search, $options: 'i' };
+    }
+
     const [products, total] = await Promise.all([
-      ProductModel.find({ storeId })
+      ProductModel.find(query)
         .populate("storeId")
         .skip(skip)
         .limit(limit)
         .lean(),
-      ProductModel.countDocuments({ storeId })
+      ProductModel.countDocuments(query)
     ]);
 
     res.status(200).json({
