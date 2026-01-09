@@ -17,6 +17,9 @@ import Orders from "./components/Orders";
 import Sales from "./components/Sales";
 import THomeOne from "./templete001/THomeOne"
 import { ToastContainer } from "react-toastify";
+import Settings from "./pages/Settings";
+import AccountDetails from "./components/AccountDetails";
+import Transaction from "./components/Transaction";
 import { useQuery } from "@tanstack/react-query";
 import api from "./api/axiosClient";
 import { useEffect, useState } from "react";
@@ -54,7 +57,11 @@ function Router() {
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Home />} />
         <Route path="/temp" element={<ProductList />} />
-       
+        
+        <Route path="/settings" element={<Settings/>} />
+        <Route path="/account/details" element={<AccountDetails />} />
+        <Route path="/transaction" element={<Transaction />} />
+        
         <Route path="/dashboard" element={<Dashboard />}>
           <Route index element={<DashLanding />} />
           <Route path="products" element={<ProductList />} />

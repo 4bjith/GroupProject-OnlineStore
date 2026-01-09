@@ -1,31 +1,31 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
-const authStore = create (
+const authStore = create(
     persist(
-        (set)=>({
-            token:null,
-            addUser:(userdata)=>
-                set((state)=>({
-                    user:userdata,
+        (set) => ({
+            token: null,
+            addUser: (userdata) =>
+                set((state) => ({
+                    user: userdata,
                 })),
-            addToken:(item)=>
-                set((state)=>({
-                    token:item
+            addToken: (item) =>
+                set((state) => ({
+                    token: item
                 })),
-            removeToken:()=>
-                set((state)=>({
-                    token:null,
+            removeToken: () =>
+                set((state) => ({
+                    token: null,
                 })),
-            logout:()=>
-                set((state)=>({
-                    token:null,
-                    user:null,
+            logout: () =>
+                set((state) => ({
+                    token: null,
+                    user: null,
                 })),
         }),
         {
-            name:"authStore",
-            storage:createJSONStorage(()=>localStorage),
+            name: "authStore",
+            storage: createJSONStorage(() => localStorage),
         }
     )
 )
