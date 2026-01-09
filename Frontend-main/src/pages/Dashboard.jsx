@@ -23,10 +23,10 @@ function Dashboard() {
 
     const menuItems = [
         { name: 'Dashboard', icon: <MdDashboard size={20} /> },
-        { name: 'Orders', icon: <MdShoppingCart size={20} /> },
+        { name: 'Orders', url: "orders", icon: <MdShoppingCart size={20} /> },
         { name: 'Products', url: "products", icon: <MdInventory size={20} /> },
-        { name: 'Categories',url: "categories", icon: <MdCategory size={20} /> },
-        { name: 'Sales', icon: <MdAttachMoney size={20} /> },
+        { name: 'Categories', url: "categories", icon: <MdCategory size={20} /> },
+        { name: 'Sales', url: "sales", icon: <MdAttachMoney size={20} /> },
         { name: 'Offers', icon: <MdLocalOffer size={20} /> },
         { name: 'Online stores', url: "stores", icon: <MdStore size={20} /> },
     ];
@@ -39,7 +39,7 @@ function Dashboard() {
                 <div
                     className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm transition-opacity"
                     onClick={() => setOpen(false)}
-                ></div>
+                />
             )}
 
             {/* Sidebar - Desktop & Mobile Shared Structure */}
@@ -64,9 +64,8 @@ function Dashboard() {
                 {/* Navigation */}
                 <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
                     {menuItems.map((item, index) => (
-                        <Link key={index} to={item.url ? item.url : ""}>
+                        <Link key={index} to={item.url ? item.url : ""} onClick={() => setOpen(false)}>
                             <button
-                                key={index}
                                 className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white transition-all duration-200 group"
                             >
                                 <span className="text-slate-400 group-hover:text-blue-500 transition-colors">{item.icon}</span>
@@ -103,7 +102,16 @@ function Dashboard() {
 
             {/* Main Content Area */}
             <main className="flex-1 h-full overflow-y-auto w-full relative">
-                  
+                {/* Mobile Menu Button */}
+                <div className="md:hidden p-4 pb-0">
+                    <button
+                        onClick={() => setOpen(true)}
+                        className="p-2 bg-white rounded-lg shadow-sm border border-gray-200 text-slate-700 active:scale-95 transition-transform"
+                    >
+                        <MdMenu size={24} />
+                    </button>
+                </div>
+                <Outlet />
             </main>
         </div>
     );

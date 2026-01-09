@@ -13,16 +13,19 @@ import p1 from "../assets/images/p1.jpg";
 import p2 from "../assets/images/p2.jpg";
 import p3 from "../assets/images/p3.jpg";
 import p4 from "../assets/images/p4.jpg";
+import { useNavigate } from "react-router-dom";
 
 
 export default function Home() {
+  const navigate = useNavigate()
   return (
     <div className="max-w-screen ">
       <Navbar />
+      <div className="h-[12vh] w-full"></div>
       <div className="flex justify-center">
         <div className="w-full md:w-[760px] lg:w-[1000px] xl:w-[1200px] ">
           {/* Hero section  */}
-          <div className="grid grid-cols-1 md:grid-cols-2 ">
+          <div id="home" className="grid grid-cols-1 md:grid-cols-2 ">
             <div className="h-[40vh] lg:h-[85vh] flex justify-start items-center pl-5">
               <div className="flex flex-col gap-2.5 items-start w-[90%]">
                 <h1 className="text-4xl lg:text-6xl font-bold">
@@ -33,7 +36,9 @@ export default function Home() {
                   The all-in-one dropshipping platform to source products, build
                   your brand, and sell online.{" "}
                 </p>
-                <button className="bg-green-400 rounded-lg px-7 py-2.5 mt-6 text-white outline-1 font-semibold">
+                <button onClick={()=>{
+                  navigate("/dashboard/stores")
+                }} className="bg-green-400 rounded-lg px-7 py-2.5 mt-6 text-white outline-1 font-semibold">
                   Create your store
                 </button>
               </div>
@@ -45,7 +50,7 @@ export default function Home() {
             </div>
           </div>
           {/* discreption */}
-          <div className="w-full flex flex-col items-center justify-center gap-4">
+          <div id="about" className="w-full flex flex-col items-center justify-center gap-4">
             <h1 className="text-3xl md:text-4xl font-bold tracking-wider">
               Everything You Need to Succeed
             </h1>
@@ -88,7 +93,7 @@ export default function Home() {
             </div>
           </div>
           {/* guide */}
-          <div className="w-full h-auto flex flex-col items-center justify-center py-12">
+          <div id="guide" className="w-full h-auto flex flex-col items-center justify-center py-12">
             <h1 className="text-3xl font-bold">
               How it Works in 3 Simple Steps
             </h1>
@@ -170,7 +175,9 @@ export default function Home() {
                 online business today. No credit card required.
               </p>
 
-              <button className="mt-8 bg-[#44ff00] text-white font-semibold px-8 py-3 rounded-lg hover:bg-[#00b3e6] transition">
+              <button onClick={()=>{
+                navigate("/dashboard")
+              }} className="mt-8 bg-[#44ff00] text-white font-semibold px-8 py-3 rounded-lg hover:bg-[#00b3e6] transition">
                 Get Started For Free
               </button>
             </div>
@@ -178,7 +185,7 @@ export default function Home() {
         </div>
       </div>
       {/* Footer Section */}
-      <footer className="w-full bg-gray-900 text-gray-300 py-12 mt-10">
+      <footer id="footer" className="w-full bg-gray-900 text-gray-300 py-12 mt-10">
         <div className="max-w-[1200px] mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Brand */}
           <div>

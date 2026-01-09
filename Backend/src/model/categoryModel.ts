@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 
 const CategorySchema = new mongoose.Schema({
+    storeId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Store",
+        required: true,
+    },
     catname: {
         type: String,
         required: true,
@@ -8,6 +13,11 @@ const CategorySchema = new mongoose.Schema({
     catimage: {
         type: String,
         // required: true,
+    },
+    storeId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Store',
+        required: true
     },
     createdAt: {
         type: Date,
