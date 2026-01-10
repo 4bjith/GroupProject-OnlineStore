@@ -154,13 +154,13 @@ const Offers = () => {
                         {categories.map((cat) => (
                             <button
                                 key={cat._id}
-                                onClick={() => setSelectedCategory(cat.name)} // Assuming category object has name
-                                className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${selectedCategory === cat.name
+                                onClick={() => setSelectedCategory(cat.catname)} // Assuming category object has name
+                                className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${selectedCategory === cat.catname
                                     ? 'bg-indigo-900 text-white shadow-md'
                                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                     }`}
                             >
-                                {cat.name}
+                                {cat.catname}
                             </button>
                         ))}
                     </div>
@@ -265,7 +265,7 @@ const Offers = () => {
                                         >
                                             <option value="">Select Category</option>
                                             {categories.map(c => (
-                                                <option key={c?._id} value={c?.name}>{c?.name}</option>
+                                                <option key={c._id} value={c.catname}>{c.catname}</option>
                                             ))}
                                         </select>
                                     </div>
