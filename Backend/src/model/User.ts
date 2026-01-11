@@ -24,6 +24,9 @@ const UserSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
+    address: {
+        type: String,
+        default: ""
     role: {
         type: String,
         enum: ["customer", "Merchant", "admin"],
@@ -36,6 +39,24 @@ const UserSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    businessType: {
+        type: String,
+        enum: ["Retail", "Wholesale", "Service", "Manufacturing", "Other"],
+        default: "Other"
+    },
+    businessDescription: {
+        type: String,
+        default: ""
+    },
+    accountStatus: {
+        type: String,
+        enum: ["Active", "Suspended", "Pending Verification"],
+        default: "Active"
+    },
+    lastLogin: {
+        type: Date,
+        default: null
     },
 
 

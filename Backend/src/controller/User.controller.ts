@@ -40,7 +40,12 @@ export const loginUser = async (req: express.Request, res: express.Response) => 
         if (!isMatch) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
-        const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET as string, { expiresIn: "1h" });
+        const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET as string, { expiresIn: "24h" });
+
+        // Update last login
+        user.lastLogin = new Date();
+        await user.save();
+
         return res.status(200).json({ token });
     } catch (error) {
         console.error(error);
@@ -70,7 +75,14 @@ export const getUserDetails = async (req: express.Request, res: express.Response
 
 export const updateUserDetails = async (req: express.Request, res: express.Response) => {
     try {
-        const { email, name, number, address } = req.body as { email: string; name: string; number: string; address: string; };
+        const { email, name, number, address, businessType, businessDescription } = req.body as {
+            email: string;
+            name: string;
+            number: string;
+            address: string;
+            businessType: string;
+            businessDescription: string;
+        };
         const file = req.file; // Multer adds this if file is uploaded
         if (!email) {
             return res.status(400).json({ message: "Email is required" });
@@ -82,6 +94,8 @@ export const updateUserDetails = async (req: express.Request, res: express.Respo
         if (number) user.number = number;
         if (name) user.name = name;
         if (address) user.address = address;
+        if (businessType) user.businessType = businessType as any;
+        if (businessDescription) user.businessDescription = businessDescription;
         if (file) {
             // Save relative or public path to the image
             user.profilePic = `/uploads/${file.filename}`;
