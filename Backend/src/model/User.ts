@@ -26,8 +26,12 @@ const UserSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ["customer", "Merchant","admin"],
+        enum: ["customer", "Merchant", "admin"],
         default: "customer"
+    },
+    address: {
+        type: String,
+        default: ""
     },
     createdAt: {
         type: Date,
@@ -38,7 +42,7 @@ const UserSchema = new mongoose.Schema({
 })
 
 // Use a normal function so "this" refers to the document
-UserSchema.pre("save", async function ( ) {
+UserSchema.pre("save", async function () {
     if (!this.isModified("password")) {
         return;
     }

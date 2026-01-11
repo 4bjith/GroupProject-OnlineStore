@@ -9,7 +9,7 @@ dotenv.config();
 export const registerUser = async (req: express.Request, res: express.Response) => {
     try {
         const { name, email, password, number, role } = req.body as { name: string; email: string; password: string; number: string; role: string; };
-        if (!name || !email || !password || !number ) {
+        if (!name || !email || !password || !number) {
             return res.status(400).json({ message: "All fields are required" });
         }
         const user = await UserModel.findOne({ email });
@@ -51,7 +51,7 @@ export const loginUser = async (req: express.Request, res: express.Response) => 
 
 export const getUserDetails = async (req: express.Request, res: express.Response) => {
     try {
-       const { email } = req.user as jwt.JwtPayload;
+        const { email } = req.user as jwt.JwtPayload;
 
         if (!email) {
             return res.status(400).json({ message: "Email is required" });
@@ -70,7 +70,7 @@ export const getUserDetails = async (req: express.Request, res: express.Response
 
 export const updateUserDetails = async (req: express.Request, res: express.Response) => {
     try {
-        const { email, name, number, } = req.body as { email: string; name: string; number: string; };
+        const { email, name, number, address } = req.body as { email: string; name: string; number: string; address: string; };
         const file = req.file; // Multer adds this if file is uploaded
         if (!email) {
             return res.status(400).json({ message: "Email is required" });
@@ -81,6 +81,7 @@ export const updateUserDetails = async (req: express.Request, res: express.Respo
         }
         if (number) user.number = number;
         if (name) user.name = name;
+        if (address) user.address = address;
         if (file) {
             // Save relative or public path to the image
             user.profilePic = `/uploads/${file.filename}`;

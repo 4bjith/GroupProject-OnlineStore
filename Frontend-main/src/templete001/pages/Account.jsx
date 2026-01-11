@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FiEdit, FiPackage, FiShoppingBag, FiX, FiCamera, FiPhone, FiMapPin, FiUser } from "react-icons/fi";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import authStore from "../../AuthStore";
 import api from "../../api/axiosClient";
 import { BASE_URL } from "../../api/urls";
@@ -14,11 +14,13 @@ export default function Account() {
   const navigate = useNavigate();
   const { slug } = useParams();
   const token = authStore(state => state.token)
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     name: '',
     image: '',
     mobile: '',
-    address: ''
+    address: '',
+    file: null
   });
 
   // Fetch user details using React Query
@@ -51,10 +53,10 @@ export default function Account() {
       setFormData({
         name: userData.name || '',
         image: userData.profilePic ? (userData.profilePic.startsWith("http") ? userData.profilePic : `${api.defaults.baseURL || "http://localhost:3000"}${userData.profilePic}`) : '',
-        mobile: userData.number || '', // Note: Backend uses 'number', frontend used 'mobile'
-        address: userData.address || ''
+        mobile: userData.number || '',
+        address: userData.address || '',
+        file: null
       });
-      // Optionally sync back to authStore if needed, but for this task we focus on useQuery
       addUser(userData);
     }
   }, [userData]);
@@ -88,23 +90,44 @@ export default function Account() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, image: reader.result }));
+        setFormData(prev => ({ ...prev, image: reader.result, file: file }));
       };
       reader.readAsDataURL(file);
     }
   };
 
+  const updateProfileMutation = useMutation({
+    mutationFn: async (data) => {
+      const res = await api.put("/updateuserdetails", data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data"
+        }
+      });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      toast.success("Profile updated successfully");
+      addUser(data.user);
+      queryClient.setQueryData(['user'], data.user);
+      setIsModalOpen(false);
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || "Failed to update profile");
+    }
+  });
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Update local store with new user details
-    // Merging existing user data with form updates
-    if (userData) {
-      addUser({ ...userData, ...formData });
-    } else {
-      // Handle case where user might be null (e.g. initial setup/guest) by creating a new user object
-      addUser({ ...formData, email: 'guest@example.com' });
+    const data = new FormData();
+    data.append("name", formData.name);
+    data.append("number", formData.mobile);
+    data.append("address", formData.address);
+    data.append("email", userData.email);
+    if (formData.file) {
+      data.append("profilepic", formData.file);
     }
-    setIsModalOpen(false);
+    updateProfileMutation.mutate(data);
   };
 
   // Default display values if user is not fully set up
@@ -113,9 +136,8 @@ export default function Account() {
   const displayImage = userData?.profilePic
     ? (userData.profilePic.startsWith("http") ? userData.profilePic : `${BASE_URL}${userData.profilePic}`)
     : "https://placehold.co/100x100";
-  // Backend User model doesn't currently support address, so we check custom field if added or default to empty
   const displayAddress = userData?.address || formData.address;
-  const displayMobile = userData?.number; // Backend field is 'number'
+  const displayMobile = userData?.number;
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10">
@@ -369,12 +391,21 @@ export default function Account() {
                 </div>
               </div>
 
+              {/* Save Button */}
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-600/20 active:scale-[0.98]"
+                  disabled={updateProfileMutation.isPending}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-600/20 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
                 >
-                  Save Changes
+                  {updateProfileMutation.isPending ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Changes"
+                  )}
                 </button>
               </div>
 

@@ -2,6 +2,7 @@ import express from "express";
 import { Order } from "../model/orderModel.js";
 import mongoose from "mongoose";
 import Store from "../model/Store.js";
+import Product from "../model/productModel.js";
 
 const getStartDate = (period: string): Date => {
     const now = new Date();
@@ -282,6 +283,72 @@ export const topSellingProductsController = async (req: express.Request, res: ex
         const totalDocs = result[0].totalDocs[0]?.count || 0;
 
         res.status(200).json({ topSellingProducts, totalDocs });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+}
+
+export const dashboardStatsController = async (req: express.Request, res: express.Response) => {
+    try {
+        const { ownerId } = req.query as { ownerId: string };
+
+        if (!ownerId) {
+            res.status(400).json({ message: "ownerId is required in query parameters" });
+            return;
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(ownerId)) {
+            res.status(400).json({ message: "Invalid ownerId format" });
+            return;
+        }
+
+        const stores = await Store.find({ ownerId });
+        const storeIds = stores.map(store => store._id);
+
+        if (storeIds.length === 0) {
+            res.status(200).json({
+                stats: {
+                    totalSales: 0,
+                    totalOrders: 0,
+                    activeProducts: 0,
+                    totalCustomers: 0
+                }
+            });
+            return;
+        }
+
+        // Total Sales & Total Orders
+        const salesStats = await Order.aggregate([
+            { $match: { storeId: { $in: storeIds } } },
+            {
+                $group: {
+                    _id: null,
+                    totalSales: { $sum: "$totalAmount" },
+                    totalOrders: { $sum: 1 }
+                }
+            }
+        ]);
+
+        const totalSales = salesStats[0]?.totalSales || 0;
+        const totalOrders = salesStats[0]?.totalOrders || 0;
+
+        // Active Products
+        const activeProducts = await Product.countDocuments({ storeId: { $in: storeIds }, isActive: true });
+
+        // Customers (Unique Users)
+        const distinctUsers = await Order.distinct("userId", { storeId: { $in: storeIds } });
+        const totalCustomers = distinctUsers.length;
+
+        res.status(200).json({
+            stats: {
+                totalSales,
+                totalOrders,
+                activeProducts,
+                totalCustomers
+            }
+        });
+
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Internal Server Error" });
