@@ -10,14 +10,66 @@ import {
     MdTrendingUp,
     MdPeople
 } from 'react-icons/md';
+import { useQuery } from '@tanstack/react-query';
+import api from '../api/axiosClient';
+import authStore from '../AuthStore';
 
 const DashLanding = () => {
-    // Stat cards data (mock data for now)
+    const token = authStore(state => state.token);
+
+    // Fetch User Details first to ensure we have the ownerId
+    const { data: userData } = useQuery({
+        queryKey: ["user"],
+        queryFn: async () => {
+            const res = await api.get("/getuserdetails", {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            return res.data;
+        },
+        enabled: !!token,
+    });
+
+    const user = userData?.user;
+
+    // Fetch Dashboard Stats
+    const { data: statsData, isLoading } = useQuery({
+        queryKey: ['dashboardStats', user?._id],
+        queryFn: async () => {
+            const res = await api.get(`/dashboard/stats?ownerId=${user?._id}`);
+            return res.data;
+        },
+        enabled: !!user?._id && !!token,
+    });
+
     const stats = [
-        { label: 'Total Sales', value: '$124,592', icon: <MdAttachMoney size={24} />, color: 'bg-green-500', trend: '+12.5%' },
-        { label: 'Total Orders', value: '1,250', icon: <MdShoppingCart size={24} />, color: 'bg-blue-500', trend: '+5.2%' },
-        { label: 'Active Products', value: '340', icon: <MdInventory size={24} />, color: 'bg-purple-500', trend: '+2.4%' },
-        { label: 'Customers', value: '12,450', icon: <MdPeople size={24} />, color: 'bg-orange-500', trend: '+8.1%' },
+        {
+            label: 'Total Sales',
+            value: statsData?.stats?.totalSales ? `$${statsData.stats.totalSales.toLocaleString()}` : '$0',
+            icon: <MdAttachMoney size={24} />,
+            color: 'bg-green-500',
+            trend: ''
+        },
+        {
+            label: 'Total Orders',
+            value: statsData?.stats?.totalOrders ? statsData.stats.totalOrders.toLocaleString() : '0',
+            icon: <MdShoppingCart size={24} />,
+            color: 'bg-blue-500',
+            trend: ''
+        },
+        {
+            label: 'Active Products',
+            value: statsData?.stats?.activeProducts ? statsData.stats.activeProducts.toLocaleString() : '0',
+            icon: <MdInventory size={24} />,
+            color: 'bg-purple-500',
+            trend: ''
+        },
+        {
+            label: 'Customers',
+            value: statsData?.stats?.totalCustomers ? statsData.stats.totalCustomers.toLocaleString() : '0',
+            icon: <MdPeople size={24} />,
+            color: 'bg-orange-500',
+            trend: ''
+        },
     ];
 
     // Navigation cards
@@ -25,9 +77,9 @@ const DashLanding = () => {
         { name: 'Products', description: 'Manage your inventory', url: 'products', icon: <MdInventory size={32} />, color: 'text-purple-600', bg: 'bg-purple-50' },
         { name: 'Categories', description: 'Organize your products', url: 'categories', icon: <MdCategory size={32} />, color: 'text-pink-600', bg: 'bg-pink-50' },
         { name: 'Online Stores', description: 'Manage store locations', url: 'stores', icon: <MdStore size={32} />, color: 'text-blue-600', bg: 'bg-blue-50' },
-        { name: 'Orders', description: 'Track customer orders', url: '#', icon: <MdShoppingCart size={32} />, color: 'text-green-600', bg: 'bg-green-50' },
-        { name: 'Sales Only', description: 'View sales analytics', url: '#', icon: <MdTrendingUp size={32} />, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-        { name: 'Offers', description: 'Manage discounts', url: '#', icon: <MdLocalOffer size={32} />, color: 'text-yellow-600', bg: 'bg-yellow-50' },
+        { name: 'Orders', description: 'Track customer orders', url: 'orders', icon: <MdShoppingCart size={32} />, color: 'text-green-600', bg: 'bg-green-50' },
+        { name: 'Sales Only', description: 'View sales analytics', url: 'sales', icon: <MdTrendingUp size={32} />, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        { name: 'Offers', description: 'Manage discounts', url: 'offers', icon: <MdLocalOffer size={32} />, color: 'text-yellow-600', bg: 'bg-yellow-50' },
     ];
 
     return (
@@ -47,8 +99,14 @@ const DashLanding = () => {
                         </div>
                         <div>
                             <p className="text-sm font-medium text-slate-400">{stat.label}</p>
-                            <h3 className="text-2xl font-bold text-slate-800">{stat.value}</h3>
-                            <span className="text-xs font-semibold text-green-500 bg-green-50 px-2 py-0.5 rounded-full">{stat.trend}</span>
+                            <h3 className="text-2xl font-bold text-slate-800">
+                                {isLoading ? (
+                                    <div className="h-8 w-24 bg-slate-200 animate-pulse rounded"></div>
+                                ) : (
+                                    stat.value
+                                )}
+                            </h3>
+                            {/* <span className="text-xs font-semibold text-green-500 bg-green-50 px-2 py-0.5 rounded-full">{stat.trend}</span> */}
                         </div>
                     </div>
                 ))}
@@ -94,7 +152,10 @@ const DashLanding = () => {
                             </div>
                             <div>
                                 <p className="text-sm text-slate-300">Revenue Growth</p>
-                                <p className="font-bold text-xl">+24.5%</p>
+                                <p className="font-bold text-xl">
+                                    {/* Placeholder or real growth? For now placeholder */}
+                                    +24.5%
+                                </p>
                             </div>
                         </div>
                     </div>
