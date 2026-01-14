@@ -3,7 +3,7 @@ import api from "../api/axiosClient";
 import { toast } from "react-toastify";
 import { useQuery } from "@tanstack/react-query";
 
-export default function CreateTemplate() {
+export default function AdminCreateTemplate() {
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -14,7 +14,7 @@ export default function CreateTemplate() {
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  
+
 
   // Handle text & color inputs
   const handleChange = (e) => {

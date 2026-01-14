@@ -4,12 +4,12 @@ import { monthlySalesController, ownerSalesAnalysisController, topSellingProduct
 
 const orderRouter = express.Router();
 
-orderRouter.post("/create", createOrder)
-orderRouter.get("/customer/:id", getCustomersOrder)
-orderRouter.get("/store/:id", getStoreOrders)
-orderRouter.get("/all", allOrders)
-orderRouter.put("/status/:id", updateOrderStatus)
-orderRouter.delete("/delete/:id", deleteOrder)
+orderRouter.post("/order",createOrder)
+orderRouter.get("/orders", allOrders)
+orderRouter.get("/order/customer/:id", getCustomersOrder)
+orderRouter.get("/order/store/:id", getStoreOrders)
+orderRouter.put("/order/:id", updateOrderStatus)
+orderRouter.delete("/order/:id", deleteOrder)
 
 orderRouter.get("/sales", ownerSalesAnalysisController)
 orderRouter.get("/sales/monthly", monthlySalesController)
