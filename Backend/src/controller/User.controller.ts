@@ -73,6 +73,17 @@ export const getUserDetails = async (req: express.Request, res: express.Response
 };
 
 
+export const getAllUsers = async (req: express.Request, res: express.Response) => {
+    try {
+        const users = await UserModel.find();
+        return res.status(200).json({ users });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+
 export const updateUserDetails = async (req: express.Request, res: express.Response) => {
     try {
         const { email, name, number, address, businessType, businessDescription } = req.body as {
