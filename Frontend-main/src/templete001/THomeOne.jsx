@@ -24,7 +24,7 @@ const Home = () => {
     const { data: apiCategories, isLoading } = useQuery({
         queryKey: ['categories'],
         queryFn: async () => {
-            const response = await api.get('/category', { params: { storeId: StoreId } });
+            const response = await api.get(`/category/${StoreId}`);
             return response.data;
         }
     });

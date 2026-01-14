@@ -9,7 +9,7 @@ dotenv.config();
 export const registerUser = async (req: express.Request, res: express.Response) => {
     try {
         const { name, email, password, number, role } = req.body as { name: string; email: string; password: string; number: string; role: string; };
-        if (!name || !email || !password || !number ) {
+        if (!name || !email || !password || !number) {
             return res.status(400).json({ message: "All fields are required" });
         }
         const user = await UserModel.findOne({ email });

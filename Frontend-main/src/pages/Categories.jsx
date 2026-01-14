@@ -45,7 +45,7 @@ function Categories() {
 
 
     //get stores available
-    const { data: stores = [], isLoading: storeloading, error: storeerror } = useQuery(
+    const { data: Stores = [], isLoading: storeloading, error: storeerror } = useQuery(
         {
             queryKey: ['stores'],
             queryFn: async () => {
