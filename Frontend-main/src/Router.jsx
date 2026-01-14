@@ -20,6 +20,7 @@ import { ToastContainer } from "react-toastify";
 import Settings from "./pages/Settings";
 import AccountDetails from "./components/AccountDetails";
 import Transaction from "./components/Transaction";
+import Offers from "./pages/Offers";
 import { useQuery } from "@tanstack/react-query";
 import api from "./api/axiosClient";
 import { useEffect, useState } from "react";
@@ -68,24 +69,21 @@ function Router() {
         <Route path="/" element={<Home />} />
         <Route path="/temp" element={<ProductList />} />
 
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/account/details" element={<AccountDetails />} />
-        <Route path="/transaction" element={<Transaction />} />
+        
 
         <Route path="/dashboard" element={<Dashboard />}>
           <Route index element={<DashLanding />} />
           <Route path="products" element={<ProductList />} />
           <Route path="products/add" element={<AddProduct />} />
           <Route path="products/edit" element={<EditProduct />} />
-
           <Route path="categories" element={<Categories />} />
-
           <Route path="stores" element={<ViewStore />} />
           <Route path="stores/add" element={<AddStore />} />
           <Route path="stores/edit" element={<EditStore />} />
-
           <Route path="orders" element={<Orders />} />
           <Route path="sales" element={<Sales />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="offers" element={<Offers />} />
         </Route>
         {
           store?.map((i) => (

@@ -32,7 +32,7 @@ function Profile() {
     const { data: userData } = useQuery({
         queryKey: ["user-settings"],
         queryFn: async () => {
-            const res = await api.get("/user/getData", {
+            const res = await api.get("/getuserdetails", {
                 headers: { Authorization: `Bearer ${token}` },
             });
             return res.data.user;
@@ -73,7 +73,7 @@ function Profile() {
                 form.append("profilepic", selectedFile);
             }
 
-            const res = await api.put("/user/updateData", form, {
+            const res = await api.put("/updateuserdetails", form, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "multipart/form-data"

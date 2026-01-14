@@ -18,8 +18,8 @@ import authStore from "../AuthStore";
 
 function Dashboard() {
     const [open, setOpen] = useState(false);
-    const removetoken=authStore().removeToken;
-    const nav=useNavigate()
+    const removetoken = authStore().removeToken;
+    const nav = useNavigate()
 
     const menuItems = [
         { name: 'Dashboard', icon: <MdDashboard size={20} /> },
@@ -27,7 +27,7 @@ function Dashboard() {
         { name: 'Products', url: "products", icon: <MdInventory size={20} /> },
         { name: 'Categories', url: "categories", icon: <MdCategory size={20} /> },
         { name: 'Sales', url: "sales", icon: <MdAttachMoney size={20} /> },
-        { name: 'Offers', icon: <MdLocalOffer size={20} /> },
+        { name: 'Offers', url: "offers", icon: <MdLocalOffer size={20} /> },
         { name: 'Online stores', url: "stores", icon: <MdStore size={20} /> },
     ];
 
@@ -83,17 +83,17 @@ function Dashboard() {
                     <button className="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white transition-all text-slate-400">
                         <div className="flex items-center gap-3">
                             <MdSettings size={20} />
-                            <Link to="/settings" className="font-medium">Settings</Link>
+                            <Link to="settings" className="font-medium">Settings</Link>
                         </div>
                         <MdKeyboardArrowRight size={20} />
                     </button>
 
                     <button
-                    onClick={()=>{
-                        removetoken()
-                        nav('/')
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all font-medium">
+                        onClick={() => {
+                            removetoken()
+                            nav('/')
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all font-medium">
                         <MdLogout size={20} />
                         <span>Logout</span>
                     </button>

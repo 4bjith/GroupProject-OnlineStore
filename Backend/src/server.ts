@@ -12,6 +12,7 @@ import categoryRouter from './router/Category.js';
 import PaymentRouter from './router/Payment.js';
 import TemplateRouter from './router/template.js';
 import orderRouter from './router/Order.js';
+import offerRouter from './router/offer.js';
 
 
 
@@ -41,6 +42,7 @@ app.use(categoryRouter)
 app.use(PaymentRouter)
 app.use(TemplateRouter)
 app.use(orderRouter)
+app.use(offerRouter);
 
 
 app.listen(PORT, () => {
