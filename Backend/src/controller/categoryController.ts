@@ -122,3 +122,67 @@ export const deleteCategory = async (req: express.Request, res: express.Response
     res.status(500).json({ message: 'Internal server error' });
   }
 }
+
+export const getAdminCategories = async (req: express.Request, res: express.Response) => {
+  try {
+    // Import inside to avoid circular or early load issues if any
+    const ProductModel = (await import('../model/productModel.js')).default;
+    const OfferModel = (await import('../model/offerModel.js')).default;
+    const CategoryModel = (await import('../model/categoryModel.js')).default;
+
+    const categories = await CategoryModel.find()
+      .populate({
+        path: 'storeId',
+        populate: {
+          path: 'ownerId',
+          select: 'name email'
+        }
+      })
+      .sort({ createdAt: -1 });
+
+    const categoriesWithDetails = await Promise.all(categories.map(async (cat: any) => {
+      // Find products that match this category either by Name or by ID
+      const productCount = await ProductModel.countDocuments({
+        $or: [
+          { category: cat.catname },
+          { category: { $regex: new RegExp(`^${cat.catname}$`, 'i') } },
+          { category: cat._id.toString() }
+        ],
+        storeId: cat.storeId?._id
+      });
+
+      const offers = await OfferModel.find({
+        $or: [
+          { category: cat.catname },
+          { category: { $regex: new RegExp(`^${cat.catname}$`, 'i') } },
+          { category: cat._id.toString() }
+        ]
+      });
+
+      return {
+        _id: cat._id,
+        catname: cat.catname,
+        catimage: cat.catimage,
+        store: cat.storeId?.name || "Unknown Store",
+        owner: cat.storeId?.ownerId?.name || "Unknown User",
+        ownerEmail: cat.storeId?.ownerId?.email,
+        productCount,
+        offers: offers.map(o => ({
+          title: o.title,
+          discountPercentage: o.discountPercentage,
+          startDate: o.startDate,
+          endDate: o.endDate,
+          isActive: o.isActive,
+          createdAt: o.createdAt
+        })),
+        offerCount: offers.length,
+        createdAt: cat.createdAt
+      };
+    }));
+
+    res.status(200).json(categoriesWithDetails);
+  } catch (error) {
+    console.error('Error fetching admin categories:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
