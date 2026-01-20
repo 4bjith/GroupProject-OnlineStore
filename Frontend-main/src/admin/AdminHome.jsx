@@ -10,11 +10,11 @@ export default function AdminHome() {
     const token = authStore(state => state.token);
     const [customers, setCustomers] = useState([])
 
-    // Fetch active customers count
+    //------- Fetch active customers count
     const { data: owner, isLoading:loadingCustomers } = useQuery({
         queryKey: ["Owner"],
         queryFn: async () => {
-            const res = await api.get("/getuserdetails",{
+            const res = await api.get("/user/all",{
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
@@ -24,12 +24,18 @@ export default function AdminHome() {
     })
     
     useEffect(()=>{
-        console.log(owner?.user?.name)
-        //----filter customer-----
-       
+        setCustomers(owner?.users)
     },[owner])
 
-    
+    // --------------Fetch stores----------
+    const { data: allStores } = useQuery({
+        queryKey: ["allStores"],
+        queryFn: async () => {
+            const res = await api.get("/stores")
+            return res.data;
+        },
+    })
+   
 
     return (
         <div className="p-6 space-y-6">
@@ -37,12 +43,21 @@ export default function AdminHome() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white rounded-lg shadow p-4 flex items-center space-x-4">
                     <MdPeople className="text-4xl text-blue-500" />
-                    <div>
+                    {
+                        loadingCustomers? <div>
+                        <p className="text-gray-600 ">Active Customers</p>
+                        <p className="text-2xl font-semibold">
+                           -------
+                        </p>
+                    </div>:(<div>
                         <p className="text-gray-600">Active Customers</p>
                         <p className="text-2xl font-semibold">
-                            
+                            {
+                                customers?.filter(i => (i.role === "customer")).length
+                            }
                         </p>
-                    </div>
+                    </div>)
+                    }
 
                 </div>
                 <div className="bg-white rounded-lg shadow p-4 flex items-center space-x-4">
@@ -50,7 +65,9 @@ export default function AdminHome() {
                     <div>
                         <p className="text-gray-600">Active Stores</p>
                         <p className="text-2xl font-semibold">
-                           
+                          {
+                            allStores?.length
+                          } 
                         </p>
                     </div>
                 </div>
