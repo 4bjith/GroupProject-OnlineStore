@@ -1,10 +1,10 @@
 import express from "express";
 import { allOrders, createOrder, deleteOrder, getCustomersOrder, getStoreOrders, updateOrderStatus } from "../controller/orderController.js";
-import { monthlySalesController, ownerSalesAnalysisController, topSellingProductsController, dashboardStatsController } from "../controller/salesController.js";
+import { monthlySalesController, ownerSalesAnalysisController, topSellingProductsController, dashboardStatsController, salesChartController } from "../controller/salesController.js";
 
 const orderRouter = express.Router();
 
-orderRouter.post("/order",createOrder)
+orderRouter.post("/order", createOrder)
 orderRouter.get("/orders", allOrders)
 orderRouter.get("/order/customer/:id", getCustomersOrder)
 orderRouter.get("/order/store/:id", getStoreOrders)
@@ -15,5 +15,6 @@ orderRouter.get("/sales", ownerSalesAnalysisController)
 orderRouter.get("/sales/monthly", monthlySalesController)
 orderRouter.get("/sales/top-products", topSellingProductsController)
 orderRouter.get("/dashboard/stats", dashboardStatsController)
+orderRouter.get("/sales/chart", salesChartController)
 
 export default orderRouter;

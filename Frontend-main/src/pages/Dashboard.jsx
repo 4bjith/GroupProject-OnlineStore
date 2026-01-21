@@ -16,6 +16,8 @@ import {
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import authStore from "../AuthStore";
 
+import logo from "../assets/images/loogo2.png"
+
 function Dashboard() {
     const [open, setOpen] = useState(false);
     const removetoken = authStore().removeToken;
@@ -52,8 +54,7 @@ function Dashboard() {
                 {/* Header */}
                 <div className="p-6 flex items-center justify-between">
                     <div className="flex items-center gap-2 text-white font-bold text-xl tracking-wide">
-                        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-sm">L</div>
-                        <span>LOGO</span>
+                        <img src={logo} alt="" className="h-clamp(10px, 20px, 30px)" />
                     </div>
                     {/* Close button for mobile */}
                     <button className="md:hidden text-slate-400 hover:text-white transition-colors" onClick={() => setOpen(false)}>

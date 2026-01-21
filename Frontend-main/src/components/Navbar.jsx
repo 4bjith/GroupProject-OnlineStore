@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { FiLogIn, FiUserPlus, FiX } from "react-icons/fi";
 import { useState } from "react";
+import logo from "../assets/images/image copy.png"
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,10 +25,11 @@ function Navbar() {
             </div>
 
             {/* Logo */}
-            <h1 className="text-[1.4rem] font-bold mr-7">Logo</h1>
+            {/* <h1 className="text-[1.4rem] font-bold mr-7">GEN MISE</h1> */}
+            <img src={logo} alt="" className="h-7" />
 
             {/* Desktop Menu */}
-            <div className="hidden lg:flex">
+            <div className="hidden lg:flex ml-7">
               <Navmenu />
             </div>
           </div>

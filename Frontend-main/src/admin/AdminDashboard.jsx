@@ -1,120 +1,166 @@
 import React, { useState } from "react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import authStore from "../AuthStore";
 import api from "../api/axiosClient";
 import { useQuery } from "@tanstack/react-query";
-import { MdMessage, MdPerson, MdMenu, MdClose } from "react-icons/md";
+import {
+    MdDashboard, MdAttachMoney, MdPeople, MdStore, MdWeb, MdShoppingBag,
+    MdCategory, MdShoppingCart, MdSettings, MdLogout, MdMenu, MdNotifications
+} from "react-icons/md";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminDashboard() {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+    const token = authStore(state => state.token);
+    const removeToken = authStore(state => state.removeToken);
+
     //-----------Navigation items-----------
     const menuItems = [
-        { slno: 1, name: 'Dashboard', url: "" },
-        { slno: 2, name: 'Earnings', url: "earnings" },
-        { slno: 3, name: 'Users management', url: "users" },
-        { slno: 4, name: 'Stores management', url: "stores" },
-        { slno: 5, name: 'Templates management', url: "templates" },
-        { slno: 6, name: 'Products management', url: "products" },
-        { slno: 7, name: 'Categories management', url: "categories" },
-        { slno: 8, name: 'Orders management', url: "orders" },
-        { slno: 9, name: 'Settings', url: "settings" },
-        { slno: 10, name: 'Logout', url: "logout" },
+        { name: 'Dashboard', url: "", icon: <MdDashboard size={20} /> },
+        { name: 'Earnings', url: "earnings", icon: <MdAttachMoney size={20} /> },
+        { name: 'Users', url: "users", icon: <MdPeople size={20} /> },
+        { name: 'Stores', url: "stores", icon: <MdStore size={20} /> },
+        { name: 'Templates', url: "templates", icon: <MdWeb size={20} /> },
+        { name: 'Products', url: "products", icon: <MdShoppingBag size={20} /> },
+        { name: 'Categories', url: "categories", icon: <MdCategory size={20} /> },
+        { name: 'Orders', url: "orders", icon: <MdShoppingCart size={20} /> },
+        { name: 'Settings', url: "settings", icon: <MdSettings size={20} /> },
     ];
-
-    //-----------State-----------
-    const [open, setOpen] = useState(false);
-    const token = authStore(state => state.token)
-    const removetoken = authStore().removeToken;
-    const nav = useNavigate()
-
 
     //-----------Function to handle logout-----------
     const handleLogout = () => {
-        removetoken();
-        nav('/');
+        removeToken();
+        navigate('/');
     };
 
     //-----------Function to fetch User Info ------------
-    const { data: user, isLoading, error } = useQuery({
+    const { data: user } = useQuery({
         queryKey: ['user'],
         queryFn: async () => {
             const res = await api.get("/getuserdetails", {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
+                headers: { Authorization: `Bearer ${token}` }
             })
             return res.data
         },
-    })
+        enabled: !!token
+    });
 
-    //-----------Render-----------
     return (
-        <div className="flex h-screen w-screen">
-            {/* Mobile sidebar overlay/backdrop */}
-            {open && (
-                <div
-                    className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm transition-opacity"
-                    onClick={() => setOpen(false)}
-                >
-                    <MdMenu size={24} />
-                </div>
-            )}
-
+        <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
             {/* Sidebar */}
-            <aside className="w-1/5 bg-slate-800 text-white p-6 flex flex-col gap-6">
-                {/* Logo */}
-                <div className="flex items-center gap-2 text-xl font-bold">
-                    <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-sm">
-                        L
+            <motion.aside
+                initial={{ width: 280 }}
+                animate={{ width: isSidebarOpen ? 280 : 80 }}
+                transition={{ duration: 0.3, type: "spring", stiffness: 100 }}
+                className="bg-slate-900 h-full flex flex-col shadow-2xl z-50 relative overflow-hidden"
+            >
+                {/* Logo Area */}
+                <div className="h-20 flex items-center px-6 border-b border-white/5 bg-slate-950/30">
+                    <div className="flex items-center gap-3">
+                        <div className="w-24 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-indigo-500/20 shrink-0">
+                            GEN MISE
+                        </div>
+                        {isSidebarOpen && (
+                            <motion.span
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="text-xl font-bold text-white tracking-tight"
+                            >
+                                Admin<span className="text-indigo-400">Panel</span>
+                            </motion.span>
+                        )}
                     </div>
-                    <span>LOGO</span>
                 </div>
+
                 {/* Navigation */}
-                <nav className="flex flex-col gap-2">
-                    {menuItems.map((item) => (
-                        <div key={item.slno}>
-                            {item.name === "Logout" ? (
-                                <button onClick={handleLogout} className="w-full text-left py-2 px-3 font-semibold text-lg text-red-500 hover:bg-slate-700 rounded">
-                                    {item.name}
-                                </button>
-                            ) : (
-                                <Link to={item.url}>
-                                    <div className={`py-2 px-3 font-semibold text-lg  hover:text-blue-500 rounded hover:bg-slate-700 transition-colors`}>
+                <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
+                    {menuItems.map((item) => {
+                        const isActive = location.pathname === `/admin${item.url ? '/' + item.url : ''}`;
+                        return (
+                            <Link
+                                key={item.name}
+                                to={item.url}
+                                className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all group relative overflow-hidden ${isActive
+                                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/20'
+                                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                                    }`}
+                            >
+                                <span className={`shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-white transition-colors'}`}>
+                                    {item.icon}
+                                </span>
+                                {isSidebarOpen && (
+                                    <motion.span
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        className="font-medium text-[13px] tracking-wide"
+                                    >
                                         {item.name}
-                                    </div>
-                                </Link>
-                            )}
-                        </div>
-                    ))}
+                                    </motion.span>
+                                )}
+                            </Link>
+                        )
+                    })}
                 </nav>
-            </aside>
-            {/* Main Content */}
-            <main className="flex-1 bg-slate-200 p-8 overflow-y-auto">
-                <div className="w-full flex items-center justify-between mb-8">
-                    <div className="w-1/2">
-                        <span className="text-xl font-bold text-slate-700">Admin Dashboard</span>
+
+                {/* Logout Button */}
+                <div className="p-3 border-t border-white/5">
+                    <button
+                        onClick={handleLogout}
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 ${!isSidebarOpen && 'justify-center'
+                            }`}
+                    >
+                        <MdLogout size={20} />
+                        {isSidebarOpen && <span className="font-medium text-[13px]">Sign Out</span>}
+                    </button>
+                </div>
+            </motion.aside>
+
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+                {/* Header */}
+                <header className="h-20 bg-white border-b border-slate-200/60 flex items-center justify-between px-8 z-40">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                            className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
+                        >
+                            <MdMenu size={24} />
+                        </button>
+                        <h2 className="text-xl font-bold text-slate-800 tracking-tight">
+                            {menuItems.find(m => location.pathname === `/admin${m.url ? '/' + m.url : ''}`)?.name || 'Dashboard'}
+                        </h2>
                     </div>
 
-                    <div className="w-1/2 flex items-center justify-end gap-5">
-                        {/* -------------Notification---------------- */}
-                        <div className="flex w-auto justify-start items-center gap-2 p-1 bg-slate-50 border border-slate-300 rounded-full">
-                            <div className="w-7 h-7 bg-slate-300 rounded-full flex items-center justify-center text-sm">
-                                <MdMessage size={20} />
-                            </div>
+                    <div className="flex items-center gap-6">
+                        <button className="relative p-2 text-slate-400 hover:text-indigo-600 transition-colors">
+                            <MdNotifications size={22} />
+                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white"></span>
+                        </button>
 
-                        </div>
-                        {/* ------------User Profile---------------- */}
-                        <div className="flex w-auto min-w-[120px] justify-start items-center gap-2 px-2 py-1 bg-slate-50 border border-slate-300 rounded-full">
-                            <div className="w-7 h-7 bg-slate-300 rounded-full flex items-center justify-center text-sm">
-                                <MdPerson size={20} />
+                        <div className="h-8 w-[1px] bg-slate-200"></div>
+
+                        <div className="flex items-center gap-3">
+                            <div className="text-right hidden md:block">
+                                <div className="text-sm font-bold text-slate-800">{user?.user?.name || "Administrator"}</div>
+                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Super Admin</div>
                             </div>
-                            <span>{user?.user?.name || "User"}</span>
+                            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 text-sm font-bold border-2 border-white">
+                                {user?.user?.name?.charAt(0) || "A"}
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div className="w-full">
-                    <Outlet />
-                </div>
-            </main>
+                </header>
+
+                {/* Scrollable Content */}
+                <main className="flex-1 overflow-y-auto bg-slate-50 p-8 scrollbar-thin scrollbar-thumb-slate-200">
+                    <div className="max-w-[1600px] mx-auto">
+                        <Outlet />
+                    </div>
+                </main>
+            </div>
         </div>
     );
 }

@@ -7,12 +7,12 @@ const StoreSchema = new mongoose.Schema({
         required: true,
     },
     name: {
-        type: String, 
+        type: String,
         required: true,
     },
     slug: {
         type: String,
-        required: true, 
+        required: true,
         unique: true,
     },
     domain: {
@@ -28,7 +28,7 @@ const StoreSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    templateId: { 
+    templateId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Template',
         required: true,
@@ -40,6 +40,11 @@ const StoreSchema = new mongoose.Schema({
     isPublished: {
         type: Boolean,
         default: false,
+    },
+    status: {
+        type: String,
+        enum: ['active', 'inactive'],
+        default: 'active'
     },
     createdAt: {
         type: Date,
