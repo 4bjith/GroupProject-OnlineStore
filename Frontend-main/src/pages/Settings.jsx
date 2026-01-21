@@ -11,6 +11,7 @@ import Privacy from "../components/Privacy";
 import Support from "../components/Support";
 import Language from "../components/Language";
 import Notification from "../components/Notification";
+import { useNavigate } from "react-router-dom";
 
 /* ================= ICONS & MENU DATA ================= */
 const MENU_ITEMS = [
@@ -28,6 +29,14 @@ const MENU_ITEMS = [
 function Settings() {
   const logout = authStore((state) => state.logout);
   const [activeTab, setActiveTab] = useState("edit-profile");
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    if (confirm("Are you sure you want to logout?")) {
+      logout();
+      navigate("/");
+    }
+  };
 
   const renderActiveTabContent = () => {
     switch (activeTab) {
@@ -84,7 +93,7 @@ function Settings() {
             ))}
             <button
               className="w-full text-[15px] flex text-left px-4 py-3 text-red-600 font-bold  md:mt-10 hover:bg-red-50 rounded-lg transition  md:flex items-center gap-2"
-              onClick={logout}
+              onClick={handleLogout}
             >
               <RiLogoutBoxRLine /> Logout
             </button>
