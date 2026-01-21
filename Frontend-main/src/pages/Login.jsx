@@ -21,15 +21,24 @@ function Login() {
         email: EmailRef.current.value,
         password: PasswordRef.current.value,
       });
-      addToken(response.data.token);
-      // console.log("logged in:", response.data.token);
+      const { token, role } = response.data;
 
-      if (response.data.token) {
-        toast.success("Logged in successfully");
-        nav("/dashboard");
-      } else {
-        toast.error("Login failed");
-      }
+    if (!token || !role) {
+      toast.error("Login failed");
+      return;
+    }
+
+    // ✅ Store token + role
+    addToken(token, role);
+
+    toast.success("Logged in successfully");
+
+    // ✅ ROLE BASED REDIRECT
+    if (role === "admin") {
+      nav("/adm");
+    } else {
+      nav("/dashboard"); // customer
+    }
     } catch (error) {
       console.error("login error:", error.response?.data || error.message);
       toast.error(error.response?.data?.message || "Login failed.");

@@ -18,6 +18,7 @@ const productSchema = new mongoose.Schema({
   tags: [{ type: String }],
   market: { type: String },
   isActive: { type: Boolean, default: true },
+  status: { type: String, enum: ['active', 'inactive'], default: 'active' },
   isFinite: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

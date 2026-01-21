@@ -5,6 +5,7 @@ import useShopStore from '../../Zustand/shopStore';
 import { toast } from 'react-toastify';
 import { BASE_URL } from '../../api/urls';
 import api from '../../api/axiosClient';
+import authStore from "../../AuthStore"
 
 const Checkout = () => {
     const store = useShopStore((state) => state.store);
@@ -12,6 +13,7 @@ const Checkout = () => {
     const { items, getTotalPrice, clearCart } = useCartStore();
     const total = getTotalPrice();
     const storeSlug = store?.slug ? `/${store.slug}` : '';
+    const token = authStore(state=> state.token)
 
     const [paymentMethod, setPaymentMethod] = useState("Cash on Delivery");
     const [formData, setFormData] = useState({
@@ -23,6 +25,28 @@ const Checkout = () => {
         postalCode: '',
         country: ''
     });
+    //-------statevariable to handle card details---
+    const [cardNumber, setCardNumber] = useState("");
+    const [cardExpire, setCardExpire] = useState("");
+    const [cvv, setCVV] = useState("")
+
+    //----------payment function---------
+    const handlePayment = async () => {
+        try{
+            if(!cardExpire || !cardNumber || !cvv){
+                return
+            }
+            const newPayment = await api.post("/payment/create",{
+                cardNumber, cardExpire, cvv
+            },{
+                header: {
+                    Authorization : `Bearer ${token}`
+                }
+            })
+    }catch(err){
+        console.log("payment error",err)
+    }
+}
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -188,19 +212,19 @@ const Checkout = () => {
                                 <div className="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-4 animate-fadeIn">
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Card Number</label>
-                                        <input type="text" placeholder="0000 0000 0000 0000" className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500" />
+                                        <input type="text" placeholder="0000 0000 0000 0000" onChange={(e)=>setCardNumber(e.target.value)} className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500" />
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Expiry</label>
-                                            <input type="text" placeholder="MM/YY" className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500" />
+                                            <input type="text" placeholder="MM/YY" onChange={(e)=>setCardExpire(e.target.value)}  className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500" />
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">CVC</label>
-                                            <input type="text" placeholder="123" className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500" />
+                                            <input type="text" placeholder="123" onChange={(e)=>setCVV(e.target.value)}  className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500" />
                                         </div>
                                     </div>
-                                    <button  className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors">Pay Now</button>
+                                    <button onClick={handlePayment} className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors">Pay Now</button>
                                 </div>
                             )}
                         </div>

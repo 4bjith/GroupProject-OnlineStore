@@ -108,7 +108,7 @@ const Home = () => {
                 </div>
                 <div className="mt-12 text-center">
                     <Link to='store-products'>
-                        <button className="border border-slate-900 text-slate-900 px-8 py-3 rounded-full font-bold hover:bg-slate-900 hover:text-white transition-all duration-300">
+                        <button className="border border-slate-700 text-slate-900 px-8 py-3 rounded-full font-bold hover:bg-black hover:text-white transition-all duration-300">
                             View All Products
                         </button>
                     </Link>

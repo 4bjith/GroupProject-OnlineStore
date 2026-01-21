@@ -5,22 +5,26 @@ const authStore = create(
     persist(
         (set) => ({
             token: null,
+            role: null,
             addUser: (userdata) =>
                 set((state) => ({
                     user: userdata,
                 })),
             addToken: (item) =>
                 set((state) => ({
-                    token: item
+                    token: item,
+                    role: item.role,
                 })),
             removeToken: () =>
                 set((state) => ({
                     token: null,
+                    role: null,
                 })),
             logout: () =>
                 set((state) => ({
                     token: null,
                     user: null,
+                    role: null,
                 })),
         }),
         {

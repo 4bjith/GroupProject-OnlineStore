@@ -354,3 +354,105 @@ export const dashboardStatsController = async (req: express.Request, res: expres
         res.status(500).json({ message: "Internal Server Error" });
     }
 }
+
+export const salesChartController = async (req: express.Request, res: express.Response) => {
+    try {
+        const { ownerId, period } = req.query as { ownerId: string, period?: string };
+
+        if (!ownerId) {
+            res.status(400).json({ message: "ownerId is required in query parameters" });
+            return;
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(ownerId)) {
+            res.status(400).json({ message: "Invalid ownerId format" });
+            return;
+        }
+
+        const stores = await Store.find({ ownerId });
+        if (!stores || stores.length === 0) {
+            res.status(200).json({ chartData: [] });
+            return;
+        }
+
+        const storeIds = stores.map(store => store._id);
+        const selectedPeriod = period || '1year';
+        const startDate = getStartDate(selectedPeriod);
+
+        let groupExpr: any;
+
+        // Determine grouping based on period
+        if (selectedPeriod === '1year') {
+            // Group by Month (1-12)
+            groupExpr = { $month: "$createdAt" };
+        } else {
+            // Group by Date (YYYY-MM-DD) for 7days or 30days
+            groupExpr = { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } };
+        }
+
+        const salesData = await Order.aggregate([
+            {
+                $match: {
+                    storeId: { $in: storeIds },
+                    createdAt: { $gte: startDate }
+                }
+            },
+            {
+                $group: {
+                    _id: groupExpr,
+                    totalSales: { $sum: "$totalAmount" }
+                }
+            },
+            { $sort: { "_id": 1 } }
+        ]);
+
+        let chartData = [];
+
+        if (selectedPeriod === '1year') {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const dataMap = new Map();
+            salesData.forEach(item => {
+                dataMap.set(item._id, item.totalSales);
+            });
+
+            // Fill all 12 months
+            for (let i = 1; i <= 12; i++) {
+                chartData.push({
+                    name: months[i - 1],
+                    value: dataMap.get(i) || 0
+                });
+            }
+        } else {
+            // Daily Logic (Fill in missing days)
+            const dataMap = new Map();
+            salesData.forEach(item => {
+                dataMap.set(item._id, item.totalSales);
+            });
+
+            const dates = [];
+            const currentDate = new Date(startDate);
+            const endDate = new Date();
+
+            while (currentDate <= endDate) {
+                dates.push(currentDate.toISOString().split('T')[0]);
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            chartData = dates.map(date => {
+                const d = new Date(date);
+                const shortDate = `${d.getDate()} ${d.toLocaleString('default', { month: 'short' })}`;
+                return {
+                    name: shortDate,
+                    fullDate: date,
+                    value: dataMap.get(date) || 0
+                };
+            });
+        }
+
+        res.status(200).json({ chartData });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+}

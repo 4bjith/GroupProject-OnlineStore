@@ -128,13 +128,12 @@ export const getAllProducts = async (req: express.Request, res: express.Response
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 12;
     const search = req.query.search as string || "";
-
-    if (!storeId) {
-      return res.status(400).json({ message: "Store ID is required" });
-    }
     const skip = (page - 1) * limit;
 
-    const query: any = { storeId };
+    const query: any = {};
+    if (storeId) {
+      query.storeId = storeId;
+    }
     if (search) {
       query.title = { $regex: search, $options: 'i' };
     }
@@ -185,7 +184,8 @@ export const updateProductById = async (req: express.Request, res: express.Respo
       market,
       isActive,
       isFinite,
-      imageUrls
+      imageUrls,
+      status
     } = req.body;
 
     // 1️⃣ Uploaded files
@@ -222,6 +222,7 @@ export const updateProductById = async (req: express.Request, res: express.Respo
       tags,
       market,
       isActive,
+      status,
       isFinite,
       updatedAt: new Date()
     }, { new: true });

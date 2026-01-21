@@ -26,32 +26,55 @@ export const registerUser = async (req: express.Request, res: express.Response) 
 
 
 export const loginUser = async (req: express.Request, res: express.Response) => {
-    try {
-        const { email, password } = req.body as { email: string; password: string; };
-        if (!email || !password) {
-            return res.status(400).json({ message: "All fields are required" });
-        }
-        const user = await UserModel.findOne({ email });
-        if (!user) {
-            return res.status(400).json({ message: "User not found" });
-        }
-        const isMatch = await bcrypt.compare(password, user.password);
-        console.log(isMatch);
-        if (!isMatch) {
-            return res.status(400).json({ message: "Invalid credentials" });
-        }
-        const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET as string, { expiresIn: "24h" });
+  try {
+    const { email, password } = req.body as {
+      email: string;
+      password: string;
+    };
 
-        // Update last login
-        user.lastLogin = new Date();
-        await user.save();
-
-        return res.status(200).json({ token });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: "Internal server error" });
+    if (!email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
     }
+
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    // ✅ Include role in token
+    const token = jwt.sign(
+      {
+        id: user._id,
+        email: user.email,
+        role: user.role, // 👈 IMPORTANT
+      },
+      process.env.JWT_SECRET as string,
+      { expiresIn: "24h" }
+    );
+
+    // Update last login
+    user.lastLogin = new Date();
+    await user.save();
+
+    return res.status(200).json({
+      token,
+      role: user.role, // 👈 Send role to frontend
+      user: {
+        id: user._id,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
 };
+
 
 
 export const getUserDetails = async (req: express.Request, res: express.Response) => {
@@ -66,6 +89,17 @@ export const getUserDetails = async (req: express.Request, res: express.Response
             return res.status(400).json({ message: "User not found" });
         }
         return res.status(200).json({ user });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+
+export const getAllUsers = async (req: express.Request, res: express.Response) => {
+    try {
+        const users = await UserModel.find();
+        return res.status(200).json({ users });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: "Internal server error" });

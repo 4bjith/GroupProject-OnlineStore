@@ -68,9 +68,8 @@ export default function ViewStore() {
     <div className="w-full min-h-screen bg-gray-50 flex flex-col lg:flex-row relative overflow-hidden">
       {/* MAIN CONTENT AREA */}
       <div
-        className={`flex-1 p-4 md:p-8 transition-all duration-300 ${
-          isDetailsOpen ? "lg:mr-[400px]" : ""
-        } overflow-y-auto h-screen`}
+        className={`flex-1 p-4 md:p-8 transition-all duration-300 ${isDetailsOpen ? "lg:mr-[400px]" : ""
+          } overflow-y-auto h-screen`}
       >
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -117,21 +116,20 @@ export default function ViewStore() {
               <div
                 key={store._id}
                 onClick={() => handleStoreClick(store)}
-                className={`group bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col h-full relative overflow-hidden ${
-                  selectedStore?._id === store._id ? "ring-2 ring-black" : ""
-                }`}
+                className={`group bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col h-full relative overflow-hidden ${selectedStore?._id === store._id ? "ring-2 ring-black" : ""
+                  }`}
               >
                 <div className="relative w-full aspect-video bg-gray-50 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
-                  
-                  {store.logo?( <img
+
+                  {store.logo ? (<img
                     src={
                       store.logo?.startsWith("http")
                         ? store.logo
                         : `http://localhost:3000${store.logo}`
                     }
                     alt="Store Logo"
-                  />):(<FaStore className="text-4xl text-gray-300 group-hover:text-black transition-colors duration-500" />)}
-                 
+                  />) : (<FaStore className="text-4xl text-gray-300 group-hover:text-black transition-colors duration-500" />)}
+
                 </div>
 
                 <div className="flex-1 flex flex-col">
@@ -149,13 +147,12 @@ export default function ViewStore() {
                       {store.currency}
                     </span>
                     <div
-                      className={`text-xs font-medium px-2 py-1 rounded-md ${
-                        store.isPublished
+                      className={`text-xs font-medium px-2 py-1 rounded-md ${store.status === "active"
                           ? "bg-green-100 text-green-700"
                           : "bg-yellow-100 text-yellow-700"
-                      }`}
+                        }`}
                     >
-                      {store.isPublished ? "Published" : "Draft"}
+                      {store.status === "active" ? "Published" : "Draft"}
                     </div>
                   </div>
                 </div>
@@ -167,18 +164,16 @@ export default function ViewStore() {
 
       {/* RIGHT PANEL (DETAILS) */}
       <div
-        className={`fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 ${
-          isDetailsOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 ${isDetailsOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
         onClick={closeDetails}
       />
 
       <div
         className={`fixed lg:absolute top-0 right-0 h-full w-full sm:w-[400px] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out border-l border-gray-100 flex flex-col
-          ${
-            isDetailsOpen || selectedStore
-              ? "translate-x-0"
-              : "translate-x-full"
+          ${isDetailsOpen || selectedStore
+            ? "translate-x-0"
+            : "translate-x-full"
           }
           ${!selectedStore && "lg:hidden"} 
         `}
@@ -249,22 +244,21 @@ export default function ViewStore() {
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
                     Domain
                   </label>
-                  <input
+                  <p
                     className="w-full bg-gray-50 border-transparent focus:bg-white focus:border-black focus:ring-0 rounded-lg p-3 text-sm text-gray-600 transition-all"
-                    value={selectedStore.domain || "N/A"}
-                    readOnly
-                  />
+                  >
+                  <a href={window.location.origin +"/"+ selectedStore.slug} target="_blank">{window.location.origin +"/"+ selectedStore.slug}</a>
+                  </p>
                 </div>
 
                 <div className="pt-4 border-t border-gray-100">
                   <div className="flex justify-between items-center text-sm text-gray-500">
                     <span>Status</span>
                     <span
-                      className={`font-bold ${
-                        selectedStore.isPublished
+                      className={`font-bold ${selectedStore.isPublished
                           ? "text-green-600"
                           : "text-yellow-600"
-                      }`}
+                        }`}
                     >
                       {selectedStore.isPublished ? "Published" : "Draft"}
                     </span>

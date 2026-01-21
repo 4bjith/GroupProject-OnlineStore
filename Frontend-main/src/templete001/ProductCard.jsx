@@ -22,17 +22,19 @@ const ProductCard = ({ product, storeSlug }) => {
     : null;
 
   return (
-    <Link to={`/${storeSlug}/product/${product._id}`} className="group block">
-      <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300">
+    
+      <div className="bg-white  overflow-hidden  transition-all duration-300">
 
         {/* IMAGE */}
-        <div className="relative aspect-4/5 bg-gray-100 overflow-hidden">
+        <div className="relative aspect-5/5 bg-gray-100 overflow-hidden">
           {imageSrc ? (
+            <Link to={`/${storeSlug}/product/${product._id}`}>
             <img
               src={imageSrc}
               alt={product.title}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
+            </Link>
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-400">
               No Image
@@ -42,7 +44,7 @@ const ProductCard = ({ product, storeSlug }) => {
           {/* ADD TO CART */}
           <button
             onClick={handleAddToCart}
-            className="absolute bottom-4 right-4 bg-white text-slate-900 p-3 rounded-full shadow-lg
+            className="absolute bottom-4 right-4 z-30 bg-white text-slate-900 p-3 rounded-full shadow-lg
                        opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0
                        transition-all duration-300 hover:bg-slate-900 hover:text-white"
           >
@@ -51,17 +53,18 @@ const ProductCard = ({ product, storeSlug }) => {
         </div>
 
         {/* DETAILS */}
-        <div className="p-4">
+        <div className="pt-4">
           <p className="text-xs text-gray-500 mb-1">{product.category}</p>
-          <h3 className="font-semibold text-slate-800 text-lg truncate">
+          <h3 className="font-semibold text-slate-800 overflow-hidden truncate">
             {product.title}
           </h3>
-          <div className="mt-2 font-bold text-slate-900 text-lg">
-            ₹{product.price.toFixed(2)}
+          <div className="mt-2 font-bold text-blue-700 text-lg">
+            <span className="text-slate-500">₹ </span>{product.price.toFixed(2)}
           </div>
+          <button onClick={handleAddToCart} className=" rounded-xl text-black text-center w-full h-9 font-bold border-2 border-black">Add to Cart</button>
         </div>
       </div>
-    </Link>
+   
   );
 };
 

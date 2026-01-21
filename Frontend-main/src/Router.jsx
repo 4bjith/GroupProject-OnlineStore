@@ -20,10 +20,11 @@ import { ToastContainer } from "react-toastify";
 import Settings from "./pages/Settings";
 import AccountDetails from "./components/AccountDetails";
 import Transaction from "./components/Transaction";
+import Offers from "./pages/Offers";
 import { useQuery } from "@tanstack/react-query";
 import api from "./api/axiosClient";
 import { useEffect, useState } from "react";
-import CreateTemplate from "./admin/CreateTemplate";
+import AdminCreateTemplate from "./admin/AdminCreateTemplate";
 import ProductListOne from "./templete001/pages/ProductListOne";
 import ProductViewOne from "./templete001/pages/ProductView";
 import CartOne from "./templete001/pages/Cart";
@@ -32,6 +33,16 @@ import LoginOne from "./templete001/pages/LoginTemp";
 import RegisterOne from "./templete001/pages/Register";
 import Layout from "./templete001/components/Layout";
 import Account from "./templete001/pages/Account";
+import AdminDashboard from "./admin/AdminDashboard";
+import AdminHome from "./admin/AdminHome";
+import AdminEarnings from "./admin/AdminEarnings";
+import AdminUsers from "./admin/AdminUsers";
+import AdminStores from "./admin/AdminStores";
+import AdminTemplates from "./admin/AdminTemplates";
+import AdminProducts from "./admin/AdminProducts";
+import AdminCategories from "./admin/AdminCategories";
+import AdminOrders from "./admin/AdminOrders";
+import AdminSettings from "./admin/AdminSettings";
 
 function Router() {
   const [store, setStore] = useState(null)
@@ -57,25 +68,21 @@ function Router() {
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Home />} />
         <Route path="/temp" element={<ProductList />} />
-        
-        <Route path="/settings" element={<Settings/>} />
-        <Route path="/account/details" element={<AccountDetails />} />
-        <Route path="/transaction" element={<Transaction />} />
+
         
         <Route path="/dashboard" element={<Dashboard />}>
           <Route index element={<DashLanding />} />
           <Route path="products" element={<ProductList />} />
           <Route path="products/add" element={<AddProduct />} />
           <Route path="products/edit" element={<EditProduct />} />
-
           <Route path="categories" element={<Categories />} />
-
           <Route path="stores" element={<ViewStore />} />
           <Route path="stores/add" element={<AddStore />} />
           <Route path="stores/edit" element={<EditStore />} />
-
           <Route path="orders" element={<Orders />} />
           <Route path="sales" element={<Sales />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="offers" element={<Offers />} />
         </Route>
         {
           store?.map((i) => (
@@ -91,7 +98,17 @@ function Router() {
             </Route>
           ))
         }
-        <Route path="/adm" element={<CreateTemplate />} />
+        <Route path="/adm" element={<AdminDashboard />}>
+          <Route index element={<AdminHome />} />
+          <Route path="earnings" element={<AdminEarnings />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="stores" element={<AdminStores />} />
+          <Route path="templates" element={<AdminTemplates />} />
+          <Route path="products" element={<AdminProducts />} />
+          <Route path="categories" element={<AdminCategories />} />
+          <Route path="orders" element={<AdminOrders />} />
+          <Route path="settings" element={<AdminSettings />} />
+        </Route>
       </Routes>
       <ToastContainer />
     </BrowserRouter>
