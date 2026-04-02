@@ -10,10 +10,10 @@ const authStore = create(
                 set((state) => ({
                     user: userdata,
                 })),
-            addToken: (item) =>
-                set((state) => ({
-                    token: item,
-                    role: item.role,
+            addToken: (token, role) =>
+                set(() => ({
+                    token: token,
+                    role: role,
                 })),
             removeToken: () =>
                 set((state) => ({

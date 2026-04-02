@@ -3,21 +3,52 @@ import express from "express";
 import UserModel from "../model/User.js";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
+import crypto from "crypto";
 dotenv.config();
+
+const validateEmail = (email: string) => {
+    return String(email)
+      .toLowerCase()
+      .match(
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      );
+};
+
+const validatePassword = (password: string) => {
+    // Character, number, and symbol
+    const regex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+={}\[\]|\\:;"'<>,.?/-]).{6,}$/;
+    return regex.test(password);
+};
 
 
 export const registerUser = async (req: express.Request, res: express.Response) => {
     try {
-        const { name, email, password, number, role } = req.body as { name: string; email: string; password: string; number: string; role: string; };
-        if (!name || !email || !password || !number) {
-            return res.status(400).json({ message: "All fields are required" });
+        const { name, email, password, confirmPassword, number, role } = req.body;
+
+        if (!name) return res.status(400).json({ message: "Name is required" });
+        if (!email) return res.status(400).json({ message: "Email is required" });
+        if (!validateEmail(email)) return res.status(400).json({ message: "Invalid email format" });
+        if (!number) return res.status(400).json({ message: "Number is required" });
+        if (!password) return res.status(400).json({ message: "Password is required" });
+        if (!validatePassword(password)) return res.status(400).json({ message: "Password must contain at least one letter, one number, and one special character" });
+        if (password !== confirmPassword) return res.status(400).json({ message: "Passwords do not match" });
+
+        const existingUser = await UserModel.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: "Email already in use" });
         }
-        const user = await UserModel.findOne({ email });
-        if (user) {
-            return res.status(400).json({ message: "User already exists" });
-        }
-        const newUser = await UserModel.create({ name, email, password, number, role });
-        return res.status(201).json({ message: "User created successfully" });
+
+        const newUser = await UserModel.create({
+            name,
+            email,
+            password,
+            number,
+            role: role || "merchant",
+            isVerified: false,
+            createdAt: new Date()
+        });
+
+        return res.status(201).json({ message: "User registered successfully", user: { id: newUser._id, email: newUser.email } });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: "Internal server error" });
@@ -27,13 +58,10 @@ export const registerUser = async (req: express.Request, res: express.Response) 
 
 export const loginUser = async (req: express.Request, res: express.Response) => {
   try {
-    const { email, password } = req.body as {
-      email: string;
-      password: string;
-    };
+    const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ message: "Email and password are required" });
     }
 
     const user = await UserModel.findOne({ email });
@@ -41,33 +69,56 @@ export const loginUser = async (req: express.Request, res: express.Response) => 
       return res.status(400).json({ message: "User not found" });
     }
 
+    if (user.isLoggedIn) {
+        return res.status(400).json({ message: "User already logged in from another device" });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // ✅ Include role in token
     const token = jwt.sign(
       {
         id: user._id,
         email: user.email,
-        role: user.role, // 👈 IMPORTANT
+        role: user.role,
       },
       process.env.JWT_SECRET as string,
-      { expiresIn: "24h" }
+      { expiresIn: "48h" }
     );
 
-    // Update last login
+    // Hash the token before storing? Or just store it. User said "token should be hashed" in context of blacklisting maybe.
+    // But usually we just store the token or its hash. 
+    // I'll hash it for blacklisting later.
+
     user.lastLogin = new Date();
+    user.isLoggedIn = true;
+    user.accountStatus = "Active"; // Assuming active on login
     await user.save();
 
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 48 * 60 * 60 * 1000, // 48 hours
+        sameSite: "strict"
+    });
+
     return res.status(200).json({
+      message: "Login successful",
       token,
-      role: user.role, // 👈 Send role to frontend
+      role: user.role,
       user: {
         id: user._id,
         email: user.email,
+        name: user.name,
+        verified: user.isVerified
       },
+      loginDetails: {
+          lastLogin: user.lastLogin,
+          accountStatus: user.accountStatus,
+          isVerified: user.isVerified
+      }
     });
   } catch (error) {
     console.error(error);
@@ -75,11 +126,41 @@ export const loginUser = async (req: express.Request, res: express.Response) => 
   }
 };
 
+export const logoutUser = async (req: express.Request, res: express.Response) => {
+    try {
+        if (!req.user?.email) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+        const user = await UserModel.findOne({ email: req.user.email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Get token from cookie or header
+        const token = req.cookies.token || req.headers['authorization']?.split(' ')[1];
+        
+        if (token) {
+            // Hash the token before blacklisting
+            const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+            user.blacklistedTokens.push(hashedToken);
+        }
+
+        user.isLoggedIn = false;
+        await user.save();
+
+        res.clearCookie("token");
+        return res.status(200).json({ message: "Logged out successfully" });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 
 
 export const getUserDetails = async (req: express.Request, res: express.Response) => {
     try {
-        const { email } = req.user as jwt.JwtPayload;
+        const email = req.user?.email;
 
         if (!email) {
             return res.status(400).json({ message: "Email is required" });
@@ -121,7 +202,10 @@ export const updateUserDetails = async (req: express.Request, res: express.Respo
         if (!email) {
             return res.status(400).json({ message: "Email is required" });
         }
-        const user = await UserModel.findOne({ email: req.user?.email }); // req.user is added by the LoginCheck middleware
+        if (!req.user?.email) {
+            return res.status(401).json({ message: "Unauthorized: Log in first" });
+        }
+        const user = await UserModel.findOne({ email: req.user.email });
         if (!user) {
             return res.status(400).json({ message: "User not found" });
         }
