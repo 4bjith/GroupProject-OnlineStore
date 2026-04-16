@@ -5,7 +5,7 @@ const PaymentSchema = new mongoose.Schema(
     // 🔗 Merchant Reference
     merchantId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Merchant",
+      ref: "User",
       required: true,
       unique: true,
     },

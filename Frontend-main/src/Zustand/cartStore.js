@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import logger from '../utils/logger.js';
 
 const useCartStore = create(
     persist(
@@ -19,15 +20,19 @@ const useCartStore = create(
                                 : item
                         ),
                     });
+                    logger.state('cartStore', 'addItem (increment)', { productId, title: product.title, newQuantity: existingItem.quantity + 1 });
                 } else {
                     set({ items: [...items, { ...product, quantity: 1 }] });
+                    logger.state('cartStore', 'addItem (new)', { productId, title: product.title });
                 }
             },
 
             removeItem: (productId) => {
+                const item = get().items.find((item) => (item._id || item.id) === productId);
                 set({
                     items: get().items.filter((item) => (item._id || item.id) !== productId),
                 });
+                logger.state('cartStore', 'removeItem', { productId, title: item?.title });
             },
 
             updateQuantity: (productId, quantity) => {
@@ -40,9 +45,14 @@ const useCartStore = create(
                         (item._id || item.id) === productId ? { ...item, quantity } : item
                     ),
                 });
+                logger.state('cartStore', 'updateQuantity', { productId, quantity });
             },
 
-            clearCart: () => set({ items: [] }),
+            clearCart: () => {
+                const itemCount = get().items.length;
+                set({ items: [] });
+                logger.state('cartStore', 'clearCart', { itemsRemoved: itemCount });
+            },
 
             getTotalPrice: () => {
                 return get().items.reduce(
