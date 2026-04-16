@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "npx tsx watch src/server.ts",
-    "start": "npx tsx src/index.ts"
+    "start": "npx tsx src/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -31,6 +31,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^9.0.0",
     "multer": "^2.0.2",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "winston": "^3.11.0",
+    "winston-daily-rotate-file": "^4.7.1"
   }
 }
