@@ -78,7 +78,7 @@ export default function AdminUsers() {
     const RoleBadge = ({ role }) => {
         const colors = {
             "admin": "bg-indigo-50 text-indigo-600 border-indigo-100",
-            "Merchant": "bg-violet-50 text-violet-600 border-violet-100",
+            "merchant": "bg-violet-50 text-violet-600 border-violet-100",
             "customer": "bg-slate-50 text-slate-600 border-slate-100"
         };
         return (
