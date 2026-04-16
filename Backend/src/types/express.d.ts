@@ -3,7 +3,11 @@ import { JwtPayload } from "jsonwebtoken";
 declare global {
     namespace Express {
         interface Request {
-            user?: { email: string } | JwtPayload;
+            user?: { 
+                id: string;
+                email: string;
+                role: string;
+            };
         }
     }
 }

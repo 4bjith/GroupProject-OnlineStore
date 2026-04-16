@@ -13,11 +13,11 @@ const authStore = create(
                     user: userdata,
                 }))
             },
-            addToken: (item) => {
-                logger.state('authStore', 'addToken', { role: item.role })
-                set((state) => ({
-                    token: item,
-                    role: item.role,
+            addToken: (token, role) => {
+                logger.state('authStore', 'addToken', { role })
+                set(() => ({
+                    token: token,
+                    role: role,
                 }))
             },
             removeToken: () => {

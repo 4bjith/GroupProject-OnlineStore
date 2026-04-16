@@ -27,7 +27,7 @@ const UserSchema = new mongoose.Schema({
     role: {
         type: String,
         enum: ["customer", "merchant", "admin"],
-        default: "customer"
+        default: "merchant"
     },
     address: {
         type: String,
@@ -55,7 +55,22 @@ const UserSchema = new mongoose.Schema({
         type: Date,
         default: null
     },
-
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    verificationToken: {
+        type: String,
+        default: null
+    },
+    blacklistedTokens: {
+        type: [String],
+        default: []
+    },
+    isLoggedIn: {
+        type: Boolean,
+        default: false
+    }
 
 })
 

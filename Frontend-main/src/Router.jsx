@@ -1,7 +1,6 @@
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
-import Register from "./pages/Register";
-import Login from "./pages/Login";
+import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import logger from "./utils/logger.js";
 import { useEffect, useState } from "react";
@@ -20,12 +19,9 @@ import Sales from "./components/Sales";
 import THomeOne from "./templete001/THomeOne"
 import { ToastContainer } from "react-toastify";
 import Settings from "./pages/Settings";
-import AccountDetails from "./components/AccountDetails";
-import Transaction from "./components/Transaction";
 import Offers from "./pages/Offers";
 import { useQuery } from "@tanstack/react-query";
 import api from "./api/axiosClient";
-import AdminCreateTemplate from "./admin/AdminCreateTemplate";
 import ProductListOne from "./templete001/pages/ProductListOne";
 import ProductViewOne from "./templete001/pages/ProductView";
 import CartOne from "./templete001/pages/Cart";
@@ -72,8 +68,8 @@ function RouterContent() {
 
   return (
     <Routes>
-      <Route path="/register" element={<Register />} />
-      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Auth />} />
+      <Route path="/login" element={<Auth />} />
       <Route path="/" element={<Home />} />
       <Route path="/temp" element={<ProductList />} />
 

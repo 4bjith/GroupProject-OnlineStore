@@ -23,7 +23,7 @@ const Login = ({ storeSlug }) => {
                 email, password
             })
             console.log(login.data)
-            addToken(login.data.token);
+            addToken(login.data.token, login.data.role);
             toast.success("Welcome back!");
             navigate(-1);
         } else {
