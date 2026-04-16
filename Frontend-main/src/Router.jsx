@@ -1,8 +1,10 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import logger from "./utils/logger.js";
+import { useEffect, useState } from "react";
 
 
 import Categories from './pages/Categories'
@@ -23,7 +25,6 @@ import Transaction from "./components/Transaction";
 import Offers from "./pages/Offers";
 import { useQuery } from "@tanstack/react-query";
 import api from "./api/axiosClient";
-import { useEffect, useState } from "react";
 import AdminCreateTemplate from "./admin/AdminCreateTemplate";
 import ProductListOne from "./templete001/pages/ProductListOne";
 import ProductViewOne from "./templete001/pages/ProductView";
@@ -44,8 +45,15 @@ import AdminCategories from "./admin/AdminCategories";
 import AdminOrders from "./admin/AdminOrders";
 import AdminSettings from "./admin/AdminSettings";
 
-function Router() {
+function RouterContent() {
   const [store, setStore] = useState(null)
+  const location = useLocation()
+  
+  // Log route changes
+  useEffect(() => {
+    logger.route(location.pathname)
+  }, [location])
+  
   // function to fetch stores
   const { data: stores } = useQuery({
     queryKey: ['stores'],
@@ -58,58 +66,65 @@ function Router() {
   useEffect(() => {
     if (stores) {
       setStore(stores)
+      logger.info('Stores loaded', { count: stores.length })
     }
   }, [stores])
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/" element={<Home />} />
-        <Route path="/temp" element={<ProductList />} />
+    <Routes>
+      <Route path="/register" element={<Register />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<Home />} />
+      <Route path="/temp" element={<ProductList />} />
 
-        
-        <Route path="/dashboard" element={<Dashboard />}>
-          <Route index element={<DashLanding />} />
-          <Route path="products" element={<ProductList />} />
-          <Route path="products/add" element={<AddProduct />} />
-          <Route path="products/edit" element={<EditProduct />} />
-          <Route path="categories" element={<Categories />} />
-          <Route path="stores" element={<ViewStore />} />
-          <Route path="stores/add" element={<AddStore />} />
-          <Route path="stores/edit" element={<EditStore />} />
-          <Route path="orders" element={<Orders />} />
-          <Route path="sales" element={<Sales />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="offers" element={<Offers />} />
-        </Route>
-        {
-          store?.map((i) => (
-            <Route key={i._id} path={`/${i.slug}`} element={<Layout store={i} />}>
-              <Route index element={i?.templateId?.slug === 'template-001' ? <THomeOne /> : <THomeOne />} />
-              <Route path="store-products" element={<ProductListOne storeSlug={i.slug} />} />
-              <Route path="product/:id" element={<ProductViewOne storeSlug={i.slug} />} />
-              <Route path="cart" element={<CartOne storeSlug={i.slug} />} />
-              <Route path="checkout" element={<CheckoutOne storeSlug={i.slug} />} />
-              <Route path="login" element={<LoginOne storeSlug={i.slug} />} />
-              <Route path="register" element={<RegisterOne storeSlug={i.slug} />} />
-              <Route path="account" element={<Account storeSlug={i.slug} />} />
-            </Route>
-          ))
-        }
-        <Route path="/adm" element={<AdminDashboard />}>
-          <Route index element={<AdminHome />} />
-          <Route path="earnings" element={<AdminEarnings />} />
-          <Route path="users" element={<AdminUsers />} />
-          <Route path="stores" element={<AdminStores />} />
-          <Route path="templates" element={<AdminTemplates />} />
-          <Route path="products" element={<AdminProducts />} />
-          <Route path="categories" element={<AdminCategories />} />
-          <Route path="orders" element={<AdminOrders />} />
-          <Route path="settings" element={<AdminSettings />} />
-        </Route>
-      </Routes>
+      
+      <Route path="/dashboard" element={<Dashboard />}>
+        <Route index element={<DashLanding />} />
+        <Route path="products" element={<ProductList />} />
+        <Route path="products/add" element={<AddProduct />} />
+        <Route path="products/edit" element={<EditProduct />} />
+        <Route path="categories" element={<Categories />} />
+        <Route path="stores" element={<ViewStore />} />
+        <Route path="stores/add" element={<AddStore />} />
+        <Route path="stores/edit" element={<EditStore />} />
+        <Route path="orders" element={<Orders />} />
+        <Route path="sales" element={<Sales />} />
+        <Route path="settings" element={<Settings />} />
+        <Route path="offers" element={<Offers />} />
+      </Route>
+      {
+        store?.map((i) => (
+          <Route key={i._id} path={`/${i.slug}`} element={<Layout store={i} />}>
+            <Route index element={i?.templateId?.slug === 'template-001' ? <THomeOne /> : <THomeOne />} />
+            <Route path="store-products" element={<ProductListOne storeSlug={i.slug} />} />
+            <Route path="product/:id" element={<ProductViewOne storeSlug={i.slug} />} />
+            <Route path="cart" element={<CartOne storeSlug={i.slug} />} />
+            <Route path="checkout" element={<CheckoutOne storeSlug={i.slug} />} />
+            <Route path="login" element={<LoginOne storeSlug={i.slug} />} />
+            <Route path="register" element={<RegisterOne storeSlug={i.slug} />} />
+            <Route path="account" element={<Account storeSlug={i.slug} />} />
+          </Route>
+        ))
+      }
+      <Route path="/adm" element={<AdminDashboard />}>
+        <Route index element={<AdminHome />} />
+        <Route path="earnings" element={<AdminEarnings />} />
+        <Route path="users" element={<AdminUsers />} />
+        <Route path="stores" element={<AdminStores />} />
+        <Route path="templates" element={<AdminTemplates />} />
+        <Route path="products" element={<AdminProducts />} />
+        <Route path="categories" element={<AdminCategories />} />
+        <Route path="orders" element={<AdminOrders />} />
+        <Route path="settings" element={<AdminSettings />} />
+      </Route>
+    </Routes>
+  );
+}
+
+function Router() {
+  return (
+    <BrowserRouter>
+      <RouterContent />
       <ToastContainer />
     </BrowserRouter>
   );
