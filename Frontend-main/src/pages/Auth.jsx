@@ -13,9 +13,18 @@ const Auth = () => {
     
     const isRegisterPath = location.pathname === "/register";
     const [isLogin, setIsLogin] = useState(!isRegisterPath);
+    const [sessionMessage, setSessionMessage] = useState("");
     
     useEffect(() => {
         setIsLogin(location.pathname === "/login");
+        
+        // Check for session invalidation message
+        const message = sessionStorage.getItem('sessionMessage');
+        if (message) {
+            setSessionMessage(message);
+            sessionStorage.removeItem('sessionMessage');
+            toast.info(message);
+        }
     }, [location.pathname]);
 
     const toggleAuth = () => {
@@ -101,7 +110,7 @@ const LoginForm = ({ onToggle, addToken, navigate }) => {
         <div className="bg-white rounded-2xl shadow-lg p-8">
             <div className="text-center mb-8">
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">Sign In</h1>
-                <p className="text-gray-600 text-sm">Welcome back to DropShipPro</p>
+                <p className="text-gray-600 text-sm">Welcome back to Gen Mise</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -207,7 +216,7 @@ const RegisterForm = ({ onToggle, navigate }) => {
         <div className="bg-white rounded-2xl shadow-lg p-8">
             <div className="text-center mb-8">
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">Create Account</h1>
-                <p className="text-gray-600 text-sm">Join DropShipPro today</p>
+                <p className="text-gray-600 text-sm">Join Gen Mise today</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">

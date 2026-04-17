@@ -20,13 +20,13 @@ export default function AdminDashboard() {
     //-----------Navigation items-----------
     const menuItems = [
         { name: 'Dashboard', url: "", icon: <MdDashboard size={20} /> },
-        { name: 'Earnings', url: "earnings", icon: <MdAttachMoney size={20} /> },
         { name: 'Users', url: "users", icon: <MdPeople size={20} /> },
         { name: 'Stores', url: "stores", icon: <MdStore size={20} /> },
-        { name: 'Templates', url: "templates", icon: <MdWeb size={20} /> },
         { name: 'Products', url: "products", icon: <MdShoppingBag size={20} /> },
         { name: 'Categories', url: "categories", icon: <MdCategory size={20} /> },
         { name: 'Orders', url: "orders", icon: <MdShoppingCart size={20} /> },
+        { name: 'Earnings', url: "earnings", icon: <MdAttachMoney size={20} /> },
+        { name: 'Templates', url: "templates", icon: <MdWeb size={20} /> },
         { name: 'Settings', url: "settings", icon: <MdSettings size={20} /> },
     ];
 

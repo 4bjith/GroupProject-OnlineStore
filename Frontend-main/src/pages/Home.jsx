@@ -189,7 +189,7 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Brand */}
           <div>
-            <h2 className="text-2xl font-bold text-white">DropShipPro</h2>
+            <h2 className="text-2xl font-bold text-white">Gen Mise</h2>
             <p className="mt-3 opacity-70">
               Build your dropshipping business in minutes. Powerful tools
               designed for your success.
@@ -243,7 +243,7 @@ export default function Home() {
         </div>
 
         <div className="border-t border-gray-700 mt-10 pt-5 text-center text-gray-400 text-sm">
-          © {new Date().getFullYear()} DropShipPro — All Rights Reserved.
+          © {new Date().getFullYear()} Gen Mise — All Rights Reserved.
         </div>
       </footer>
     </div>

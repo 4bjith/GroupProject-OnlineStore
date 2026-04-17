@@ -129,7 +129,7 @@ export default function AdminCategories() {
                         <div className="flex items-start gap-3 mb-4">
                             <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100 group-hover:border-indigo-100 transition-all shrink-0">
                                 {cat.catimage ? (
-                                    <img src={cat.catimage.startsWith('http') ? cat.catimage : `http://localhost:3000/${cat.catimage}`} className="w-full h-full object-cover" alt="" />
+                                    <img src={cat.catimage.startsWith('http') ? cat.catimage : cat.catimage.startsWith('/uploads') ? `http://localhost:4000${cat.catimage}` : cat.catimage} className="w-full h-full object-cover" alt="" />
                                 ) : (
                                     <FiTag className="text-slate-300" size={16} />
                                 )}
@@ -214,7 +214,7 @@ export default function AdminCategories() {
                                     <div className="flex items-center gap-3 md:block">
                                         <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl bg-white p-1 border border-slate-100 shadow-xl overflow-hidden md:mb-4 shrink-0">
                                             {selectedCat.catimage ? (
-                                                <img src={selectedCat.catimage.startsWith('http') ? selectedCat.catimage : `http://localhost:3000/${selectedCat.catimage}`} className="w-full h-full object-cover rounded-lg sm:rounded-xl" alt="" />
+                                                <img src={selectedCat.catimage.startsWith('http') ? selectedCat.catimage : selectedCat.catimage.startsWith('/uploads') ? `http://localhost:4000${selectedCat.catimage}` : selectedCat.catimage} className="w-full h-full object-cover rounded-lg sm:rounded-xl" alt="" />
                                             ) : (
                                                 <FiTag className="text-slate-100 w-full h-full p-2 sm:p-3" />
                                             )}

@@ -1,6 +1,25 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
+export interface IUser {
+    name: string;
+    email: string;
+    password: string;
+    number: string;
+    profilePic: string;
+    role: "customer" | "merchant" | "admin";
+    address: string;
+    createdAt: Date;
+    businessType: "Retail" | "Wholesale" | "Service" | "Manufacturing" | "Other";
+    businessDescription: string;
+    accountStatus: "Active" | "Suspended" | "Pending Verification";
+    lastLogin: Date | null;
+    isVerified: boolean;
+    verificationToken: string | null;
+    blacklistedTokens: string[];
+    activeToken: string | null;
+    isLoggedIn: boolean;
+}
 
 const UserSchema = new mongoose.Schema({
     name: {
@@ -66,6 +85,11 @@ const UserSchema = new mongoose.Schema({
     blacklistedTokens: {
         type: [String],
         default: []
+    },
+    activeToken: {
+        type: String,
+        default: null,
+        nullable: true
     },
     isLoggedIn: {
         type: Boolean,

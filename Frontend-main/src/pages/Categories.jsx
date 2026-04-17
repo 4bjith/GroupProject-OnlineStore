@@ -249,15 +249,21 @@ function Categories() {
     };
 
     const handleEdit = (category) => {
+        const imageUrl = category.catimage?.startsWith('http') || category.catimage?.startsWith('https') 
+            ? category.catimage 
+            : category.catimage?.startsWith('/uploads') 
+            ? `http://localhost:4000${category.catimage}` 
+            : category.catimage;
+        
         setFormData({
             id: category._id,
             name: category.catname,
             storeId: category.storeId?._id || category.storeId,
             imageType: 'url', // Simplified for edit preview
-            imageUrl: category.catimage,
+            imageUrl: imageUrl,
             imageFile: null
         });
-        setPreviewUrl(category.catimage);
+        setPreviewUrl(imageUrl);
         setIsEditing(true);
         setSuccessMsg('');
         // Scroll to form on mobile
@@ -366,7 +372,7 @@ function Categories() {
                                 >
                                     <div className="relative h-32 overflow-hidden bg-slate-100">
                                         <img
-                                            src={category?.catimage.startsWith('https' || 'http') ? category.catimage : `http://localhost:3000/${category.catimage}`}
+                                            src={category?.catimage.startsWith('http') || category?.catimage.startsWith('https') ? category.catimage : category?.catimage.startsWith('/uploads') ? `http://localhost:4000${category.catimage}` : category.catimage}
                                             alt={category.catname}
                                             className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
                                         />
@@ -531,7 +537,7 @@ function Categories() {
                                 {previewUrl ? (
                                     <div className="relative w-full h-48 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 group">
                                         <img
-                                            src={ `${previewUrl}`}
+                                            src={previewUrl?.startsWith('http') || previewUrl?.startsWith('https') ? previewUrl : previewUrl?.startsWith('/uploads') ? `http://localhost:4000${previewUrl}` : previewUrl}
                                             alt="Preview"
                                             className="w-full h-full object-cover"
                                         />

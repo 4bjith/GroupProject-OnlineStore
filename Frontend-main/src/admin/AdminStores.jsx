@@ -67,12 +67,13 @@ export default function AdminStores() {
     };
 
     if (isLoading) return (
-        <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
             <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="h-6 w-6 border-2 border-indigo-600 border-t-transparent rounded-full"
+                className="h-8 w-8 border-3 border-indigo-600 border-t-transparent rounded-full"
             />
+            <p className="text-sm font-bold text-slate-400">Loading stores...</p>
         </div>
     );
 
@@ -91,7 +92,7 @@ export default function AdminStores() {
                     <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                         Store <span className="text-indigo-600">Directory</span>
                     </h1>
-                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">Manage platform vendors</p>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">Total: {stores.length} stores</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
@@ -111,12 +112,12 @@ export default function AdminStores() {
                     </div>
 
                     {/* Search */}
-                    <div className="relative group min-w-[240px]">
-                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[12px] group-focus-within:text-indigo-600 transition-colors" />
+                    <div className="relative group min-w-[260px]">
+                        <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[13px] group-focus-within:text-indigo-600 transition-colors" />
                         <input
                             type="text"
                             placeholder="Find store, slug or owner..."
-                            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-[11px] font-bold placeholder:text-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all"
+                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-[12px] font-bold placeholder:text-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all shadow-sm"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -125,16 +126,16 @@ export default function AdminStores() {
             </div>
 
             {/* Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {filteredStores.map((store, idx) => (
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.03 }}
+                        transition={{ delay: idx * 0.04 }}
+                        whileHover={{ scale: 1.02, y: -4 }}
                         key={store._id}
-                        className="bg-white border border-slate-100 rounded-[24px] p-5 group hover:shadow-xl hover:shadow-indigo-500/5 hover:border-indigo-100 transition-all relative overflow-hidden"
+                        className="bg-white border border-slate-100 rounded-[24px] p-5 group hover:shadow-xl hover:shadow-indigo-500/10 hover:border-indigo-200 transition-all relative overflow-hidden"
                     >
-                        {/* Status Toggle */}
                         {/* Status Toggle */}
                         <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
                             <span className={`text-[10px] font-black uppercase tracking-wider ${store.status === 'active' ? 'text-emerald-600' : 'text-slate-400'}`}>
@@ -142,35 +143,34 @@ export default function AdminStores() {
                             </span>
                             <button
                                 onClick={() => handleStatusToggle(store)}
-                                // disabled={toggleStatusMutation.isPending}
-                                className={`w-10 h-5 rounded-full p-1 flex items-center transition-all ${store.status === 'active' ? 'bg-emerald-500' : 'bg-slate-300'
+                                className={`w-11 h-6 rounded-full p-1 flex items-center transition-all shadow-md ${store.status === 'active' ? 'bg-emerald-500' : 'bg-slate-300'
                                     }`}
                             >
                                 <motion.div
                                     layout
                                     transition={{ type: "spring", stiffness: 700, damping: 30 }}
-                                    className={`w-3.5 h-3.5 bg-white rounded-full shadow-md ${store.status === 'active' ? 'ml-auto' : ''
+                                    className={`w-4 h-4 bg-white rounded-full shadow-md ${store.status === 'active' ? 'ml-auto' : ''
                                         }`}
                                 />
                             </button>
                         </div>
 
                         <div className="flex items-start gap-4 mb-4">
-                            <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 p-1 shrink-0 overflow-hidden shadow-sm group-hover:scale-105 transition-transform">
+                            <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 p-1.5 shrink-0 overflow-hidden shadow-sm group-hover:scale-105 group-hover:border-indigo-200 transition-all">
                                 {store.logo ? (
                                     <img
-                                        src={store.logo.startsWith('http') ? store.logo : `http://localhost:3000${store.logo}`}
+                                        src={store.logo.startsWith('http') ? store.logo : store.logo.startsWith('/uploads') ? `http://localhost:4000${store.logo}` : store.logo}
                                         alt={store.name}
                                         className="w-full h-full object-cover rounded-xl"
                                     />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                        <FiShoppingBag size={20} />
+                                        <FiShoppingBag size={22} />
                                     </div>
                                 )}
                             </div>
                             <div className="pt-1">
-                                <h3 className="text-sm font-black text-slate-800 leading-tight mb-1 group-hover:text-indigo-600 transition-colors">
+                                <h3 className="text-sm font-black text-slate-800 leading-tight mb-1.5 group-hover:text-indigo-600 transition-colors">
                                     {store.name}
                                 </h3>
                                 <div className="text-[10px] font-bold text-slate-400 font-mono">
@@ -179,8 +179,8 @@ export default function AdminStores() {
                             </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <div className="p-3 bg-slate-50 rounded-xl space-y-2 border border-slate-100">
+                        <div className="space-y-3">
+                            <div className="p-4 bg-slate-50 rounded-xl space-y-3 border border-slate-100">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500">
                                         <FiUser size={12} className="text-indigo-500" />
@@ -215,12 +215,10 @@ export default function AdminStores() {
             </div>
 
             {filteredStores.length === 0 && (
-                <div className="py-24 text-center bg-slate-50/30 rounded-[40px] border-2 border-dashed border-slate-100">
-                    <FiShoppingBag size={32} className="mx-auto mb-4 text-slate-200" />
-                    <h3 className="text-lg font-black text-slate-800">No stores found</h3>
-                    <p className="text-[11px] font-bold text-slate-400 mt-1 uppercase tracking-widest">
-                        Try adjusting your filters
-                    </p>
+                <div className="py-24 text-center bg-slate-50/30 rounded-[40px] border-2 border-dashed border-slate-200">
+                    <FiShoppingBag size={32} className="mx-auto mb-4 text-slate-300" />
+                    <h3 className="text-sm font-black text-slate-800">No stores found</h3>
+                    <p className="text-[11px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Try adjusting your filters</p>
                 </div>
             )}
         </div>

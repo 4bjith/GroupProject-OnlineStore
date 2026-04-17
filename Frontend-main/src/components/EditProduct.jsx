@@ -277,7 +277,7 @@ export default function EditProduct({ productData, onSave }) {
                   {storedImages.map((img, index) => (
                     <div key={index} className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200">
                       <img
-                        src={img.preview.startsWith("/uploads") ? `http://localhost:3000${img.preview}` : img.preview}
+                        src={img.preview.startsWith("/uploads") ? `http://localhost:4000${img.preview}` : img.preview}
                         className="w-full h-full object-cover"
                         alt={`Product ${index}`}
                       />

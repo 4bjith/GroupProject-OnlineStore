@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import { FaSearch, FaPlus, FaTimes, FaFilter, FaStore } from "react-icons/fa";
+import { FaSearch, FaPlus, FaTimes, FaFilter, FaStore, FaEdit, FaEye } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import api from "../api/axiosClient";
 
 export default function ViewStore() {
@@ -65,25 +66,18 @@ export default function ViewStore() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 flex flex-col lg:flex-row relative overflow-hidden">
+    <div className="w-full min-h-screen bg-gray-50 flex flex-col relative">
       {/* MAIN CONTENT AREA */}
-      <div
-        className={`flex-1 p-4 md:p-8 transition-all duration-300 ${isDetailsOpen ? "lg:mr-[400px]" : ""
-          } overflow-y-auto h-screen`}
-      >
+      <div className="flex-1 p-4 md:p-8 overflow-y-auto">
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
           <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
-              Stores
-            </h1>
-            <p className="text-gray-500 mt-1">
-              Manage your multi-vendor stores.
-            </p>
+            <h1 className="text-2xl font-semibold text-gray-900">Stores</h1>
+            <p className="text-sm text-gray-500 mt-1">Manage your multi-vendor stores</p>
           </div>
 
           <Link to="/dashboard/stores/add">
-            <button className="flex items-center gap-2 bg-black text-white px-6 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl hover:bg-gray-800 transition-all transform hover:-translate-y-0.5 active:scale-95">
+            <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
               <FaPlus className="text-sm" />
               <span>Add Store</span>
             </button>
@@ -91,63 +85,67 @@ export default function ViewStore() {
         </div>
 
         {/* Search & Filter Bar */}
-        <div className="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-3 mb-8 sticky top-0 z-10 backdrop-blur-md">
-          <div className="flex-1 flex items-center bg-gray-100 px-4 py-3 rounded-xl w-full">
-            <FaSearch className="text-gray-400 text-lg" />
-            <input
-              type="text"
-              className="bg-transparent w-full ml-3 outline-none text-gray-700 placeholder-gray-400 font-medium"
-              placeholder="Search for stores..."
-            />
+        <div className="bg-white rounded-lg border border-gray-200 p-3 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+              <FaSearch className="text-gray-400 text-sm" />
+              <input
+                type="text"
+                className="bg-transparent w-full ml-2 outline-none text-sm text-gray-700 placeholder-gray-400"
+                placeholder="Search stores..."
+              />
+            </div>
+            <button className="p-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">
+              <FaFilter size={14} />
+            </button>
           </div>
-          <button className="p-3 bg-gray-100 rounded-xl text-gray-600 hover:bg-gray-200 transition-colors md:block hidden">
-            <FaFilter />
-          </button>
         </div>
 
         {/* Store Grid */}
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-blue-600"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 pb-20">
             {stores.map((store) => (
               <div
                 key={store._id}
                 onClick={() => handleStoreClick(store)}
-                className={`group bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col h-full relative overflow-hidden ${selectedStore?._id === store._id ? "ring-2 ring-black" : ""
-                  }`}
+                className="group bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer flex flex-col h-full"
               >
-                <div className="relative w-full aspect-video bg-gray-50 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
-
-                  {store.logo ? (<img
-                    src={
-                      store.logo?.startsWith("http")
-                        ? store.logo
-                        : `http://localhost:3000${store.logo}`
-                    }
-                    alt="Store Logo"
-                  />) : (<FaStore className="text-4xl text-gray-300 group-hover:text-black transition-colors duration-500" />)}
-
+                <div className="relative w-full aspect-video bg-gray-50 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                  {store.logo ? (
+                    <img
+                      src={
+                        store.logo?.startsWith("http")
+                          ? store.logo
+                          : store.logo?.startsWith("/uploads")
+                          ? `http://localhost:4000${store.logo}`
+                          : store.logo
+                      }
+                      alt="Store Logo"
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
+                    />
+                  ) : (
+                    <FaStore className="text-2xl text-gray-300" />
+                  )}
                 </div>
 
                 <div className="flex-1 flex flex-col">
-                  <div className="flex justify-between items-start mb-1">
-                    <h3 className="font-bold text-gray-900 line-clamp-1 text-lg group-hover:text-blue-600 transition-colors">
-                      {store.name}
-                    </h3>
-                  </div>
-                  <p className="text-sm text-gray-500 mb-3 line-clamp-2">
+                  <h3 className="font-medium text-gray-900 text-sm mb-1 line-clamp-1">
+                    {store.name}
+                  </h3>
+                  <p className="text-xs text-gray-500 mb-3 line-clamp-2">
                     {store.description || "No description provided."}
                   </p>
 
                   <div className="mt-auto flex items-center justify-between">
-                    <span className="text-sm font-semibold text-gray-500">
+                    <span className="text-xs font-medium text-gray-500">
                       {store.currency}
                     </span>
                     <div
-                      className={`text-xs font-medium px-2 py-1 rounded-md ${store.status === "active"
+                      className={`text-xs font-medium px-2 py-1 rounded ${store.status === "active"
                           ? "bg-green-100 text-green-700"
                           : "bg-yellow-100 text-yellow-700"
                         }`}
@@ -162,130 +160,125 @@ export default function ViewStore() {
         )}
       </div>
 
-      {/* RIGHT PANEL (DETAILS) */}
-      <div
-        className={`fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 ${isDetailsOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
-        onClick={closeDetails}
-      />
-
-      <div
-        className={`fixed lg:absolute top-0 right-0 h-full w-full sm:w-[400px] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out border-l border-gray-100 flex flex-col
-          ${isDetailsOpen || selectedStore
-            ? "translate-x-0"
-            : "translate-x-full"
-          }
-          ${!selectedStore && "lg:hidden"} 
-        `}
-      >
-        {selectedStore && (
-          <>
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white/80 backdrop-blur-md sticky top-0 z-10">
-              <h2 className="text-xl font-bold text-gray-900">Store Details</h2>
-              <button
-                onClick={closeDetails}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500"
-              >
-                <FaTimes size={20} />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              <div className="w-full aspect-video bg-gray-50 rounded-2xl flex justify-center items-center p-8 border border-gray-100">
-                <FaStore className="text-6xl text-gray-400" />
+      {/* Popup Modal */}
+      <AnimatePresence>
+        {isDetailsOpen && selectedStore && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeDetails}
+              className="absolute inset-0 bg-black/50"
+            />
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              className="relative w-full max-w-lg bg-white rounded-lg shadow-xl overflow-hidden"
+            >
+              {/* Modal Header */}
+              <div className="bg-gray-50 border-b border-gray-200 p-4 flex items-center justify-between">
+                <h2 className="text-base font-semibold text-gray-900">Store Details</h2>
+                <button
+                  onClick={closeDetails}
+                  className="p-1.5 hover:bg-gray-200 rounded text-gray-600 transition-colors"
+                >
+                  <FaTimes size={16} />
+                </button>
               </div>
 
-              <div className="space-y-5">
-                <div className="group">
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
-                    Store Name
-                  </label>
-                  <input
-                    className="w-full bg-gray-50 border-transparent focus:bg-white focus:border-black focus:ring-0 rounded-lg p-3 font-semibold text-gray-900 transition-all"
-                    value={selectedStore.name}
-                    readOnly
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
-                      Currency
-                    </label>
-                    <input
-                      className="w-full bg-gray-50 border-transparent focus:bg-white focus:border-black focus:ring-0 rounded-lg p-3 text-gray-900 transition-all"
-                      value={selectedStore.currency}
-                      readOnly
+              <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                {/* Store Logo */}
+                <div className="w-full aspect-video bg-gray-50 rounded-lg flex items-center justify-center p-4 border border-gray-200">
+                  {selectedStore.logo ? (
+                    <img
+                      src={
+                        selectedStore.logo?.startsWith("http")
+                          ? selectedStore.logo
+                          : selectedStore.logo?.startsWith("/uploads")
+                          ? `http://localhost:4000${selectedStore.logo}`
+                          : selectedStore.logo
+                      }
+                      alt="Store Logo"
+                      className="max-w-full max-h-full object-contain"
                     />
-                  </div>
+                  ) : (
+                    <FaStore className="text-3xl text-gray-300" />
+                  )}
+                </div>
+
+                {/* Store Info */}
+                <div className="space-y-3">
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
-                      Commission
-                    </label>
-                    <input
-                      className="w-full bg-gray-50 border-transparent focus:bg-white focus:border-black focus:ring-0 rounded-lg p-3 text-gray-900 transition-all"
-                      value={`${selectedStore.commissionRate}%`}
-                      readOnly
-                    />
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Store Name</label>
+                    <div className="text-sm font-medium text-gray-900">{selectedStore.name}</div>
                   </div>
-                </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
-                    Owner ID
-                  </label>
-                  <input
-                    className="w-full bg-gray-50 border-transparent focus:bg-white focus:border-black focus:ring-0 rounded-lg p-3 text-sm text-gray-600 transition-all"
-                    value={selectedStore.ownerId}
-                    readOnly
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
-                    Domain
-                  </label>
-                  <p
-                    className="w-full bg-gray-50 border-transparent focus:bg-white focus:border-black focus:ring-0 rounded-lg p-3 text-sm text-gray-600 transition-all"
-                  >
-                  <a href={window.location.origin +"/"+ selectedStore.slug} target="_blank">{window.location.origin +"/"+ selectedStore.slug}</a>
-                  </p>
-                </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Currency</label>
+                      <div className="text-sm font-medium text-gray-900">{selectedStore.currency}</div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Commission</label>
+                      <div className="text-sm font-medium text-gray-900">{selectedStore.commissionRate}%</div>
+                    </div>
+                  </div>
 
-                <div className="pt-4 border-t border-gray-100">
-                  <div className="flex justify-between items-center text-sm text-gray-500">
-                    <span>Status</span>
-                    <span
-                      className={`font-bold ${selectedStore.isPublished
-                          ? "text-green-600"
-                          : "text-yellow-600"
-                        }`}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Owner ID</label>
+                    <div className="text-sm text-gray-600 font-mono truncate">{selectedStore.ownerId}</div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Domain</label>
+                    <a
+                      href={window.location.origin + "/" + selectedStore.slug}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-600 hover:underline block truncate"
                     >
-                      {selectedStore.isPublished ? "Published" : "Draft"}
-                    </span>
+                      {window.location.origin + "/" + selectedStore.slug}
+                    </a>
+                  </div>
+
+                  <div className="pt-3 border-t border-gray-200">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-500">Status</span>
+                      <span
+                        className={`font-medium ${
+                          selectedStore.isPublished
+                            ? "text-green-600"
+                            : "text-yellow-600"
+                        }`}
+                      >
+                        {selectedStore.isPublished ? "Published" : "Draft"}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            <div className="p-6 border-t border-gray-100 bg-gray-50">
-              <button
-                onClick={() =>
-                  navigate(`/dashboard/stores/edit?id=${selectedStore._id}`)
-                }
-                className="w-full bg-black text-white py-3.5 rounded-xl font-bold hover:bg-gray-800 transition-all shadow-lg transform active:scale-95"
-              >
-                Edit Store
-              </button>
-              <button
-                onClick={handleDelete}
-                className="w-full mt-2 bg-red-600 text-white py-3.5 rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg transform active:scale-95"
-              >
-                Delete Store
-              </button>
-            </div>
-          </>
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => navigate(`/dashboard/stores/edit?id=${selectedStore._id}`)}
+                    className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <FaEdit size={14} /> Edit
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         )}
-      </div>
+      </AnimatePresence>
     </div>
   );
 }

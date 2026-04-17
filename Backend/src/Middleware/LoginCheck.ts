@@ -41,7 +41,12 @@ export const LoginCheck = async (req: express.Request, res: express.Response, ne
             return res.status(401).json({ message: "Unauthorized: Token is blacklisted" });
         }
 
-        // 4. Attach user info to request
+        // 4. Verify that the current token matches the active token (single-session check)
+        if (user.activeToken && user.activeToken !== hashedToken) {
+            return res.status(401).json({ message: "Unauthorized: Session expired. Please login again." });
+        }
+
+        // 5. Attach user info to request
         req.user = { 
             id: decoded.id,
             email: decoded.email,

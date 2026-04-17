@@ -76,14 +76,19 @@ export const loginUser = async (req: express.Request, res: express.Response) => 
       return res.status(400).json({ message: "User not found" });
     }
 
-    if (user.isLoggedIn) {
-        return res.status(400).json({ message: "User already logged in from another device" });
-    }
-
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       logger.warn('Login failed: Invalid credentials', { email });
       return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    // If user is already logged in with an active token, blacklist it
+    if (user.activeToken) {
+        const hashedPreviousToken = crypto.createHash('sha256').update(user.activeToken).digest('hex');
+        if (!user.blacklistedTokens.includes(hashedPreviousToken)) {
+            user.blacklistedTokens.push(hashedPreviousToken);
+        }
+        logger.info('Previous session invalidated', { userId: user._id, email });
     }
 
     const token = jwt.sign(
@@ -96,13 +101,13 @@ export const loginUser = async (req: express.Request, res: express.Response) => 
       { expiresIn: "48h" }
     );
 
-    // Hash the token before storing? Or just store it. User said "token should be hashed" in context of blacklisting maybe.
-    // But usually we just store the token or its hash. 
-    // I'll hash it for blacklisting later.
+    // Hash the new token and store as activeToken
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
     user.lastLogin = new Date();
     user.isLoggedIn = true;
-    user.accountStatus = "Active"; // Assuming active on login
+    user.accountStatus = "Active";
+    user.activeToken = hashedToken;
     await user.save();
 
     res.cookie("token", token, {
@@ -155,6 +160,7 @@ export const logoutUser = async (req: express.Request, res: express.Response) =>
         }
 
         user.isLoggedIn = false;
+        user.activeToken = "";
         await user.save();
 
         res.clearCookie("token");
