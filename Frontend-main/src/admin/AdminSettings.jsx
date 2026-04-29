@@ -5,7 +5,8 @@ import {
     FiUser, FiMail, FiPhone, FiMapPin, FiCamera,
     FiLogOut, FiFileText, FiMessageSquare, FiLayout,
     FiShield, FiSettings, FiEye, FiCreditCard, FiUsers,
-    FiRefreshCw, FiChevronRight, FiCheck
+    FiRefreshCw, FiChevronRight, FiCheck, FiBuilding, FiDatabase,
+    FiLock, FiBell, FiGlobe, FiServer, FiShoppingBag
 } from "react-icons/fi";
 import api from "../api/axiosClient";
 import authStore from "../AuthStore";
@@ -27,6 +28,9 @@ export default function AdminSettings() {
         businessType: "",
         businessDescription: ""
     });
+
+    // Settings tabs
+    const [activeTab, setActiveTab] = useState("profile"); // 'profile', 'system', 'security', 'notifications'
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -53,6 +57,18 @@ export default function AdminSettings() {
                 headers: { Authorization: `Bearer ${token}` }
             });
             return res.data?.users;
+        },
+        enabled: !!token
+    });
+
+    // Fetch Stores count
+    const { data: storesData } = useQuery({
+        queryKey: ['admin-stores-count'],
+        queryFn: async () => {
+            const res = await api.get("/stores", {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            return res.data || [];
         },
         enabled: !!token
     });
@@ -115,7 +131,7 @@ export default function AdminSettings() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
                 <div className="space-y-0.5">
-                    <h1 className="text-xl font-black text-slate-900 tracking-tight">Settings</h1>
+                    <h1 className="text-xl font-black text-slate-900 tracking-tight">Super Admin <span className="text-indigo-600">Settings</span></h1>
                     <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <FiRefreshCw className="animate-spin-slow" /> Data last synced: Just now
                     </div>
@@ -125,6 +141,36 @@ export default function AdminSettings() {
                         {currentTime.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                         <span className="text-indigo-600 ml-2">{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
+                </div>
+            </div>
+
+            {/* Settings Tabs */}
+            <div className="bg-white rounded-[24px] border border-slate-100 p-2 shadow-sm">
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setActiveTab('profile')}
+                        className={`flex-1 py-3 px-4 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all ${activeTab === 'profile' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:bg-slate-50'}`}
+                    >
+                        <FiUser className="inline mr-2" /> Profile
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('system')}
+                        className={`flex-1 py-3 px-4 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all ${activeTab === 'system' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:bg-slate-50'}`}
+                    >
+                        <FiServer className="inline mr-2" /> System
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('security')}
+                        className={`flex-1 py-3 px-4 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all ${activeTab === 'security' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:bg-slate-50'}`}
+                    >
+                        <FiLock className="inline mr-2" /> Security
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('notifications')}
+                        className={`flex-1 py-3 px-4 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all ${activeTab === 'notifications' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:bg-slate-50'}`}
+                    >
+                        <FiBell className="inline mr-2" /> Notifications
+                    </button>
                 </div>
             </div>
 
@@ -153,8 +199,8 @@ export default function AdminSettings() {
 
                         <div className="space-y-1">
                             <h2 className="text-lg font-black text-slate-900 tracking-tight">{adminData?.name}</h2>
-                            <div className="inline-flex items-center px-3 py-1 rounded-full bg-rose-50 text-rose-500 text-[9px] font-black uppercase tracking-widest border border-rose-100">
-                                Global Administrator
+                            <div className="inline-flex items-center px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[9px] font-black uppercase tracking-widest border border-indigo-100">
+                                <FiShield className="mr-1" size={10} /> Super Admin
                             </div>
                             <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest pt-2">
                                 Last sync: {adminData?.lastLogin ? new Date(adminData.lastLogin).toLocaleDateString() : 'Today'}
@@ -169,22 +215,32 @@ export default function AdminSettings() {
                         </button>
                     </div>
 
-                    {/* Stats & Notifications Card */}
+                    {/* Platform Stats Card */}
                     <div className="bg-white rounded-[24px] border border-slate-100 p-6 space-y-4 shadow-sm">
-                        <button className="w-full flex items-center justify-between p-3 bg-slate-50/50 rounded-xl hover:bg-slate-50 transition-colors group">
-                            <div className="flex items-center gap-3">
-                                <FiFileText className="text-rose-500" />
-                                <span className="text-[11px] font-extrabold text-slate-700 tracking-wide uppercase">Admin Reports</span>
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Platform Overview</div>
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between p-3 bg-slate-50/50 rounded-xl">
+                                <div className="flex items-center gap-2">
+                                    <FiBuilding className="text-indigo-500" size={14} />
+                                    <span className="text-[11px] font-bold text-slate-700">Active Merchants</span>
+                                </div>
+                                <span className="text-[11px] font-black text-indigo-600">{usersData?.filter(u => u.role === 'merchant' || u.role === 'admin').length || 0}</span>
                             </div>
-                            <span className="bg-rose-100 text-rose-600 px-2 py-0.5 rounded-md text-[10px] font-black">2</span>
-                        </button>
-                        <button className="w-full flex items-center justify-between p-3 bg-slate-50/50 rounded-xl hover:bg-slate-50 transition-colors group">
-                            <div className="flex items-center gap-3">
-                                <FiMessageSquare className="text-emerald-500" />
-                                <span className="text-[11px] font-extrabold text-slate-700 tracking-wide uppercase">System Feedbacks</span>
+                            <div className="flex items-center justify-between p-3 bg-slate-50/50 rounded-xl">
+                                <div className="flex items-center gap-2">
+                                    <FiShoppingBag className="text-emerald-500" size={14} />
+                                    <span className="text-[11px] font-bold text-slate-700">Total Stores</span>
+                                </div>
+                                <span className="text-[11px] font-black text-emerald-600">{storesData?.length || 0}</span>
                             </div>
-                            <span className="bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-md text-[10px] font-black">7</span>
-                        </button>
+                            <div className="flex items-center justify-between p-3 bg-slate-50/50 rounded-xl">
+                                <div className="flex items-center gap-2">
+                                    <FiUsers className="text-rose-500" size={14} />
+                                    <span className="text-[11px] font-bold text-slate-700">Total Users</span>
+                                </div>
+                                <span className="text-[11px] font-black text-rose-600">{usersData?.length || 0}</span>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Contact Snippet Card */}
@@ -192,109 +248,178 @@ export default function AdminSettings() {
                         <SidebarItem icon={<FiMail className="text-indigo-400" />} label={adminData?.email} />
                         <SidebarItem icon={<FiMapPin className="text-rose-400" />} label={adminData?.address || "Location not set"} />
                         <SidebarItem icon={<FiPhone className="text-emerald-400" />} label={adminData?.number} />
-                        <SidebarItem icon={<FiShield className="text-amber-400" />} label="Security clearance: Lvl 4" />
+                        <SidebarItem icon={<FiShield className="text-amber-400" />} label="Security clearance: Lvl 5" />
                     </div>
                 </div>
 
                 {/* Right Main Content area */}
                 <div className="lg:col-span-8 space-y-6">
-                    {/* Profile Details Form */}
-                    <div className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-sm">
-                        <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-50">
-                            <h3 className="text-base font-black text-slate-900 tracking-tight uppercase">Identity Configuration</h3>
-                            <div className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Global Profile</div>
-                        </div>
+                    {activeTab === 'profile' && (
+                        <>
+                            {/* Profile Details Form */}
+                            <div className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-sm">
+                                <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-50">
+                                    <h3 className="text-base font-black text-slate-900 tracking-tight uppercase">Identity Configuration</h3>
+                                    <div className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Super Admin Profile</div>
+                                </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <InputField
-                                    label="Administrative Name"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={handleInputChange}
-                                    placeholder="Enter full name"
-                                />
-                                <InputField
-                                    label="Account Email"
-                                    name="email"
-                                    value={formData.email}
-                                    disabled={true} // Email usually read-only
-                                    placeholder="admin@system.com"
-                                />
-                                <InputField
-                                    label="Phone Number"
-                                    name="number"
-                                    value={formData.number}
-                                    onChange={handleInputChange}
-                                    placeholder="+1 234 567 890"
-                                />
-                                <InputField
-                                    label="Administrative Sector"
-                                    name="businessType"
-                                    value={formData.businessType}
-                                    onChange={handleInputChange}
-                                    placeholder="e.g. Retail, Management"
-                                />
+                                <form onSubmit={handleSubmit} className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <InputField
+                                            label="Administrative Name"
+                                            name="name"
+                                            value={formData.name}
+                                            onChange={handleInputChange}
+                                            placeholder="Enter full name"
+                                        />
+                                        <InputField
+                                            label="Account Email"
+                                            name="email"
+                                            value={formData.email}
+                                            disabled={true}
+                                            placeholder="admin@system.com"
+                                        />
+                                        <InputField
+                                            label="Phone Number"
+                                            name="number"
+                                            value={formData.number}
+                                            onChange={handleInputChange}
+                                            placeholder="+1 234 567 890"
+                                        />
+                                        <InputField
+                                            label="Administrative Sector"
+                                            name="businessType"
+                                            value={formData.businessType}
+                                            onChange={handleInputChange}
+                                            placeholder="e.g. Platform Management"
+                                        />
+                                    </div>
+
+                                    <InputField
+                                        label="Global Address Path"
+                                        name="address"
+                                        value={formData.address}
+                                        onChange={handleInputChange}
+                                        placeholder="Enter full address details"
+                                    />
+
+                                    <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                        <button type="button" className="text-indigo-600 text-[10px] font-black uppercase tracking-widest hover:underline flex items-center gap-2">
+                                            <FiShield /> Reset Administrative Password
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={updateProfileMutation.isPending}
+                                            className="px-8 py-3 bg-emerald-500 text-white rounded-xl text-[11px] font-black uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition-all flex items-center gap-2"
+                                        >
+                                            {updateProfileMutation.isPending ? "Updating..." : "Synchronize Information"}
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
+                        </>
+                    )}
 
-                            <InputField
-                                label="Global Address Path"
-                                name="address"
-                                value={formData.address}
-                                onChange={handleInputChange}
-                                placeholder="Enter full address details"
-                            />
+                    {activeTab === 'system' && (
+                        <>
+                            {/* System Settings */}
+                            <div className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-sm">
+                                <div className="mb-8">
+                                    <h3 className="text-base font-black text-slate-900 tracking-tight uppercase">System Configuration</h3>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Platform-wide settings</p>
+                                </div>
 
-                            <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                                <button type="button" className="text-indigo-600 text-[10px] font-black uppercase tracking-widest hover:underline flex items-center gap-2">
-                                    <FiShield /> Reset Administrative Password
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={updateProfileMutation.isPending}
-                                    className="px-8 py-3 bg-emerald-500 text-white rounded-xl text-[11px] font-black uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition-all flex items-center gap-2"
-                                >
-                                    {updateProfileMutation.isPending ? "Updating..." : "Synchronize Information"}
-                                </button>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <ToolItem
+                                        icon={<FiDatabase className="text-indigo-600" />}
+                                        label="Database Management"
+                                    />
+                                    <ToolItem
+                                        icon={<FiServer className="text-emerald-500" />}
+                                        label="Server Status"
+                                    />
+                                    <ToolItem
+                                        icon={<FiGlobe className="text-blue-500" />}
+                                        label="Domain Settings"
+                                    />
+                                    <ToolItem
+                                        icon={<FiBuilding className="text-rose-500" />}
+                                        label="Merchant Limits"
+                                    />
+                                    <ToolItem
+                                        icon={<FiCreditCard className="text-amber-500" />}
+                                        label="Payment Gateway"
+                                    />
+                                    <ToolItem
+                                        icon={<FiLayout className="text-slate-500" />}
+                                        label="Appearance"
+                                    />
+                                </div>
                             </div>
-                        </form>
-                    </div>
+                        </>
+                    )}
 
-                    {/* Admin Panel Tools */}
-                    <div className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-sm">
-                        <div className="mb-8">
-                            <h3 className="text-base font-black text-slate-900 tracking-tight uppercase">Administrative Toolbox</h3>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Core system controls</p>
-                        </div>
+                    {activeTab === 'security' && (
+                        <>
+                            {/* Security Settings */}
+                            <div className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-sm">
+                                <div className="mb-8">
+                                    <h3 className="text-base font-black text-slate-900 tracking-tight uppercase">Security Configuration</h3>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Platform security settings</p>
+                                </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <ToolItem
-                                icon={<FiUsers className="text-indigo-600" />}
-                                label="Connected Users"
-                                count={usersData?.length || 0}
-                            />
-                            <ToolItem
-                                icon={<FiCreditCard className="text-emerald-500" />}
-                                label="Payment Methods"
-                            />
-                            <ToolItem
-                                icon={<FiLayout className="text-rose-500" />}
-                                label="Appearance Settings"
-                            />
-                            <ToolItem
-                                icon={<FiShield className="text-amber-500" />}
-                                label="Security Audit"
-                            />
-                            <ToolItem
-                                icon={<FiSettings className="text-slate-500" />}
-                                label="Core Config"
-                            />
-                            <ToolItem
-                                icon={<FiEye className="text-indigo-400" />}
-                                label="Global View Mode"
-                            />
-                        </div>
-                    </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <ToolItem
+                                        icon={<FiLock className="text-indigo-600" />}
+                                        label="Password Policy"
+                                    />
+                                    <ToolItem
+                                        icon={<FiShield className="text-emerald-500" />}
+                                        label="Two-Factor Auth"
+                                    />
+                                    <ToolItem
+                                        icon={<FiUsers className="text-rose-500" />}
+                                        label="Access Control"
+                                    />
+                                    <ToolItem
+                                        icon={<FiFileText className="text-amber-500" />}
+                                        label="Audit Logs"
+                                    />
+                                </div>
+                            </div>
+                        </>
+                    )}
+
+                    {activeTab === 'notifications' && (
+                        <>
+                            {/* Notification Settings */}
+                            <div className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-sm">
+                                <div className="mb-8">
+                                    <h3 className="text-base font-black text-slate-900 tracking-tight uppercase">Notification Preferences</h3>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Alert and notification settings</p>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <ToolItem
+                                        icon={<FiBell className="text-indigo-600" />}
+                                        label="Email Notifications"
+                                    />
+                                    <ToolItem
+                                        icon={<FiMessageSquare className="text-emerald-500" />}
+                                        label="SMS Alerts"
+                                    />
+                                    <ToolItem
+                                        icon={<FiBuilding className="text-rose-500" />}
+                                        label="Merchant Updates"
+                                    />
+                                    <ToolItem
+                                        icon={<FiFileText className="text-amber-500" />}
+                                        label="System Reports"
+                                    />
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </div>

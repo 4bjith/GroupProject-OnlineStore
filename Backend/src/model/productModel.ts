@@ -20,6 +20,8 @@ const productSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
   status: { type: String, enum: ['active', 'inactive'], default: 'active' },
   isFinite: { type: Boolean, default: true },
+  averageRating: { type: Number, default: 0 },
+  reviewCount: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

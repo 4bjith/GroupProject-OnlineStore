@@ -5,7 +5,8 @@ import api from "../api/axiosClient";
 import { useQuery } from "@tanstack/react-query";
 import {
     MdDashboard, MdAttachMoney, MdPeople, MdStore, MdWeb, MdShoppingBag,
-    MdCategory, MdShoppingCart, MdSettings, MdLogout, MdMenu, MdNotifications
+    MdCategory, MdShoppingCart, MdSettings, MdLogout, MdMenu, MdNotifications,
+    MdBusiness, MdAccountTree, MdSupervisorAccount
 } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -15,24 +16,30 @@ export default function AdminDashboard() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     const token = authStore(state => state.token);
-    const removeToken = authStore(state => state.removeToken);
+    const logout = authStore(state => state.logout);
 
-    //-----------Navigation items-----------
+    //-----------Navigation items with hierarchy-----------
     const menuItems = [
-        { name: 'Dashboard', url: "", icon: <MdDashboard size={20} /> },
-        { name: 'Users', url: "users", icon: <MdPeople size={20} /> },
-        { name: 'Stores', url: "stores", icon: <MdStore size={20} /> },
-        { name: 'Products', url: "products", icon: <MdShoppingBag size={20} /> },
-        { name: 'Categories', url: "categories", icon: <MdCategory size={20} /> },
-        { name: 'Orders', url: "orders", icon: <MdShoppingCart size={20} /> },
-        { name: 'Earnings', url: "earnings", icon: <MdAttachMoney size={20} /> },
-        { name: 'Templates', url: "templates", icon: <MdWeb size={20} /> },
-        { name: 'Settings', url: "settings", icon: <MdSettings size={20} /> },
+        { name: 'Dashboard', url: "", icon: <MdDashboard size={20} />, section: 'overview' },
+        { name: 'Hierarchy', url: "hierarchy", icon: <MdAccountTree size={20} />, section: 'overview' },
+        { section: 'merchants', label: 'Merchant Management' },
+        { name: 'Merchants', url: "merchants", icon: <MdBusiness size={20} />, section: 'merchants', indent: true },
+        { name: 'Stores', url: "stores", icon: <MdStore size={20} />, section: 'merchants', indent: true },
+        { section: 'inventory', label: 'Inventory Management' },
+        { name: 'Products', url: "products", icon: <MdShoppingBag size={20} />, section: 'inventory', indent: true },
+        { name: 'Categories', url: "categories", icon: <MdCategory size={20} />, section: 'inventory', indent: true },
+        { section: 'operations', label: 'Operations' },
+        { name: 'Orders', url: "orders", icon: <MdShoppingCart size={20} />, section: 'operations', indent: true },
+        { name: 'Earnings', url: "earnings", icon: <MdAttachMoney size={20} />, section: 'operations', indent: true },
+        { section: 'system', label: 'System' },
+        { name: 'Users', url: "users", icon: <MdPeople size={20} />, section: 'system', indent: true },
+        { name: 'Templates', url: "templates", icon: <MdWeb size={20} />, section: 'system', indent: true },
+        { name: 'Settings', url: "settings", icon: <MdSettings size={20} />, section: 'system', indent: true },
     ];
 
     //-----------Function to handle logout-----------
     const handleLogout = () => {
-        removeToken();
+        logout();
         navigate('/');
     };
 
@@ -75,15 +82,32 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
-                {/* Navigation */}
+                {/* Navigation with Hierarchy Sections */}
                 <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
-                    {menuItems.map((item) => {
-                        const isActive = location.pathname === `/admin${item.url ? '/' + item.url : ''}`;
+                    {menuItems.map((item, idx) => {
+                        if (item.section && item.label) {
+                            // Section Header
+                            return (
+                                <div key={idx} className="mt-4 mb-2">
+                                    {isSidebarOpen && (
+                                        <motion.div
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            className="px-3 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest"
+                                        >
+                                            {item.label}
+                                        </motion.div>
+                                    )}
+                                </div>
+                            );
+                        }
+                        
+                        const isActive = location.pathname === `/adm${item.url ? '/' + item.url : ''}`;
                         return (
                             <Link
                                 key={item.name}
                                 to={item.url}
-                                className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all group relative overflow-hidden ${isActive
+                                className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all group relative overflow-hidden ${item.indent ? 'ml-4' : ''} ${isActive
                                         ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/20'
                                         : 'text-slate-400 hover:text-white hover:bg-white/5'
                                     }`}
@@ -130,7 +154,7 @@ export default function AdminDashboard() {
                             <MdMenu size={24} />
                         </button>
                         <h2 className="text-xl font-bold text-slate-800 tracking-tight">
-                            {menuItems.find(m => location.pathname === `/admin${m.url ? '/' + m.url : ''}`)?.name || 'Dashboard'}
+                            {menuItems.find(m => location.pathname === `/adm${m.url ? '/' + m.url : ''}`)?.name || 'Dashboard'}
                         </h2>
                     </div>
 
@@ -145,7 +169,10 @@ export default function AdminDashboard() {
                         <div className="flex items-center gap-3">
                             <div className="text-right hidden md:block">
                                 <div className="text-sm font-bold text-slate-800">{user?.user?.name || "Administrator"}</div>
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Super Admin</div>
+                                <div className="flex items-center gap-2">
+                                    <MdSupervisorAccount size={12} className="text-indigo-600" />
+                                    <div className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Super Admin</div>
+                                </div>
                             </div>
                             <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 text-sm font-bold border-2 border-white">
                                 {user?.user?.name?.charAt(0) || "A"}

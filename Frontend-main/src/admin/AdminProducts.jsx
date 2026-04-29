@@ -3,7 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     FiPackage, FiShoppingBag, FiSearch, FiFilter, FiCheckCircle, FiXCircle,
-    FiAlertCircle, FiDollarSign, FiTag, FiLayers, FiInfo, FiEdit2, FiX, FiSave, FiEye
+    FiAlertCircle, FiDollarSign, FiTag, FiLayers, FiInfo, FiEdit2, FiX, FiSave, FiEye,
+    FiBuilding, FiChevronRight, FiChevronDown, FiGrid, FiBox
 } from "react-icons/fi";
 import api from "../api/axiosClient";
 import authStore from "../AuthStore";
@@ -12,7 +13,10 @@ export default function AdminProducts() {
     const token = authStore(state => state.token);
     const queryClient = useQueryClient();
     const [searchTerm, setSearchTerm] = useState("");
+    const [selectedMerchant, setSelectedMerchant] = useState("all");
     const [selectedStore, setSelectedStore] = useState("all");
+    const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'hierarchy'
+    const [expandedMerchants, setExpandedMerchants] = useState({});
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -22,12 +26,9 @@ export default function AdminProducts() {
     const { data: productResponse, isLoading, error } = useQuery({
         queryKey: ['admin-products'],
         queryFn: async () => {
-            // Passing empty params to get all. Backend modified to allow this.
-            // But wait, the backend modification requires `req.query.storeId` to be absent.
-            // If I pass nothing, it works.
             const res = await api.get("/product", {
                 headers: { Authorization: `Bearer ${token}` },
-                params: { limit: 1000 } // Fetch a good chunk
+                params: { limit: 1000 }
             });
             return res.data;
         },
@@ -35,6 +36,30 @@ export default function AdminProducts() {
     });
 
     const products = productResponse?.data || [];
+
+    // Fetch Users to get merchant information
+    const { data: usersData } = useQuery({
+        queryKey: ['admin-users-products'],
+        queryFn: async () => {
+            const res = await api.get("/user/all", {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            return res.data?.users || [];
+        },
+        enabled: !!token
+    });
+
+    // Fetch Stores for mapping
+    const { data: storesData } = useQuery({
+        queryKey: ['admin-stores-products'],
+        queryFn: async () => {
+            const res = await api.get("/stores", {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            return res.data || [];
+        },
+        enabled: !!token
+    });
 
     // Toggle Status Mutation
     const toggleStatusMutation = useMutation({
@@ -64,6 +89,41 @@ export default function AdminProducts() {
         }
     });
 
+    // Group products by merchant (tenant)
+    const productsByMerchant = useMemo(() => {
+        if (!products.length || !usersData || !storesData) return {};
+        
+        const merchants = usersData.filter(user => user.role === 'merchant' || user.role === 'admin');
+        
+        return merchants.reduce((acc, merchant) => {
+            const merchantStoreIds = storesData
+                .filter(store => store.ownerId === merchant._id || store.ownerId === merchant.id)
+                .map(s => s._id);
+            
+            const merchantProducts = products.filter(product => 
+                merchantStoreIds.includes(product.storeId?._id || product.storeId)
+            );
+            
+            if (merchantProducts.length > 0) {
+                acc[merchant._id || merchant.id] = {
+                    merchant,
+                    products: merchantProducts,
+                    totalValue: merchantProducts.reduce((sum, p) => sum + (p.price * p.stock || 0), 0),
+                    totalStock: merchantProducts.reduce((sum, p) => sum + (p.stock || 0), 0)
+                };
+            }
+            return acc;
+        }, {});
+    }, [products, usersData, storesData]);
+
+    // Derive unique merchants for filtering
+    const merchants = useMemo(() => {
+        if (!usersData) return [];
+        return usersData
+            .filter(user => user.role === 'merchant' || user.role === 'admin')
+            .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    }, [usersData]);
+
     // Derive unique stores
     const stores = useMemo(() => {
         if (!products.length) return [];
@@ -84,9 +144,18 @@ export default function AdminProducts() {
                 (product.category && product.category.toLowerCase().includes(searchTerm.toLowerCase()));
 
             const matchesStore = selectedStore === "all" || storeName === selectedStore;
-            return matchesSearch && matchesStore;
+            const matchesMerchant = selectedMerchant === "all" || 
+                (product.storeId && storesData?.find(s => s.name === storeName)?.ownerId === selectedMerchant);
+            return matchesSearch && matchesStore && matchesMerchant;
         });
-    }, [products, searchTerm, selectedStore]);
+    }, [products, searchTerm, selectedStore, selectedMerchant, storesData]);
+
+    const toggleMerchantExpansion = (merchantId) => {
+        setExpandedMerchants(prev => ({
+            ...prev,
+            [merchantId]: !prev[merchantId]
+        }));
+    };
 
     const handleStatusToggle = (product) => {
         const newStatus = product.status === 'active' ? 'inactive' : 'active';
@@ -150,17 +219,48 @@ export default function AdminProducts() {
                     <div className="space-y-2">
                         <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
                             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                                <FiPackage className="text-white" size={24} />
+                                <FiBox className="text-white" size={24} />
                             </div>
-                            Global <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Inventory</span>
+                            Product <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Management</span>
                         </h1>
-                        <p className="text-[12px] font-bold text-slate-400 uppercase tracking-[0.2em]">Total: {products.length} products across {stores.length} stores</p>
+                        <p className="text-[12px] font-bold text-slate-400 uppercase tracking-[0.2em]">Tenant-wise product operations</p>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">
+                        {/* View Mode Toggle */}
+                        <div className="flex bg-white rounded-xl p-1 gap-1 shadow-sm">
+                            <button
+                                onClick={() => setViewMode('grid')}
+                                className={`px-4 py-2.5 text-[11px] font-bold rounded-lg transition-all ${viewMode === 'grid' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            >
+                                <FiGrid size={12} className="inline mr-1" /> Grid
+                            </button>
+                            <button
+                                onClick={() => setViewMode('hierarchy')}
+                                className={`px-4 py-2.5 text-[11px] font-bold rounded-lg transition-all ${viewMode === 'hierarchy' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            >
+                                <FiBuilding size={12} className="inline mr-1" /> Hierarchy
+                            </button>
+                        </div>
+
+                        {/* Merchant Filter */}
+                        <div className="relative group">
+                            <FiFilter className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[13px]" />
+                            <select
+                                className="pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-[12px] font-bold text-slate-700 outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all appearance-none cursor-pointer shadow-sm"
+                                value={selectedMerchant}
+                                onChange={(e) => setSelectedMerchant(e.target.value)}
+                            >
+                                <option value="all">All Merchants</option>
+                                {merchants.map(merchant => (
+                                    <option key={merchant._id} value={merchant._id}>{merchant.name || 'Unknown Merchant'}</option>
+                                ))}
+                            </select>
+                        </div>
+
                         {/* Store Filter */}
                         <div className="relative group">
-                            <FiFilter className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[13px] group-focus-within:text-indigo-600 transition-colors" />
+                            <FiShoppingBag className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[13px]" />
                             <select
                                 className="pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-[12px] font-bold text-slate-700 outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all appearance-none cursor-pointer shadow-sm"
                                 value={selectedStore}
@@ -188,8 +288,104 @@ export default function AdminProducts() {
                 </div>
             </div>
 
+            {/* Hierarchy View */}
+            {viewMode === 'hierarchy' && (
+                <div className="bg-white rounded-[24px] border border-slate-100 overflow-hidden">
+                    {Object.keys(productsByMerchant).length === 0 ? (
+                        <div className="py-24 text-center bg-slate-50/30 rounded-[40px] border-2 border-dashed border-slate-200">
+                            <FiBox size={32} className="mx-auto mb-4 text-slate-300" />
+                            <h3 className="text-sm font-black text-slate-800">No products found</h3>
+                            <p className="text-[11px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Products will appear grouped by merchant</p>
+                        </div>
+                    ) : (
+                        Object.entries(productsByMerchant).map(([merchantId, data], idx) => (
+                            <div key={merchantId}>
+                                {/* Merchant Header */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: idx * 0.05 }}
+                                    className="p-5 border-b border-slate-100 hover:bg-slate-50/50 transition-colors cursor-pointer"
+                                    onClick={() => toggleMerchantExpansion(merchantId)}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 text-lg font-black shrink-0">
+                                            {data.merchant.name?.charAt(0) || 'M'}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h4 className="text-sm font-black text-slate-800">{data.merchant.name || 'Unknown Merchant'}</h4>
+                                                <div className="px-2 py-0.5 bg-indigo-100 text-indigo-600 rounded-md text-[9px] font-black uppercase tracking-wider">
+                                                    Merchant
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-4 text-[11px] text-slate-500">
+                                                <span className="font-medium">{data.products.length} Products</span>
+                                                <span className="font-medium">{data.totalStock} Total Stock</span>
+                                                <span className="font-bold text-emerald-600">${data.totalValue.toLocaleString()} Value</span>
+                                            </div>
+                                        </div>
+                                        <div className={`p-2 rounded-lg transition-colors ${expandedMerchants[merchantId] ? 'bg-indigo-100 text-indigo-600' : 'text-slate-400'}`}>
+                                            {expandedMerchants[merchantId] ? <FiChevronDown size={18} /> : <FiChevronRight size={18} />}
+                                        </div>
+                                    </div>
+                                </motion.div>
+
+                                {/* Expanded Products */}
+                                <AnimatePresence>
+                                    {expandedMerchants[merchantId] && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            className="bg-slate-50/50 border-b border-slate-100"
+                                        >
+                                            <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                {data.products.map((product) => (
+                                                    <div
+                                                        key={product._id}
+                                                        className="bg-white p-4 rounded-xl border border-slate-200 hover:border-indigo-200 hover:shadow-lg transition-all cursor-pointer"
+                                                        onClick={() => openDetails(product)}
+                                                    >
+                                                        <div className="flex items-center gap-3 mb-3">
+                                                            <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden shrink-0">
+                                                                {product.images?.[0] ? (
+                                                                    <img src={product.images[0].startsWith('http') ? product.images[0] : `http://localhost:4000${product.images[0]}`} className="w-full h-full object-cover" alt="" />
+                                                                ) : (
+                                                                    <FiPackage className="text-slate-400" size={18} />
+                                                                )}
+                                                            </div>
+                                                            <div className="min-w-0 flex-1">
+                                                                <h5 className="text-sm font-black text-slate-800 truncate">{product.title}</h5>
+                                                                <p className="text-[10px] text-slate-400">{product.storeId?.name}</p>
+                                                            </div>
+                                                            <div className="px-2 py-1 bg-indigo-600 text-white rounded-lg text-[10px] font-black">
+                                                                ${product.price}
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className={`w-2 h-2 rounded-full ${product.stock > 0 ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                                                                <span className="text-[10px] font-bold text-slate-600">{product.stock} stock</span>
+                                                            </div>
+                                                            <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase ${product.status === 'active' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                                                                {product.status}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        ))
+                    )}
+                </div>
+            )}
+
             {/* Empty State */}
-            {filteredProducts.length === 0 && (
+            {filteredProducts.length === 0 && viewMode === 'grid' && (
                 <div className="col-span-full py-24 text-center bg-gradient-to-br from-slate-50 to-indigo-50/30 rounded-[40px] border-2 border-dashed border-slate-200">
                     <FiPackage size={48} className="mx-auto mb-4 text-slate-300" />
                     <h3 className="text-lg font-black text-slate-800">No products found</h3>
@@ -197,86 +393,88 @@ export default function AdminProducts() {
                 </div>
             )}
 
-            {/* Products Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredProducts.map((product, idx) => (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.05 }}
-                        whileHover={{ scale: 1.03, y: -6 }}
-                        key={product._id}
-                        className="bg-white border border-slate-100 rounded-[28px] p-5 group hover:shadow-2xl hover:shadow-indigo-500/15 hover:border-indigo-300 transition-all relative overflow-hidden flex flex-col cursor-pointer"
-                        onClick={() => openDetails(product)}
-                    >
-                        {/* Status Toggle */}
-                        <div className="absolute top-4 right-4 z-50" onClick={(e) => e.stopPropagation()}>
-                            <button
-                                onClick={() => handleStatusToggle(product)}
-                                className={`w-11 h-6 rounded-full p-0.5 flex items-center transition-all shadow-lg border border-white/20 backdrop-blur-sm ${product.status === 'active' ? 'bg-emerald-500' : 'bg-slate-900/40'
-                                    }`}
-                                title={product.status === 'active' ? "Deactivate Product" : "Activate Product"}
-                            >
-                                <motion.div
-                                    layout
-                                    transition={{ type: "spring", stiffness: 700, damping: 30 }}
-                                    className={`w-5 h-5 bg-white rounded-full shadow-md ${product.status === 'active' ? 'ml-auto' : ''
+            {/* Grid View */}
+            {viewMode === 'grid' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {filteredProducts.map((product, idx) => (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.05 }}
+                            whileHover={{ scale: 1.03, y: -6 }}
+                            key={product._id}
+                            className="bg-white border border-slate-100 rounded-[28px] p-5 group hover:shadow-2xl hover:shadow-indigo-500/15 hover:border-indigo-300 transition-all relative overflow-hidden flex flex-col cursor-pointer"
+                            onClick={() => openDetails(product)}
+                        >
+                            {/* Status Toggle */}
+                            <div className="absolute top-4 right-4 z-50" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                    onClick={() => handleStatusToggle(product)}
+                                    className={`w-11 h-6 rounded-full p-0.5 flex items-center transition-all shadow-lg border border-white/20 backdrop-blur-sm ${product.status === 'active' ? 'bg-emerald-500' : 'bg-slate-900/40'
                                         }`}
-                                />
-                            </button>
-                        </div>
+                                    title={product.status === 'active' ? "Deactivate Product" : "Activate Product"}
+                                >
+                                    <motion.div
+                                        layout
+                                        transition={{ type: "spring", stiffness: 700, damping: 30 }}
+                                        className={`w-5 h-5 bg-white rounded-full shadow-md ${product.status === 'active' ? 'ml-auto' : ''
+                                            }`}
+                                    />
+                                </button>
+                            </div>
 
-                        {/* Product Image */}
-                        <div className="aspect-square rounded-2xl bg-gradient-to-br from-slate-50 to-indigo-50/30 relative overflow-hidden mb-4 border border-slate-100 group-hover:border-indigo-200 transition-all">
-                            {product.images && product.images.length > 0 ? (
-                                <img
-                                    src={product.images[0].startsWith('http') ? product.images[0] : product.images[0].startsWith('/uploads') ? `http://localhost:4000${product.images[0]}` : product.images[0]}
-                                    alt={product.title}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                    <FiPackage size={32} />
+                            {/* Product Image */}
+                            <div className="aspect-square rounded-2xl bg-gradient-to-br from-slate-50 to-indigo-50/30 relative overflow-hidden mb-4 border border-slate-100 group-hover:border-indigo-200 transition-all">
+                                {product.images && product.images.length > 0 ? (
+                                    <img
+                                        src={product.images[0].startsWith('http') ? product.images[0] : product.images[0].startsWith('/uploads') ? `http://localhost:4000${product.images[0]}` : product.images[0]}
+                                        alt={product.title}
+                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                        <FiPackage size={32} />
+                                    </div>
+                                )}
+                                {/* Price Badge */}
+                                <div className="absolute bottom-3 left-3 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 backdrop-blur-md rounded-xl text-[12px] font-black text-white shadow-xl shadow-indigo-500/30">
+                                    ${product.price}
                                 </div>
-                            )}
-                            {/* Price Badge */}
-                            <div className="absolute bottom-3 left-3 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 backdrop-blur-md rounded-xl text-[12px] font-black text-white shadow-xl shadow-indigo-500/30">
-                                ${product.price}
-                            </div>
-                            {/* Category Badge */}
-                            <div className="absolute top-3 left-3 px-3 py-1 bg-white/90 backdrop-blur-md rounded-lg text-[10px] font-black text-indigo-600 border border-indigo-100 shadow-sm">
-                                {product.category}
-                            </div>
-                        </div>
-
-                        {/* Product Info */}
-                        <div className="space-y-3 flex-1 flex flex-col">
-                            <div>
-                                <h3 className="text-[15px] font-black text-slate-800 leading-tight mb-2 truncate group-hover:text-indigo-600 transition-colors" title={product.title}>{product.title}</h3>
-                                <div className="flex items-center gap-2 text-slate-400">
-                                    <FiShoppingBag size={12} className="text-indigo-500" />
-                                    <span className="text-[12px] font-bold truncate">{product.storeId?.name || "Unknown Store"}</span>
+                                {/* Category Badge */}
+                                <div className="absolute top-3 left-3 px-3 py-1 bg-white/90 backdrop-blur-md rounded-lg text-[10px] font-black text-indigo-600 border border-indigo-100 shadow-sm">
+                                    {product.category}
                                 </div>
                             </div>
 
-                            {/* Stock Indicator */}
-                            <div className="flex items-center gap-2">
-                                <div className={`w-2 h-2 rounded-full ${product.stock > 0 ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                                <span className="text-[11px] font-bold text-slate-500">
-                                    {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
-                                </span>
-                            </div>
+                            {/* Product Info */}
+                            <div className="space-y-3 flex-1 flex flex-col">
+                                <div>
+                                    <h3 className="text-[15px] font-black text-slate-800 leading-tight mb-2 truncate group-hover:text-indigo-600 transition-colors" title={product.title}>{product.title}</h3>
+                                    <div className="flex items-center gap-2 text-slate-400">
+                                        <FiShoppingBag size={12} className="text-indigo-500" />
+                                        <span className="text-[12px] font-bold truncate">{product.storeId?.name || "Unknown Store"}</span>
+                                    </div>
+                                </div>
 
-                            <button
-                                onClick={(e) => { e.stopPropagation(); openDetails(product); }}
-                                className="mt-auto w-full py-3 bg-gradient-to-r from-slate-50 to-indigo-50 group-hover:from-indigo-600 group-hover:to-purple-600 group-hover:text-white rounded-xl text-[11px] font-black flex items-center justify-center gap-2 transition-all uppercase tracking-widest shadow-sm hover:shadow-lg border border-slate-200 group-hover:border-transparent"
-                            >
-                                <FiInfo size={14} /> View Details
-                            </button>
-                        </div>
-                    </motion.div>
-                ))}
-            </div>
+                                {/* Stock Indicator */}
+                                <div className="flex items-center gap-2">
+                                    <div className={`w-2 h-2 rounded-full ${product.stock > 0 ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                                    <span className="text-[11px] font-bold text-slate-500">
+                                        {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+                                    </span>
+                                </div>
+
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); openDetails(product); }}
+                                    className="mt-auto w-full py-3 bg-gradient-to-r from-slate-50 to-indigo-50 group-hover:from-indigo-600 group-hover:to-purple-600 group-hover:text-white rounded-xl text-[11px] font-black flex items-center justify-center gap-2 transition-all uppercase tracking-widest shadow-sm hover:shadow-lg border border-slate-200 group-hover:border-transparent"
+                                >
+                                    <FiInfo size={14} /> View Details
+                                </button>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            )}
 
             {/* Details Modal */}
             <AnimatePresence>

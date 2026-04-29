@@ -4,6 +4,7 @@ import { FaArrowLeft, FaStore } from "react-icons/fa";
 import { useLocation } from "react-router-dom";
 import api from "../api/axiosClient";
 import { toast } from "react-toastify";
+import authStore from "../AuthStore";
 
 export default function EditStore() {
   const [form, setForm] = useState({
@@ -11,6 +12,7 @@ export default function EditStore() {
     ownerId: "",
     currency: "USD",
     templateId: "",
+    templateSlug: "template-001",
     commissionRate: "",
     domain: "",
     isPublished: false,
@@ -25,15 +27,18 @@ export default function EditStore() {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const storeId = queryParams.get("id");
+  const token = authStore(state => state.token);
 
   // 🔵 Fetch Store
   const { data, isLoading } = useQuery({
     queryKey: ["store", storeId],
     queryFn: async () => {
-      const res = await api.get(`/stores/${storeId}`);
+      const res = await api.get(`/stores/${storeId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       return res.data;
     },
-    enabled: !!storeId,
+    enabled: !!storeId && !!token,
   });
 
   // 🔵 Populate Form
@@ -44,6 +49,7 @@ export default function EditStore() {
         ownerId: data.ownerId || "",
         currency: data.currency || "USD",
         templateId: data.templateId || "",
+        templateSlug: data.templateSlug || "template-001",
         commissionRate: data.commissionRate || "",
         domain: data.domain || "",
         isPublished: data.isPublished || false,
@@ -86,6 +92,7 @@ export default function EditStore() {
       formData.append("ownerId", form.ownerId);
       formData.append("currency", form.currency);
       formData.append("templateId", form.templateId);
+      formData.append("templateSlug", form.templateSlug);
       formData.append("commissionRate", Number(form.commissionRate));
       formData.append("domain", form.domain);
       formData.append("isPublished", form.isPublished);
@@ -101,7 +108,10 @@ export default function EditStore() {
       }
 
       await api.put(`/stores/${storeId}`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: { 
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`
+        },
       });
 
       toast.success("Store updated successfully");
@@ -295,7 +305,28 @@ export default function EditStore() {
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Template ID
+                Template Design
+              </label>
+              <select
+                value={form.templateSlug}
+                onChange={(e) => handleChange("templateSlug", e.target.value)}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none cursor-pointer"
+              >
+                <option value="template-001">Template 001 - Modern Design</option>
+                <option value="template-002">Template 002 - Minimalist Clean</option>
+                <option value="template-003">Template 003 - Bold Colorful</option>
+                <option value="template-004">Template 004 - Classic Elegant</option>
+                <option value="template-005">Template 005 - Tech/Startup</option>
+                <option value="template-006">Template 006 - Luxury Premium</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-2">
+                Choose a template design for your store frontend
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Template ID (Advanced)
               </label>
               <input
                 type="text"
@@ -304,6 +335,9 @@ export default function EditStore() {
                 placeholder="e.g. template_001"
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
               />
+              <p className="text-xs text-gray-500 mt-2">
+                For custom API-based templates (optional)
+              </p>
             </div>
 
             <div>

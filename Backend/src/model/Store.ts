@@ -31,7 +31,21 @@ const StoreSchema = new mongoose.Schema({
     templateId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Template',
-        required: true,
+        required: false,
+    },
+    templateSlug: {
+        type: String,
+        default: 'template-001',
+        enum: ['template-001', 'template-002', 'template-003', 'template-004', 'template-005', 'template-006'],
+    },
+    customTemplateId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Template',
+        default: null,
+    },
+    templateVersion: {
+        type: Number,
+        default: 1,
     },
     commissionRate: {
         type: Number,
@@ -46,6 +60,10 @@ const StoreSchema = new mongoose.Schema({
         enum: ['active', 'inactive'],
         default: 'active'
     },
+    themeSettings: {
+        type: mongoose.Schema.Types.Mixed,
+        default: null,
+    },
     createdAt: {
         type: Date,
         default: Date.now,
@@ -55,6 +73,10 @@ const StoreSchema = new mongoose.Schema({
         default: Date.now,
     },
 }, { timestamps: true });
+
+// Index for performance
+StoreSchema.index({ customTemplateId: 1 });
+StoreSchema.index({ templateId: 1 });
 
 const Store = mongoose.model('Store', StoreSchema);
 

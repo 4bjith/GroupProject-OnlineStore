@@ -111,8 +111,7 @@ export default function ViewStore() {
             {stores.map((store) => (
               <div
                 key={store._id}
-                onClick={() => handleStoreClick(store)}
-                className="group bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer flex flex-col h-full"
+                className="group bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-md transition-all flex flex-col h-full"
               >
                 <div className="relative w-full aspect-video bg-gray-50 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
                   {store.logo ? (
@@ -136,6 +135,15 @@ export default function ViewStore() {
                   <h3 className="font-medium text-gray-900 text-sm mb-1 line-clamp-1">
                     {store.name}
                   </h3>
+                  <a
+                    href={store.domain ? `https://${store.domain}` : `http://localhost:3000/${store.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-xs text-blue-600 hover:underline mb-2"
+                  >
+                    {store.domain ? store.domain : `/${store.slug}`}
+                  </a>
                   <p className="text-xs text-gray-500 mb-3 line-clamp-2">
                     {store.description || "No description provided."}
                   </p>
@@ -144,13 +152,21 @@ export default function ViewStore() {
                     <span className="text-xs font-medium text-gray-500">
                       {store.currency}
                     </span>
-                    <div
-                      className={`text-xs font-medium px-2 py-1 rounded ${store.status === "active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-yellow-100 text-yellow-700"
-                        }`}
-                    >
-                      {store.status === "active" ? "Published" : "Draft"}
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`text-xs font-medium px-2 py-1 rounded ${store.status === "active"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-yellow-100 text-yellow-700"
+                          }`}
+                      >
+                        {store.status === "active" ? "Published" : "Draft"}
+                      </div>
+                      <button
+                        onClick={() => navigate(`/dashboard/stores/edit?id=${store._id}`)}
+                        className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                      >
+                        <FaEdit size={14} />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -234,12 +250,12 @@ export default function ViewStore() {
                   <div>
                     <label className="block text-xs font-medium text-gray-500 mb-1">Domain</label>
                     <a
-                      href={window.location.origin + "/" + selectedStore.slug}
+                      href={selectedStore.domain ? `https://${selectedStore.domain}` : `http://localhost:3000/${selectedStore.slug}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm text-blue-600 hover:underline block truncate"
                     >
-                      {window.location.origin + "/" + selectedStore.slug}
+                      {selectedStore.domain ? selectedStore.domain : `http://localhost:3000/${selectedStore.slug}`}
                     </a>
                   </div>
 
