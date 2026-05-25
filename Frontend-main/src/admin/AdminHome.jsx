@@ -123,23 +123,24 @@ export default function AdminHome() {
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.1 }}
+                        transition={{ delay: idx * 0.08 }}
+                        whileHover={{ scale: 1.02, y: -4 }}
                         key={stat.label}
-                        className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all group"
+                        className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all group cursor-pointer"
                     >
                         <div className="flex items-start justify-between mb-4">
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg ${stat.color} shadow-indigo-500/20`}>
+                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg ${stat.color} shadow-indigo-500/20 group-hover:scale-110 transition-transform`}>
                                 {stat.icon}
                             </div>
-                            {/* Placeholder Trend - In real app, calculate diff from previous period */}
-                            <div className={`flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-full ${stat.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                            {/* Trend Indicator */}
+                            <div className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full ${stat.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
                                 {stat.isPositive ? <FiArrowUp /> : <FiArrowDown />}
                                 {stat.change}
                             </div>
                         </div>
                         <div>
-                            <div className="text-[13px] font-bold text-slate-400 mb-1">{stat.label}</div>
-                            <div className="text-3xl font-black text-slate-800 tracking-tight">{stat.value}</div>
+                            <div className="text-[13px] font-bold text-slate-400 mb-1 uppercase tracking-wide">{stat.label}</div>
+                            <div className="text-3xl font-black text-slate-800 tracking-tight group-hover:text-indigo-600 transition-colors">{stat.value}</div>
                         </div>
                     </motion.div>
                 ))}
@@ -212,38 +213,68 @@ export default function AdminHome() {
                     </div>
                 </div>
 
-                {/* Right Column / Recent Activity Placeholder */}
-                <div className="bg-indigo-900 p-8 rounded-[32px] text-white overflow-hidden relative">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600 rounded-full blur-[80px] opacity-50 -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                {/* Right Column / Quick Actions */}
+                <div className="bg-gradient-to-br from-indigo-900 via-indigo-800 to-purple-900 p-8 rounded-[32px] text-white overflow-hidden relative shadow-2xl shadow-indigo-500/20">
+                    <div className="absolute top-0 right-0 w-72 h-72 bg-indigo-500 rounded-full blur-[100px] opacity-40 -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500 rounded-full blur-[80px] opacity-30 translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
 
-                    <h3 className="text-xl font-bold mb-6 relative z-10">Quick Actions</h3>
+                    <h3 className="text-xl font-bold mb-6 relative z-10 flex items-center gap-2">
+                        <FiActivity className="text-indigo-300" />
+                        Quick Actions
+                    </h3>
 
-                    <div className="space-y-4 relative z-10">
-                        <button className="w-full py-4 px-6 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-between transition-all group border border-white/5">
-                            <span className="font-bold text-sm">Create New Template</span>
-                            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <FiShoppingBag size={14} />
+                    <div className="space-y-3 relative z-10">
+                        <button className="w-full py-3.5 px-5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-between transition-all group border border-white/10 hover:border-white/20">
+                            <span className="font-bold text-sm flex items-center gap-2">
+                                <FiShoppingBag size={14} className="text-indigo-300" />
+                                Create Template
+                            </span>
+                            <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 group-hover:bg-white/30 transition-all">
+                                <FiArrowUp size={12} className="rotate-45" />
                             </div>
                         </button>
-                        <button className="w-full py-4 px-6 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-between transition-all group border border-white/5">
-                            <span className="font-bold text-sm">Review Pending Stores</span>
-                            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <FiActivity size={14} />
+                        <button className="w-full py-3.5 px-5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-between transition-all group border border-white/10 hover:border-white/20">
+                            <span className="font-bold text-sm flex items-center gap-2">
+                                <FiActivity size={14} className="text-indigo-300" />
+                                Review Stores
+                            </span>
+                            <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 group-hover:bg-white/30 transition-all">
+                                <FiArrowUp size={12} className="rotate-45" />
                             </div>
                         </button>
-                        <button className="w-full py-4 px-6 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-between transition-all group border border-white/5">
-                            <span className="font-bold text-sm">Manage Users</span>
-                            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <FiUsers size={14} />
+                        <button className="w-full py-3.5 px-5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-between transition-all group border border-white/10 hover:border-white/20">
+                            <span className="font-bold text-sm flex items-center gap-2">
+                                <FiUsers size={14} className="text-indigo-300" />
+                                Manage Users
+                            </span>
+                            <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 group-hover:bg-white/30 transition-all">
+                                <FiArrowUp size={12} className="rotate-45" />
+                            </div>
+                        </button>
+                        <button className="w-full py-3.5 px-5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-between transition-all group border border-white/10 hover:border-white/20">
+                            <span className="font-bold text-sm flex items-center gap-2">
+                                <FiDollarSign size={14} className="text-indigo-300" />
+                                View Earnings
+                            </span>
+                            <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 group-hover:bg-white/30 transition-all">
+                                <FiArrowUp size={12} className="rotate-45" />
                             </div>
                         </button>
                     </div>
 
-                    <div className="mt-8 pt-8 border-t border-white/10 relative z-10">
-                        <div className="text-indigo-200 text-xs font-bold uppercase tracking-widest mb-2">System Status</div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
-                            <span className="font-bold text-sm">All Services Online</span>
+                    <div className="mt-6 pt-6 border-t border-white/10 relative z-10">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <div className="text-indigo-200 text-[10px] font-bold uppercase tracking-widest mb-1">System Status</div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-lg shadow-emerald-400/50"></div>
+                                    <span className="font-bold text-sm">All Systems Operational</span>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-indigo-200 text-[10px] font-bold uppercase tracking-widest mb-1">Uptime</div>
+                                <div className="font-bold text-sm">99.9%</div>
+                            </div>
                         </div>
                     </div>
                 </div>

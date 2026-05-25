@@ -120,7 +120,7 @@ function Profile() {
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row items-center gap-6">
                 <div className="relative">
                     <img
-                        src={previewUrl || (formData.profilepic ? `http://localhost:3000${formData.profilepic}` : "https://via.placeholder.com/150")}
+                        src={previewUrl || (formData.profilepic ? (formData.profilepic.startsWith('/uploads') ? `http://localhost:4000${formData.profilepic}` : formData.profilepic) : "https://via.placeholder.com/150")}
                         alt="Profile"
                         className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
                     />

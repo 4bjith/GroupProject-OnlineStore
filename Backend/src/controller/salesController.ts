@@ -3,6 +3,7 @@ import { Order } from "../model/orderModel.js";
 import mongoose from "mongoose";
 import Store from "../model/Store.js";
 import Product from "../model/productModel.js";
+import UserModel from "../model/User.js";
 
 const getStartDate = (period: string): Date => {
     const now = new Date();
@@ -429,12 +430,12 @@ export const salesChartController = async (req: express.Request, res: express.Re
                 dataMap.set(item._id, item.totalSales);
             });
 
-            const dates = [];
+            const dates: string[] = [];
             const currentDate = new Date(startDate);
             const endDate = new Date();
 
             while (currentDate <= endDate) {
-                dates.push(currentDate.toISOString().split('T')[0]);
+                dates.push(currentDate.toISOString().split('T')[0] as string);
                 currentDate.setDate(currentDate.getDate() + 1);
             }
 
@@ -450,6 +451,49 @@ export const salesChartController = async (req: express.Request, res: express.Re
         }
 
         res.status(200).json({ chartData });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+}
+
+export const platformStatsController = async (req: express.Request, res: express.Response) => {
+    try {
+        // Total Users
+        const totalUsers = await UserModel.countDocuments({ role: 'merchant' }); // Fixed 'merchat' typo
+        const totalAdmins = await UserModel.countDocuments({ role: 'admin' });
+        
+        // Total Stores
+        const totalStores = await Store.countDocuments({});
+        
+        // Total Products
+        const totalProducts = await Product.countDocuments({});
+        
+        // Total Sales & Total Orders
+        const salesStats = await Order.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    totalRevenue: { $sum: "$totalAmount" },
+                    totalOrders: { $sum: 1 }
+                }
+            }
+        ]);
+
+        const totalRevenue = salesStats[0]?.totalRevenue || 0;
+        const totalOrders = salesStats[0]?.totalOrders || 0;
+
+        res.status(200).json({
+            stats: {
+                totalUsers: totalUsers + totalAdmins,
+                totalMerchants: totalUsers,
+                totalStores,
+                totalProducts,
+                totalOrders,
+                totalRevenue
+            }
+        });
 
     } catch (error) {
         console.log(error);

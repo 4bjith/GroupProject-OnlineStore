@@ -86,7 +86,7 @@ const Home = () => {
                             className="shrink-0 w-64 snap-start group relative h-80 rounded-2xl overflow-hidden cursor-pointer"
                         >
                             <img
-                                src={cat.catimage?.startsWith('http') ? cat.catimage : `${BASE_URL}/${cat.catimage}` || 'https://placehold.co/400x400'}
+                                src={cat.catimage?.startsWith('http') || cat.catimage?.startsWith('https') ? cat.catimage : cat.catimage?.startsWith('/uploads') ? `http://localhost:4000${cat.catimage}` : cat.catimage || 'https://placehold.co/400x400'}
                                 alt={cat.name || cat.catname}
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                             />

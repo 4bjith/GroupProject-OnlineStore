@@ -1,6 +1,6 @@
 import express from "express";
 import { allOrders, createOrder, deleteOrder, getCustomersOrder, getStoreOrders, updateOrderStatus } from "../controller/orderController.js";
-import { monthlySalesController, ownerSalesAnalysisController, topSellingProductsController, dashboardStatsController, salesChartController } from "../controller/salesController.js";
+import { monthlySalesController, ownerSalesAnalysisController, topSellingProductsController, dashboardStatsController, salesChartController, platformStatsController } from "../controller/salesController.js";
 
 const orderRouter = express.Router();
 
@@ -15,6 +15,7 @@ orderRouter.get("/sales", ownerSalesAnalysisController)
 orderRouter.get("/sales/monthly", monthlySalesController)
 orderRouter.get("/sales/top-products", topSellingProductsController)
 orderRouter.get("/dashboard/stats", dashboardStatsController)
+orderRouter.get("/platform/stats", platformStatsController)
 orderRouter.get("/sales/chart", salesChartController)
 
 export default orderRouter;

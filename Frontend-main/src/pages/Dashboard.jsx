@@ -25,12 +25,12 @@ function Dashboard() {
 
     const menuItems = [
         { name: 'Dashboard', icon: <MdDashboard size={20} /> },
-        { name: 'Orders', url: "orders", icon: <MdShoppingCart size={20} /> },
         { name: 'Products', url: "products", icon: <MdInventory size={20} /> },
         { name: 'Categories', url: "categories", icon: <MdCategory size={20} /> },
+        { name: 'Orders', url: "orders", icon: <MdShoppingCart size={20} /> },
         { name: 'Sales', url: "sales", icon: <MdAttachMoney size={20} /> },
-        { name: 'Offers', url: "offers", icon: <MdLocalOffer size={20} /> },
         { name: 'Online stores', url: "stores", icon: <MdStore size={20} /> },
+        { name: 'Offers', url: "offers", icon: <MdLocalOffer size={20} /> },
     ];
 
     return (

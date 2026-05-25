@@ -29,12 +29,13 @@ export default function AdminUsers() {
     });
 
     if (isLoading) return (
-        <div className="flex items-center justify-center min-h-[300px]">
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
             <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="h-5 w-5 border-2 border-indigo-600 border-t-transparent rounded-full"
+                className="h-8 w-8 border-3 border-indigo-600 border-t-transparent rounded-full"
             />
+            <p className="text-sm font-bold text-slate-400">Loading users...</p>
         </div>
     );
 
@@ -78,7 +79,7 @@ export default function AdminUsers() {
     const RoleBadge = ({ role }) => {
         const colors = {
             "admin": "bg-indigo-50 text-indigo-600 border-indigo-100",
-            "Merchant": "bg-violet-50 text-violet-600 border-violet-100",
+            "merchant": "bg-violet-50 text-violet-600 border-violet-100",
             "customer": "bg-slate-50 text-slate-600 border-slate-100"
         };
         return (
@@ -97,62 +98,63 @@ export default function AdminUsers() {
     };
 
     return (
-        <div className="max-w-4xl mx-auto px-3 py-6 space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-                <div className="space-y-0.5">
-                    <h1 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
-                        Users <span className="text-indigo-600 opacity-80">Directory</span>
+        <div className="max-w-6xl mx-auto px-4 py-8 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                        Users <span className="text-indigo-600">Directory</span>
                     </h1>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total: {users.length}</p>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">Total: {users.length} users</p>
                 </div>
 
-                <div className="relative group min-w-[200px] sm:min-w-[240px]">
-                    <FiSearch size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                <div className="relative group min-w-[240px] sm:min-w-[280px]">
+                    <FiSearch size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                     <input
                         type="text"
-                        placeholder="Quick search..."
-                        className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-xl text-[11px] focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-bold placeholder:text-slate-300"
+                        placeholder="Search by name or email..."
+                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-[12px] focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-bold placeholder:text-slate-300 shadow-sm"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
             </div>
 
-            {/* Hyper-Compact Responsive View */}
-            <div className="space-y-2">
-                <div className="hidden lg:grid grid-cols-12 gap-2 px-6 text-[9px] font-black text-slate-400 uppercase tracking-[0.1em] opacity-40">
+            {/* Responsive View */}
+            <div className="space-y-3">
+                <div className="hidden lg:grid grid-cols-12 gap-3 px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] opacity-50">
                     <div className="col-span-5">Identity</div>
                     <div className="col-span-2 text-center">Role</div>
                     <div className="col-span-2 text-center">Status</div>
                     <div className="col-span-3 text-right">Activity</div>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                     {filteredUsers.map((user, idx) => (
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.98 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: idx * 0.02 }}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.03 }}
+                            whileHover={{ scale: 1.01, y: -2 }}
                             key={user._id || user.email}
                             onClick={() => handleViewDetails(user)}
-                            className="bg-white group cursor-pointer border border-slate-100 rounded-xl p-3 lg:p-2.5 hover:border-indigo-100 hover:shadow-lg hover:shadow-indigo-500/5 transition-all flex lg:grid lg:grid-cols-12 items-center gap-3 lg:gap-2"
+                            className="bg-white group cursor-pointer border border-slate-100 rounded-2xl p-4 lg:p-3 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-500/10 transition-all flex lg:grid lg:grid-cols-12 items-center gap-4 lg:gap-3"
                         >
-                            <div className="flex-1 lg:col-span-5 flex items-center gap-3">
+                            <div className="flex-1 lg:col-span-5 flex items-center gap-4">
                                 <div className="shrink-0 relative">
-                                    <div className="w-9 h-9 lg:w-8 lg:h-8 rounded-lg bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100 group-hover:border-indigo-100 transition-all">
+                                    <div className="w-11 h-11 lg:w-10 lg:h-10 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100 group-hover:border-indigo-200 group-hover:shadow-md transition-all">
                                         {user.profilePic ? (
                                             <img src={user.profilePic.startsWith('http') ? user.profilePic : `http://localhost:3000${user.profilePic}`} alt="" className="w-full h-full object-cover" />
                                         ) : (
-                                            <FiUser size={14} className="text-slate-300" />
+                                            <FiUser size={16} className="text-slate-300" />
                                         )}
                                     </div>
-                                    <div className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border-2 border-white ${user.lastLogin ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                                    <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${user.lastLogin ? 'bg-emerald-500 shadow-lg shadow-emerald-500/50' : 'bg-slate-300'}`} />
                                 </div>
                                 <div className="min-w-0">
-                                    <div className="text-[12px] font-black text-slate-800 group-hover:text-indigo-600 transition-colors truncate">{user.name}</div>
-                                    <div className="text-[9px] font-bold text-slate-400 truncate opacity-80">{user.email}</div>
+                                    <div className="text-[13px] font-black text-slate-800 group-hover:text-indigo-600 transition-colors truncate">{user.name}</div>
+                                    <div className="text-[10px] font-bold text-slate-400 truncate opacity-80">{user.email}</div>
                                     {/* Mobile Only: Inline Badges */}
-                                    <div className="flex lg:hidden items-center gap-1 mt-1">
+                                    <div className="flex lg:hidden items-center gap-1.5 mt-2">
                                         <RoleBadge role={user.role} />
                                         <StatusBadge status={user.accountStatus} />
                                     </div>
@@ -170,10 +172,10 @@ export default function AdminUsers() {
 
                             <div className="lg:col-span-3 flex items-center justify-end gap-3">
                                 <div className="text-right hidden sm:block">
-                                    <div className="text-[10px] font-black text-slate-700">{formatDate(user.lastLogin)}</div>
+                                    <div className="text-[11px] font-black text-slate-700">{formatDate(user.lastLogin)}</div>
                                 </div>
-                                <div className="p-1.5 bg-slate-50 text-slate-400 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
-                                    <FiChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                                <div className="p-2 bg-slate-50 text-slate-400 rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
+                                    <FiChevronRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
                                 </div>
                             </div>
                         </motion.div>
@@ -181,9 +183,10 @@ export default function AdminUsers() {
                 </div>
 
                 {filteredUsers.length === 0 && (
-                    <div className="py-20 text-center bg-slate-50/20 rounded-[30px] border-2 border-dashed border-slate-100">
-                        <FiSearch size={20} className="mx-auto mb-3 text-slate-200" />
-                        <h3 className="text-xs font-black text-slate-800">No Matches</h3>
+                    <div className="py-24 text-center bg-slate-50/30 rounded-[40px] border-2 border-dashed border-slate-200">
+                        <FiSearch size={28} className="mx-auto mb-4 text-slate-300" />
+                        <h3 className="text-sm font-black text-slate-800">No users found</h3>
+                        <p className="text-[11px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Try adjusting your search</p>
                     </div>
                 )}
             </div>
@@ -203,16 +206,16 @@ export default function AdminUsers() {
                             initial={{ scale: 0.95, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.95, opacity: 0 }}
-                            className="relative w-full max-w-sm bg-white rounded-[24px] shadow-2xl overflow-hidden p-1.5"
+                            className="relative w-full max-w-md bg-white rounded-[28px] shadow-2xl overflow-hidden p-2"
                         >
-                            <div className="bg-slate-50/50 rounded-[20px] overflow-hidden flex flex-col">
+                            <div className="bg-slate-50/50 rounded-[24px] overflow-hidden flex flex-col">
                                 {/* Compact Header */}
-                                <div className="p-6 pb-4 text-center space-y-4">
-                                    <div className="mx-auto w-16 h-16 rounded-[20px] bg-white p-1 border border-slate-100 shadow-xl overflow-hidden relative">
+                                <div className="p-7 pb-5 text-center space-y-4">
+                                    <div className="mx-auto w-20 h-20 rounded-[24px] bg-white p-1.5 border border-slate-100 shadow-xl overflow-hidden relative">
                                         {selectedUser.profilePic ? (
-                                            <img src={selectedUser.profilePic.startsWith('http') ? selectedUser.profilePic : `http://localhost:3000${selectedUser.profilePic}`} alt="" className="w-full h-full object-cover rounded-[16px]" />
+                                            <img src={selectedUser.profilePic.startsWith('http') ? selectedUser.profilePic : `http://localhost:3000${selectedUser.profilePic}`} alt="" className="w-full h-full object-cover rounded-[20px]" />
                                         ) : (
-                                            <div className="w-full h-full bg-slate-50 flex items-center justify-center text-indigo-300 text-xl font-black">
+                                            <div className="w-full h-full bg-slate-50 flex items-center justify-center text-indigo-300 text-2xl font-black">
                                                 {selectedUser.name?.[0]?.toUpperCase()}
                                             </div>
                                         )}
@@ -237,45 +240,45 @@ export default function AdminUsers() {
                                 </div>
 
                                 {/* Compact Grid */}
-                                <div className="p-6 pt-0 grid grid-cols-2 gap-2">
+                                <div className="p-7 pt-0 grid grid-cols-2 gap-3">
                                     <InfoBlock
-                                        icon={<FiMail size={10} className="text-indigo-500" />}
+                                        icon={<FiMail size={11} className="text-indigo-500" />}
                                         label="Email"
                                         value={selectedUser.email}
                                     />
                                     <InfoBlock
-                                        icon={<FiPhone size={10} className="text-cyan-500" />}
+                                        icon={<FiPhone size={11} className="text-cyan-500" />}
                                         label="Phone"
                                         value={selectedUser.number}
                                     />
                                     <InfoBlock
-                                        icon={<FiBriefcase size={10} className="text-violet-500" />}
+                                        icon={<FiBriefcase size={11} className="text-violet-500" />}
                                         label="Sector"
                                         value={selectedUser.businessType}
                                     />
                                     <InfoBlock
-                                        icon={<FiMapPin size={10} className="text-rose-500" />}
+                                        icon={<FiMapPin size={11} className="text-rose-500" />}
                                         label="Address"
                                         value={selectedUser.address}
                                     />
                                     <InfoBlock
-                                        icon={<FiCalendar size={10} className="text-emerald-500" />}
+                                        icon={<FiCalendar size={11} className="text-emerald-500" />}
                                         label="Joined"
                                         value={formatDate(selectedUser.createdAt)}
                                     />
                                     <InfoBlock
-                                        icon={<FiClock size={10} className="text-amber-500" />}
+                                        icon={<FiClock size={11} className="text-amber-500" />}
                                         label="Active"
                                         value={selectedUser.lastLogin ? new Date(selectedUser.lastLogin).toLocaleDateString() : "Never"}
                                     />
                                 </div>
 
                                 {/* Slim Footer */}
-                                <div className="px-6 py-4 flex items-center justify-between">
-                                    <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Admin Control</span>
+                                <div className="px-7 py-5 flex items-center justify-between">
+                                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Admin Control</span>
                                     <button
                                         onClick={() => setIsModalOpen(false)}
-                                        className="px-5 py-1.5 bg-slate-900 text-white text-[9px] font-black rounded-lg hover:bg-black transition-all shadow-md"
+                                        className="px-6 py-2 bg-slate-900 text-white text-[10px] font-black rounded-xl hover:bg-black transition-all shadow-lg shadow-slate-900/20"
                                     >
                                         CLOSE
                                     </button>
@@ -291,12 +294,12 @@ export default function AdminUsers() {
 
 function InfoBlock({ icon, label, value }) {
     return (
-        <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm space-y-1">
+        <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm space-y-1.5 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-1.5">
                 {icon}
-                <span className="text-[7px] font-black text-slate-300 uppercase tracking-widest">{label}</span>
+                <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{label}</span>
             </div>
-            <div className="text-[10px] font-bold text-slate-700 truncate" title={value}>{value || "—"}</div>
+            <div className="text-[11px] font-bold text-slate-700 truncate" title={value}>{value || "—"}</div>
         </div>
     );
 }

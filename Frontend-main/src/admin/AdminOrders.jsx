@@ -69,12 +69,13 @@ export default function AdminOrders() {
     };
 
     if (isLoading) return (
-        <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
             <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="h-6 w-6 border-2 border-indigo-600 border-t-transparent rounded-full"
+                className="h-8 w-8 border-3 border-indigo-600 border-t-transparent rounded-full"
             />
+            <p className="text-sm font-bold text-slate-400">Loading orders...</p>
         </div>
     );
 
@@ -86,7 +87,7 @@ export default function AdminOrders() {
                     <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                         Order <span className="text-indigo-600">Management</span>
                     </h1>
-                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">Track & Process Deliveries</p>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">Total: {orders.length} orders</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
@@ -102,12 +103,12 @@ export default function AdminOrders() {
                         </select>
                     </div>
 
-                    <div className="relative group min-w-[240px]">
-                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[12px] group-focus-within:text-indigo-600 transition-colors" />
+                    <div className="relative group min-w-[260px]">
+                        <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[13px] group-focus-within:text-indigo-600 transition-colors" />
                         <input
                             type="text"
                             placeholder="Find by Order ID or Email..."
-                            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-[11px] font-bold placeholder:text-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all"
+                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-[12px] font-bold placeholder:text-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all shadow-sm"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -121,48 +122,50 @@ export default function AdminOrders() {
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.02 }}
+                        transition={{ delay: idx * 0.03 }}
+                        whileHover={{ scale: 1.01, y: -2 }}
                         key={order._id}
-                        className="bg-white border border-slate-100 rounded-[20px] p-4 hover:shadow-lg hover:shadow-indigo-500/5 transition-all flex flex-col md:flex-row md:items-center gap-4 group"
+                        className="bg-white border border-slate-100 rounded-[20px] p-5 hover:shadow-xl hover:shadow-indigo-500/10 hover:border-indigo-200 transition-all flex flex-col md:flex-row md:items-center gap-4 group"
                     >
                         <div className="flex items-center gap-4 flex-1">
-                            <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 shrink-0">
-                                <FiBox className="text-slate-400" />
+                            <div className="w-14 h-14 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 shrink-0 group-hover:border-indigo-200 transition-colors">
+                                <FiBox className="text-slate-400" size={20} />
                             </div>
                             <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-[11px] font-black text-slate-800 font-mono">#{order._id.substring(order._id.length - 8)}</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${STATUS_COLORS[order.status] || "bg-slate-50 text-slate-500"}`}>
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <span className="text-[12px] font-black text-slate-800 font-mono">#{order._id.substring(order._id.length - 8)}</span>
+                                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${STATUS_COLORS[order.status] || "bg-slate-50 text-slate-500"}`}>
                                         {order.status}
                                     </span>
                                 </div>
-                                <div className="text-[10px] font-bold text-slate-400 flex items-center gap-2">
-                                    <span className="flex items-center gap-1"><FiUser size={10} /> {order.userId?.email || "Unknown User"}</span>
+                                <div className="text-[11px] font-bold text-slate-400 flex items-center gap-2">
+                                    <span className="flex items-center gap-1"><FiUser size={11} /> {order.userId?.email || "Unknown User"}</span>
                                     <span className="w-1 h-1 rounded-full bg-slate-300" />
-                                    <span className="flex items-center gap-1"><FiCalendar size={10} /> {new Date(order.createdAt).toLocaleDateString()}</span>
+                                    <span className="flex items-center gap-1"><FiCalendar size={11} /> {new Date(order.createdAt).toLocaleDateString()}</span>
                                 </div>
                             </div>
                         </div>
 
                         <div className="flex items-center justify-between md:justify-end gap-6 md:w-1/3">
                             <div className="text-right">
-                                <div className="text-[13px] font-black text-slate-800">${order.totalAmount}</div>
-                                <div className="text-[9px] font-bold text-slate-400">{order.items?.length || 0} Items</div>
+                                <div className="text-[15px] font-black text-slate-800">${order.totalAmount}</div>
+                                <div className="text-[10px] font-bold text-slate-400">{order.items?.length || 0} Items</div>
                             </div>
                             <button
                                 onClick={() => openEdit(order)}
-                                className="p-2 bg-slate-50 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                                className="p-2.5 bg-slate-50 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm hover:shadow-md"
                             >
-                                <FiEdit3 size={16} />
+                                <FiEdit3 size={18} />
                             </button>
                         </div>
                     </motion.div>
                 ))}
 
                 {filteredOrders.length === 0 && (
-                    <div className="py-20 text-center bg-slate-50/20 rounded-[30px] border-2 border-dashed border-slate-100">
-                        <FiBox size={24} className="mx-auto mb-3 text-slate-200" />
-                        <h3 className="text-sm font-black text-slate-800">No Orders Found</h3>
+                    <div className="py-24 text-center bg-slate-50/30 rounded-[40px] border-2 border-dashed border-slate-200">
+                        <FiBox size={32} className="mx-auto mb-4 text-slate-300" />
+                        <h3 className="text-sm font-black text-slate-800">No orders found</h3>
+                        <p className="text-[11px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Try adjusting your filters</p>
                     </div>
                 )}
             </div>
@@ -182,15 +185,15 @@ export default function AdminOrders() {
                             initial={{ scale: 0.95, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                            className="relative w-full max-w-sm bg-white rounded-[32px] shadow-2xl overflow-hidden p-6"
+                            className="relative w-full max-w-sm bg-white rounded-[32px] shadow-2xl overflow-hidden p-7"
                         >
                             <h2 className="text-lg font-black text-slate-900 mb-6">Update Order Status</h2>
 
                             <div className="space-y-4">
-                                <div className="space-y-1">
+                                <div className="space-y-1.5">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Order Status</label>
                                     <select
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all cursor-pointer"
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all cursor-pointer shadow-sm"
                                         value={selectedOrder.status}
                                         onChange={(e) => updateStatusMutation.mutate({ id: selectedOrder._id, status: e.target.value })}
                                     >
@@ -200,10 +203,10 @@ export default function AdminOrders() {
                                     </select>
                                 </div>
 
-                                <div className="space-y-1">
+                                <div className="space-y-1.5">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Payment Status</label>
                                     <select
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all cursor-pointer"
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all cursor-pointer shadow-sm"
                                         value={selectedOrder.paymentStatus}
                                         onChange={(e) => updateStatusMutation.mutate({ id: selectedOrder._id, paymentStatus: e.target.value })}
                                     >
@@ -216,7 +219,7 @@ export default function AdminOrders() {
 
                             <button
                                 onClick={() => setIsEditOpen(false)}
-                                className="w-full mt-6 py-3 bg-slate-900 text-white rounded-xl text-[11px] font-black uppercase tracking-wider hover:bg-black transition-all shadow-xl shadow-slate-900/10"
+                                className="w-full mt-6 py-3 bg-slate-900 text-white rounded-xl text-[12px] font-black uppercase tracking-wider hover:bg-black transition-all shadow-xl shadow-slate-900/20"
                             >
                                 Done
                             </button>

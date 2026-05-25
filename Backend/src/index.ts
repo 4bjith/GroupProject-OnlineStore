@@ -15,6 +15,7 @@ import PaymentRouter from './router/Payment.js';
 import TemplateRouter from './router/template.js';
 import orderRouter from './router/Order.js';
 import offerRouter from './router/offer.js';
+import reviewRouter from './router/Review.js';
 
 
 
@@ -55,6 +56,7 @@ app.use(PaymentRouter)
 app.use(TemplateRouter)
 app.use(orderRouter)
 app.use(offerRouter);
+app.use(reviewRouter);
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
