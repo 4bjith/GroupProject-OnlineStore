@@ -7,6 +7,17 @@ dotenv.config();
 
 export const LoginCheck = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
+        // 0. Check for API Key
+        const apiKeyHeader = req.headers['x-api-key'];
+        if (apiKeyHeader && process.env.API_KEY && apiKeyHeader === process.env.API_KEY) {
+            req.user = { 
+                id: 'api-key-system',
+                email: 'system@apikey.local',
+                role: 'admin' 
+            };
+            return next();
+        }
+
         // 1. Get token from cookies or Authorization header
         let token = req.cookies.token;
 
