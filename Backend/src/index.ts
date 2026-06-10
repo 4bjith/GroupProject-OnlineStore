@@ -4,8 +4,9 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
 import logger from './logger.js';
-
-
+import swaggerAutogen from 'swagger-autogen';
+import swaggerUi from 'swagger-ui-express';
+import fs from 'fs';
 
 import UserRouter from './router/User.js';
 import storeRouter from './router/Store.js';
@@ -58,29 +59,77 @@ app.use(orderRouter)
 app.use(offerRouter);
 app.use(reviewRouter);
 
-// Error handling middleware
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  logger.error('Server error', {
-    error: err.message,
-    stack: err.stack,
-    path: req.path,
-    method: req.method,
+
+
+// Swagger setup
+
+const doc = {
+  info: {
+    title: 'Group Project API',
+    description: 'API Documentation',
+    version: '1.0.0',
+  },
+  openapi: '3.0.0',
+  servers: [
+    {
+      url: `http://localhost:${PORT}`,
+    },
+  ],
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+      apiKeyAuth: {
+        type: 'apiKey',
+        in: 'header',
+        name: 'X-API-KEY',
+        description: 'API Key for authentication'
+      }
+    }
+  },
+  security: [{ bearerAuth: [] }, { apiKeyAuth: [] }]
+};
+
+const outputFile = './openapi.json';
+const endpointsFiles = ['./src/index.ts'];
+
+swaggerAutogen({ openapi: '3.0.0' })(outputFile, endpointsFiles, doc).then((res: any) => {
+  const swaggerDocument = res.data;
+  
+  // Expose OpenAPI JSON
+  app.get('/openapi.json', (req, res) => res.json(swaggerDocument));
+  
+  // Expose Swagger UI
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+  // Error handling middleware
+  app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    logger.error('Server error', {
+      error: err.message,
+      stack: err.stack,
+      path: req.path,
+      method: req.method,
+    });
+    res.status(err.status || 500).json({
+      message: err.message || 'Internal Server Error',
+    });
   });
-  res.status(err.status || 500).json({
-    message: err.message || 'Internal Server Error',
+
+  // 404 handler
+  app.use((req, res) => {
+    logger.warn('Route not found', { path: req.path, method: req.method });
+    res.status(404).json({ message: 'Route not found' });
+  });
+
+  app.listen(PORT, () => {
+    logger.info(`🚀 Server is running on http://localhost:${PORT}`, {
+      port: PORT,
+      env: process.env.NODE_ENV || 'development',
+    });
+    logger.info(`📄 Swagger UI is available at http://localhost:${PORT}/api-docs`);
+    logger.info(`📄 OpenAPI JSON is available at http://localhost:${PORT}/openapi.json`);
   });
 });
-
-// 404 handler
-app.use((req, res) => {
-  logger.warn('Route not found', { path: req.path, method: req.method });
-  res.status(404).json({ message: 'Route not found' });
-});
-
-app.listen(PORT, () => {
-  logger.info(`🚀 Server is running on http://localhost:${PORT}`, {
-    port: PORT,
-    env: process.env.NODE_ENV || 'development',
-  });
-});
-
